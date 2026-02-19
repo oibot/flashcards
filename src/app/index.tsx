@@ -1,10 +1,13 @@
 import { Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
+import { useTranslation } from "react-i18next"
 
 export default function Page() {
+  const { t } = useTranslation()
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Page</Text>
+      <Text style={styles.text}>{t("Page")}</Text>
     </View>
   )
 }
