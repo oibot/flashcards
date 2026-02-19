@@ -1,7 +1,6 @@
 import { FlatList, Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 import { decks, Deck } from "../data/decks"
-import { SafeAreaView } from "react-native-safe-area-context"
 
 export default function DecksScene() {
   const renderItem = ({ item }: { item: Deck }) => {
@@ -17,23 +16,17 @@ export default function DecksScene() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={decks}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        contentInsetAdjustmentBehavior="automatic"
-        renderItem={renderItem}
-      />
-    </SafeAreaView>
+    <FlatList
+      data={decks}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={styles.listContent}
+      contentInsetAdjustmentBehavior="automatic"
+      renderItem={renderItem}
+    />
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
   listContent: {
     flexGrow: 1,
     backgroundColor: theme.colors.background,
