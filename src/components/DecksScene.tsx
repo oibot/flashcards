@@ -1,0 +1,70 @@
+import { FlatList, Text, View } from "react-native"
+import { StyleSheet } from "react-native-unistyles"
+import { decks, Deck } from "../data/decks"
+import { SafeAreaView } from "react-native-safe-area-context"
+
+export default function DecksScene() {
+  const renderItem = ({ item }: { item: Deck }) => {
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardCount}>{item.cards} cards</Text>
+        </View>
+        <Text style={styles.cardDescription}>{item.description}</Text>
+      </View>
+    )
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={decks}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        contentInsetAdjustmentBehavior="automatic"
+        renderItem={renderItem}
+      />
+    </SafeAreaView>
+  )
+}
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  listContent: {
+    flexGrow: 1,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 32,
+  },
+  card: {
+    borderColor: theme.colors.primary,
+    padding: 16,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: theme.colors.primary,
+    flex: 1,
+  },
+  cardCount: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    opacity: 0.7,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: theme.colors.primary,
+    opacity: 0.8,
+  },
+}))
