@@ -1,4 +1,4 @@
-import DecksScene from "@/components/DecksScene"
+import DecksScene from "@/components/home/decks-scene"
 
 export default function Page() {
   return <DecksScene />

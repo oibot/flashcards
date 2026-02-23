@@ -1,6 +1,6 @@
 import { FlatList, Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
-import { decks, Deck } from "../data/decks"
+import { decks, Deck } from "@/data/decks"
 
 export default function DecksScene() {
   const renderItem = ({ item }: { item: Deck }) => {
