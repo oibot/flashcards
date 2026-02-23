@@ -1,9 +1,15 @@
-import { Link, Stack } from "expo-router"
-import { Pressable, Text } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
-import { SymbolView } from "expo-symbols"
+import { Stack, useRouter } from "expo-router"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import HeaderButtonIcon from "@/components/UI/header-button-icon"
 
 export default function Layout() {
+  const { theme } = useUnistyles()
+  const { push } = useRouter()
+
+  const handleAddDeck = () => {
+    push("/(home)/new-deck")
+  }
+
   return (
     <Stack
       screenOptions={{
@@ -18,11 +24,12 @@ export default function Layout() {
         options={{
           title: "Decks",
           headerRight: () => (
-            <Link href="/(home)/new-deck" asChild>
-              <Pressable>
-                <SymbolView name="plus" />
-              </Pressable>
-            </Link>
+            <HeaderButtonIcon
+              icon="plus"
+              accessibilityLabel="Add new deck"
+              onPress={handleAddDeck}
+              tintColor={theme.colors.primary}
+            />
           ),
         }}
       />
@@ -31,6 +38,8 @@ export default function Layout() {
         options={{
           title: "New Deck",
           presentation: "formSheet",
+          sheetAllowedDetents: [0.33],
+          sheetInitialDetentIndex: 0,
         }}
       />
     </Stack>

@@ -4,6 +4,8 @@ const lightTheme = {
   colors: {
     primary: "black",
     background: "white",
+    accent: "#0A84FF",
+    chromeMuted: "rgba(0, 0, 0, 0.08)",
   },
 }
 
@@ -11,6 +13,8 @@ const otherTheme = {
   colors: {
     primary: "white",
     background: "black",
+    accent: "#0A84FF",
+    chromeMuted: "rgba(255, 255, 255, 0.12)",
   },
 }
 
