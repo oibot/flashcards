@@ -38,8 +38,9 @@ export default function Layout() {
         options={{
           title: "New Deck",
           presentation: "formSheet",
-          sheetAllowedDetents: [0.33],
+          sheetAllowedDetents: [0.5],
           sheetInitialDetentIndex: 0,
+          headerTransparent: false,
         }}
       />
     </Stack>
