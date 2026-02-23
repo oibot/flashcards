@@ -12,6 +12,7 @@ const resources = {
 
 const lang = (Localization.getLocales()[0].languageCode ?? "en").toLowerCase()
 
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   resources,
   lng: resources[lang as keyof typeof resources] ? lang : "en",
