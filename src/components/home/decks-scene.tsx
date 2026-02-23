@@ -1,8 +1,11 @@
 import { FlatList, Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
-import { decks, Deck } from "@/data/decks"
+import type { Deck } from "@/data/decks"
+import { useDecks } from "@/contexts/decks-context"
 
 export default function DecksScene() {
+  const { decks } = useDecks()
+
   const renderItem = ({ item }: { item: Deck }) => {
     return (
       <View style={styles.card}>

@@ -4,10 +4,12 @@ import { Text, TextInput, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import HeaderButtonIcon from "@/components/UI/header-button-icon"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useDecks } from "@/contexts/decks-context"
 
 export default function NewDeck() {
   const { theme } = useUnistyles()
   const { back } = useRouter()
+  const { addDeck } = useDecks()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
 
@@ -16,6 +18,9 @@ export default function NewDeck() {
   }
 
   const handleSave = () => {
+    const trimmedName = name.trim()
+    if (!trimmedName) return
+    addDeck({ title: trimmedName, description })
     back()
   }
 
