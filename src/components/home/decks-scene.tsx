@@ -1,33 +1,13 @@
-import { FlatList, Text, View } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
-import type { Deck } from "@/domain/deck"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { useDecks } from "@/hooks/useDecks"
+import DecksList from "@/components/home/decks-list"
 
 export default function DecksScene() {
   const { decks } = useDecks()
 
-  const renderItem = ({ item }: { item: Deck }) => {
-    const cardCount = item.cardCount ?? "—"
-
-    return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardCount}>{cardCount} cards</Text>
-        </View>
-        <Text style={styles.cardDescription}>{item.description ?? ""}</Text>
-      </View>
-    )
-  }
 
   return (
-    <FlatList
-      data={decks}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContent}
-      contentInsetAdjustmentBehavior="automatic"
-      renderItem={renderItem}
-    />
+    <DecksList decks={decks}/>
   )
 }
 
