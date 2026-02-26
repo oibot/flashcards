@@ -27,7 +27,7 @@
               ]
               # Android/iOS extras per platform:
               ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-                temurin-jdk
+                jdk17
                 gradle
                 android-tools
                 (androidenv.androidSdk {
@@ -40,10 +40,12 @@
               ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
                 cocoapods
                 fastlane
+                jdk17
               ];
 
               shellHook = ''
                 export PYTHON=${pkgs.python3}/bin/python3
+                export JAVA_HOME="${pkgs.jdk17}"
 
                 # Point to full Xcode, not CommandLineTools
                 export DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
