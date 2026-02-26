@@ -1,10 +1,10 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs"
 import "@/locales/i18n"
-import { DecksProvider } from "@/contexts/decks-context"
+import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
   return (
-    <DecksProvider>
+    <DbProvider>
       <NativeTabs>
         <NativeTabs.Trigger name="(home)">
           <NativeTabs.Trigger.Label>Decks</NativeTabs.Trigger.Label>
@@ -14,6 +14,6 @@ export default function Layout() {
           />
         </NativeTabs.Trigger>
       </NativeTabs>
-    </DecksProvider>
+    </DbProvider>
   )
 }
