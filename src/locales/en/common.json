@@ -1,3 +1,9 @@
 {
-  "Page": "Page"
+  "reviewPrep": {
+    "newCardAccessibilityLabel": "Create new card",
+    "startReview": "Start Review"
+  },
+  "tabs": {
+    "review": "Review"
+  }
 }

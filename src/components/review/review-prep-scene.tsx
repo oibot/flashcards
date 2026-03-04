@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native"
 import { Stack } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import HeaderButtonIcon from "@/components/UI/header-button-icon"
 
@@ -10,6 +11,7 @@ type Props = {
 
 export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
   const { theme } = useUnistyles()
+  const { t } = useTranslation()
 
   return (
     <>
@@ -19,7 +21,7 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
             <HeaderButtonIcon
               icon="plus"
               tintColor={theme.colors.accent}
-              accessibilityLabel="Create new card"
+              accessibilityLabel={t("reviewPrep.newCardAccessibilityLabel")}
               onPress={onNewCard}
             />
           ),
@@ -27,7 +29,7 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
       />
       <View style={styles.container}>
         <Pressable onPress={onReviewStart} style={styles.button}>
-          <Text style={styles.buttonLabel}>Start Review</Text>
+          <Text style={styles.buttonLabel}>{t("reviewPrep.startReview")}</Text>
         </Pressable>
       </View>
     </>

@@ -1,3 +1,9 @@
 {
-  "Page": "Seite"
+  "reviewPrep": {
+    "newCardAccessibilityLabel": "Neue Karte erstellen",
+    "startReview": "Wiederholung starten"
+  },
+  "tabs": {
+    "review": "Lernen"
+  }
 }
