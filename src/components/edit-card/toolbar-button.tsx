@@ -45,11 +45,7 @@ export default function ToolbarButton({
       onPress={onPress}
     >
       {icon ? (
-        <FontAwesome6
-          name={icon}
-          size={18}
-          color={iconColor}
-        />
+        <FontAwesome6 name={icon} size={18} color={iconColor} />
       ) : (
         <Text
           style={[

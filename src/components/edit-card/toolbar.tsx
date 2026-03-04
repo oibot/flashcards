@@ -52,15 +52,16 @@ export type ToolbarProps = {
   onToggleStyle: (item: ToolbarItem) => void
 }
 
-export const stateKeyByItemName: Record<ToolbarItem["name"], ToolbarStyleKey> = {
-  bold: "bold",
-  italic: "italic",
-  underline: "underline",
-  strikethrough: "strikeThrough",
-  "heading-1": "h1",
-  "heading-2": "h2",
-  "heading-3": "h3",
-}
+export const stateKeyByItemName: Record<ToolbarItem["name"], ToolbarStyleKey> =
+  {
+    bold: "bold",
+    italic: "italic",
+    underline: "underline",
+    strikethrough: "strikeThrough",
+    "heading-1": "h1",
+    "heading-2": "h2",
+    "heading-3": "h3",
+  }
 
 export default function Toolbar({
   activeStyles,

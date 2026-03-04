@@ -81,7 +81,12 @@ const getSharedStylesFromState = (
 }
 
 const hasMeaningfulHtmlContent = (html: string) => {
-  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim().length > 0
+  return (
+    html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim().length > 0
+  )
 }
 
 export default function EditCard() {
@@ -112,14 +117,12 @@ export default function EditCard() {
       focusedEditor === "back" ? backStylesState : frontStylesState
     const currentStyles = getSharedStylesFromState(targetState)
 
-    ;(Object.keys(sharedStyles) as Array<ToolbarStyleKey>).forEach(
-      (styleKey) => {
-        if (currentStyles[styleKey] !== sharedStyles[styleKey]) {
-          toggleEditorStyle(targetRef, styleKey)
-        }
-      },
-    )
-  }, [focusedEditor])
+    ;(Object.keys(sharedStyles) as ToolbarStyleKey[]).forEach((styleKey) => {
+      if (currentStyles[styleKey] !== sharedStyles[styleKey]) {
+        toggleEditorStyle(targetRef, styleKey)
+      }
+    })
+  }, [backStylesState, focusedEditor, frontStylesState, sharedStyles])
 
   const handleEditorFocus = (editor: EditorSide) => {
     setFocusedEditor(editor)

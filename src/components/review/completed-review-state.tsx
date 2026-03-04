@@ -6,10 +6,7 @@ type Props = {
   onClose: () => void
 }
 
-export default function CompletedReviewState({
-  cardCount,
-  onClose,
-}: Props) {
+export default function CompletedReviewState({ cardCount, onClose }: Props) {
   return (
     <View style={styles.centerContent}>
       <Text style={styles.title}>Review complete</Text>
