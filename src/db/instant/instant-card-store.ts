@@ -1,8 +1,9 @@
 import { id } from "@instantdb/react-native"
-import type { Card, NewCardInput } from "@/domain/card"
+
 import type { CardStore } from "@/db/card-store"
 import { db } from "@/db/instant/db"
 import { toTimestamp } from "@/db/instant/instant-utils"
+import type { Card, NewCardInput } from "@/domain/card"
 
 const toCard = (card: {
   id: string

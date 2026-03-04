@@ -1,7 +1,7 @@
+import { SymbolView } from "expo-symbols"
 import type { ComponentProps } from "react"
 import type { StyleProp, ViewStyle } from "react-native"
 import { Pressable, StyleSheet } from "react-native"
-import { SymbolView } from "expo-symbols"
 
 type HeaderButtonIconProps = {
   icon: ComponentProps<typeof SymbolView>["name"]

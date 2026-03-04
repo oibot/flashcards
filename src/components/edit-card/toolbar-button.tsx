@@ -1,6 +1,6 @@
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6"
 import { Pressable, Text } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6"
 
 type ToolbarButtonTextProps = {
   text: string

@@ -1,7 +1,8 @@
 import { ScrollView, View } from "react-native"
-import ToolbarButton from "./toolbar-button"
-import { StyleSheet } from "react-native-unistyles"
 import type { OnChangeStateEvent } from "react-native-enriched"
+import { StyleSheet } from "react-native-unistyles"
+
+import ToolbarButton from "./toolbar-button"
 
 export const STYLE_ITEMS = [
   {

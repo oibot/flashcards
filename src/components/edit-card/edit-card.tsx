@@ -1,24 +1,26 @@
-import { EnrichedTextInput } from "react-native-enriched"
+import { Stack, useRouter } from "expo-router"
+import { useEffect, useRef, useState } from "react"
+import { Text, TextInput, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
 } from "react-native-enriched"
-import { useEffect, useRef, useState } from "react"
-import { View, Text, TextInput } from "react-native"
+import { EnrichedTextInput } from "react-native-enriched"
 import {
   KeyboardAwareScrollView,
   KeyboardToolbar,
 } from "react-native-keyboard-controller"
-import { Stack, useRouter } from "expo-router"
-import Toolbar, {
-  type SharedToolbarState,
-  type ToolbarItem,
-  type ToolbarStyleKey,
-  stateKeyByItemName,
-} from "./toolbar"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
 import HeaderButtonIcon from "@/components/UI/header-button-icon"
 import { useCards } from "@/hooks/useCards"
+
+import Toolbar, {
+  type SharedToolbarState,
+  stateKeyByItemName,
+  type ToolbarItem,
+  type ToolbarStyleKey,
+} from "./toolbar"
 
 type EditorSide = "front" | "back"
 

@@ -1,11 +1,12 @@
+import { Stack, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, Text, View } from "react-native"
-import { Stack, useRouter } from "expo-router"
-import { useUnistyles, StyleSheet } from "react-native-unistyles"
-import HeaderButtonIcon from "@/components/UI/header-button-icon"
-import { useCards } from "@/hooks/useCards"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
+import HeaderButtonIcon from "@/components/UI/header-button-icon"
+import { useCards } from "@/hooks/useCards"
 
 export default function ReviewSessionScene() {
   const { theme } = useUnistyles()
