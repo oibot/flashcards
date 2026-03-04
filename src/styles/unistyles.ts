@@ -95,7 +95,9 @@ const typography = {
 const lightTheme = {
   colors: {
     primary: "black",
+    secondary: "#6B7280",
     background: "white",
+    secondaryBackground: "#F3F4F6",
     accent: "#0A84FF",
     chromeMuted: "rgba(0, 0, 0, 0.08)",
   },
@@ -105,7 +107,9 @@ const lightTheme = {
 const otherTheme = {
   colors: {
     primary: "white",
+    secondary: "#9CA3AF",
     background: "black",
+    secondaryBackground: "#1F2937",
     accent: "#0A84FF",
     chromeMuted: "rgba(255, 255, 255, 0.12)",
   },

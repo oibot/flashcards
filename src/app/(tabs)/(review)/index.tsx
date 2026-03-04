@@ -1,18 +1,12 @@
-import { Text, View } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import ReviewScene from "@/components/review/review-scene"
+import { useRouter } from "expo-router"
 
 export default function Page() {
-  return (
-    <View style={styles.container}>
-      <Text>Training</Text>
-    </View>
-  )
-}
+  const router = useRouter()
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-})
+  function handleNewCard() {
+    router.push("/new-card")
+  }
+
+  return <ReviewScene onNewCard={handleNewCard} />
+}
