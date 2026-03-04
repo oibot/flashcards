@@ -4,8 +4,11 @@ import type {
   OnChangeStateEvent,
 } from "react-native-enriched"
 import { useEffect, useRef, useState } from "react"
-import { View, Text, ScrollView, TextInput } from "react-native"
-import { KeyboardToolbar } from "react-native-keyboard-controller"
+import { View, Text, TextInput } from "react-native"
+import {
+  KeyboardAwareScrollView,
+  KeyboardToolbar,
+} from "react-native-keyboard-controller"
 import { Stack, useRouter } from "expo-router"
 import Toolbar, {
   type SharedToolbarState,
@@ -204,11 +207,13 @@ export default function EditCard() {
           ),
         }}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.container}
+        bottomOffset={44}
+        contentContainerStyle={styles.contentContainer}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View style={styles.contentContainer}>
+        <View style={styles.fields}>
           <View style={styles.field}>
             <Text style={styles.label}>Tag</Text>
             <TextInput
@@ -248,7 +253,7 @@ export default function EditCard() {
             />
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <KeyboardToolbar>
         <KeyboardToolbar.Content>
@@ -270,7 +275,10 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background,
   },
   contentContainer: {
+    flexGrow: 1,
     padding: 16,
+  },
+  fields: {
     gap: 12,
     backgroundColor: theme.colors.background,
   },
