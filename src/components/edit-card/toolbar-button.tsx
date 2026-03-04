@@ -1,5 +1,5 @@
 import { Pressable, Text } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6"
 
 type ToolbarButtonTextProps = {
@@ -27,6 +27,13 @@ export default function ToolbarButton({
   isDisabled,
   onPress,
 }: ToolbarButtonProps) {
+  const { theme } = useUnistyles()
+  const iconColor = isDisabled
+    ? theme.colors.secondary
+    : isActive
+      ? theme.colors.background
+      : theme.colors.primary
+
   return (
     <Pressable
       style={[
@@ -41,16 +48,24 @@ export default function ToolbarButton({
         <FontAwesome6
           name={icon}
           size={18}
-          color={isDisabled ? "rgba(255, 255, 255, 0.45)" : "white"}
+          color={iconColor}
         />
       ) : (
-        <Text style={styles.text}>{text}</Text>
+        <Text
+          style={[
+            styles.text,
+            isActive && styles.textActive,
+            isDisabled && styles.textDisabled,
+          ]}
+        >
+          {text}
+        </Text>
       )}
     </Pressable>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     justifyContent: "center",
     alignItems: "center",
@@ -59,18 +74,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderCurve: "continuous",
-    backgroundColor: "rgba(0, 26, 114, 0.8)",
+    backgroundColor: theme.colors.chromeMuted,
   },
   containerActive: {
-    backgroundColor: "rgb(0, 26, 114)",
+    backgroundColor: theme.colors.accent,
   },
   containerDisabled: {
-    backgroundColor: "rgb(0, 26, 114)",
-    opacity: 0.3,
+    opacity: 0.45,
   },
   text: {
-    color: "white",
+    color: theme.colors.primary,
     fontSize: 15,
     fontWeight: "600",
   },
-})
+  textActive: {
+    color: theme.colors.background,
+  },
+  textDisabled: {
+    color: theme.colors.secondary,
+  },
+}))

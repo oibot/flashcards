@@ -26,8 +26,8 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
         }}
       />
       <View style={styles.container}>
-        <Pressable onPress={onReviewStart}>
-          <Text>Start Review</Text>
+        <Pressable onPress={onReviewStart} style={styles.button}>
+          <Text style={styles.buttonLabel}>Start Review</Text>
         </Pressable>
       </View>
     </>
@@ -40,5 +40,18 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.background,
+  },
+  button: {
+    minHeight: 52,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    backgroundColor: theme.colors.accent,
+  },
+  buttonLabel: {
+    ...theme.typography.styles.headline,
+    color: theme.colors.background,
   },
 }))
