@@ -5,10 +5,7 @@ export default function Layout() {
     <NativeTabs>
       <NativeTabs.Trigger name="(review)">
         <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf="square.stack.3d.up.fill"
-          md="collections"
-        />
+        <NativeTabs.Trigger.Icon sf="rectangle.on.rectangle" md="collections" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
