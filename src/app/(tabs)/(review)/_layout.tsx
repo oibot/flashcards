@@ -23,6 +23,10 @@ export default function Layout() {
           headerTitleStyle: styles.headerTitle(theme),
         }}
       />
+      <Stack.Screen
+        name="review"
+        options={{ presentation: "fullScreenModal" }}
+      ></Stack.Screen>
     </Stack>
   )
 }

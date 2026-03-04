@@ -4,7 +4,7 @@ export default function Layout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="(review)">
-        <NativeTabs.Trigger.Label>Training</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Review</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf="square.stack.3d.up.fill"
           md="collections"
