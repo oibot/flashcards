@@ -1,13 +1,14 @@
-import { Text, View } from "react-native"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { Pressable, Text, View } from "react-native"
 import { Stack } from "expo-router"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import HeaderButtonIcon from "@/components/UI/header-button-icon"
 
 type Props = {
   onNewCard: () => void
+  onReviewStart: () => void
 }
 
-export default function ReviewScene({ onNewCard }: Props) {
+export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
   const { theme } = useUnistyles()
 
   return (
@@ -25,7 +26,9 @@ export default function ReviewScene({ onNewCard }: Props) {
         }}
       />
       <View style={styles.container}>
-        <Text>Training</Text>
+        <Pressable onPress={onReviewStart}>
+          <Text>Start Review</Text>
+        </Pressable>
       </View>
     </>
   )

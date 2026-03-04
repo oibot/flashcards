@@ -1,12 +1,21 @@
-import ReviewScene from "@/components/review/review-scene"
+import ReviewPrepScene from "@/components/review/review-prep-scene"
 import { useRouter } from "expo-router"
 
 export default function Page() {
   const router = useRouter()
 
-  function handleNewCard() {
+  const handleNewCard = () => {
     router.push("/new-card")
   }
 
-  return <ReviewScene onNewCard={handleNewCard} />
+  const handleOnReviewStart = () => {
+    router.push("/review")
+  }
+
+  return (
+    <ReviewPrepScene
+      onNewCard={handleNewCard}
+      onReviewStart={handleOnReviewStart}
+    />
+  )
 }
