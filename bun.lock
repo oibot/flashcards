@@ -6,6 +6,7 @@
       "name": "flashcards",
       "dependencies": {
         "@expo/ui": "55.0.1",
+        "@expo/vector-icons": "^15.0.2",
         "@instantdb/react-native": "^0.22.145",
         "@instantdb/react-native-mmkv": "^0.22.145",
         "@react-native-async-storage/async-storage": "2.2.0",
