@@ -1,18 +1,18 @@
 import type { ReactNode } from "react"
 import { createContext, use, useState } from "react"
-import type { DeckStore } from "@/db/deck-store"
-import { createInstantDeckStore } from "@/db/instant/instant-deck-store"
+import type { CardStore } from "@/db/card-store"
+import { createInstantCardStore } from "@/db/instant/instant-card-store"
 
 type DbContextValue = {
-  deckStore: DeckStore
+  cardStore: CardStore
 }
 
 const DbContext = createContext<DbContextValue | null>(null)
 
 export function DbProvider({ children }: { children: ReactNode }) {
-  const [deckStore] = useState(() => createInstantDeckStore())
+  const [cardStore] = useState(() => createInstantCardStore())
 
-  return <DbContext value={{ deckStore }}>{children}</DbContext>
+  return <DbContext value={{ cardStore }}>{children}</DbContext>
 }
 
 export function useDb() {

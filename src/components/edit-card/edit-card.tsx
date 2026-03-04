@@ -4,8 +4,9 @@ import type {
   OnChangeStateEvent,
 } from "react-native-enriched"
 import { useEffect, useRef, useState } from "react"
-import { View, Text, ScrollView } from "react-native"
+import { View, Text, ScrollView, TextInput } from "react-native"
 import { KeyboardToolbar } from "react-native-keyboard-controller"
+import { Stack, useRouter } from "expo-router"
 import Toolbar, {
   type SharedToolbarState,
   type ToolbarItem,
@@ -13,6 +14,8 @@ import Toolbar, {
   stateKeyByItemName,
 } from "./toolbar"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import HeaderButtonIcon from "@/components/UI/header-button-icon"
+import { useCards } from "@/hooks/useCards"
 
 type EditorSide = "front" | "back"
 
@@ -74,10 +77,17 @@ const getSharedStylesFromState = (
   }
 }
 
+const hasMeaningfulHtmlContent = (html: string) => {
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim().length > 0
+}
+
 export default function EditCard() {
   const { theme } = useUnistyles()
+  const { addCard } = useCards()
+  const router = useRouter()
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
+  const [tag, setTag] = useState("")
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [frontStylesState, setFrontStylesState] =
     useState<OnChangeStateEvent | null>(null)
@@ -139,13 +149,78 @@ export default function EditCard() {
     }))
   }
 
+  const handleClose = () => {
+    if (router.canGoBack()) {
+      router.back()
+      return
+    }
+
+    router.replace("/(tabs)/(review)")
+  }
+
+  const handleSave = async () => {
+    const trimmedTag = tag.trim()
+    const frontHtml = (await frontRef.current?.getHTML()) ?? ""
+    const backHtml = (await backRef.current?.getHTML()) ?? ""
+
+    if (
+      !trimmedTag ||
+      !hasMeaningfulHtmlContent(frontHtml) ||
+      !hasMeaningfulHtmlContent(backHtml)
+    ) {
+      return
+    }
+
+    await addCard({
+      tag: trimmedTag,
+      frontHtml,
+      backHtml,
+    })
+    handleClose()
+  }
+
   return (
     <>
+      <Stack.Screen
+        options={{
+          title: "New Card",
+          headerLeft: () => (
+            <HeaderButtonIcon
+              icon="xmark"
+              accessibilityLabel="Cancel"
+              onPress={handleClose}
+              style={styles.headerButton}
+              tintColor={theme.colors.primary}
+            />
+          ),
+          headerRight: () => (
+            <HeaderButtonIcon
+              icon="checkmark"
+              accessibilityLabel="Save card"
+              onPress={handleSave}
+              style={styles.headerConfirmButton}
+              tintColor={theme.colors.background}
+            />
+          ),
+        }}
+      />
       <ScrollView
         style={styles.container}
         contentInsetAdjustmentBehavior="automatic"
       >
         <View style={styles.contentContainer}>
+          <View style={styles.field}>
+            <Text style={styles.label}>Tag</Text>
+            <TextInput
+              autoCapitalize="words"
+              autoCorrect={false}
+              onChangeText={setTag}
+              placeholder="e.g. Spanish"
+              placeholderTextColor={theme.colors.secondary}
+              style={styles.tagInput}
+              value={tag}
+            />
+          </View>
           <View style={styles.field}>
             <Text style={styles.label}>Front</Text>
             <EnrichedTextInput
@@ -207,6 +282,15 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.secondary,
   },
+  tagInput: {
+    fontSize: 16,
+    color: theme.colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: theme.colors.secondaryBackground,
+    borderRadius: 14,
+    borderCurve: "continuous",
+  },
   input: {
     width: "100%",
     minHeight: 180,
@@ -218,5 +302,11 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 14,
     borderCurve: "continuous",
     textAlignVertical: "top",
+  },
+  headerButton: {
+    backgroundColor: theme.colors.chromeMuted,
+  },
+  headerConfirmButton: {
+    backgroundColor: theme.colors.accent,
   },
 }))
