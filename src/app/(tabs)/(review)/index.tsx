@@ -10,7 +10,7 @@ export default function Page() {
   }
 
   const handleOnReviewStart = () => {
-    router.push("/review")
+    router.push("/review-session")
   }
 
   return (
