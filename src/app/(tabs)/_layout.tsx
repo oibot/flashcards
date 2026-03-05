@@ -8,7 +8,7 @@ export default function Layout() {
     <NativeTabs>
       <NativeTabs.Trigger name="(review)">
         <NativeTabs.Trigger.Label>{t("tabs.review")}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="rectangle.on.rectangle" md="quiz" />
+        <NativeTabs.Trigger.Icon sf="rectangle.on.rectangle" md="hourglass" />
       </NativeTabs.Trigger>
     </NativeTabs>
   )
