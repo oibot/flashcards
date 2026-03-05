@@ -12,7 +12,7 @@ type Props = {
 
 export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation()
+  const { t } = useTranslation("common", { keyPrefix: "reviewPrep" })
 
   return (
     <>
@@ -22,7 +22,7 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
             <HeaderButtonIcon
               icon="plus"
               tintColor={theme.colors.accent}
-              accessibilityLabel={t("reviewPrep.newCardAccessibilityLabel")}
+              accessibilityLabel={t("newCardAccessibilityLabel")}
               onPress={onNewCard}
             />
           ),
@@ -30,7 +30,7 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
       />
       <View style={styles.container}>
         <Pressable onPress={onReviewStart} style={styles.button}>
-          <Text style={styles.buttonLabel}>{t("reviewPrep.startReview")}</Text>
+          <Text style={styles.buttonLabel}>{t("startReview")}</Text>
         </Pressable>
       </View>
     </>
