@@ -1,5 +1,6 @@
 import { Stack, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -11,6 +12,7 @@ import { useCards } from "@/hooks/useCards"
 export default function ReviewSessionScene() {
   const { theme } = useUnistyles()
   const { dismiss } = useRouter()
+  const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const { cards, isLoading, error } = useCards()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isBackVisible, setIsBackVisible] = useState(false)
@@ -68,7 +70,7 @@ export default function ReviewSessionScene() {
     return (
       <View style={styles.centerContent}>
         <ActivityIndicator color={theme.colors.accent} />
-        <Text style={styles.supportingText}>Loading cards…</Text>
+        <Text style={styles.supportingText}>{t("loading")}</Text>
       </View>
     )
   }
@@ -76,7 +78,7 @@ export default function ReviewSessionScene() {
   if (error) {
     return (
       <View style={styles.centerContent}>
-        <Text style={styles.title}>Couldn’t load cards</Text>
+        <Text style={styles.title}>{t("loadErrorTitle")}</Text>
         <Text style={styles.supportingText}>{error.message}</Text>
       </View>
     )
@@ -90,11 +92,11 @@ export default function ReviewSessionScene() {
     <>
       <Stack.Screen
         options={{
-          title: "Review",
+          title: "",
           headerLeft: () => (
             <HeaderButtonIcon
               icon="xmark"
-              accessibilityLabel="Close review"
+              accessibilityLabel={t("closeAccessibilityLabel")}
               onPress={handleClose}
               style={styles.headerButton}
               tintColor={theme.colors.primary}
@@ -116,7 +118,11 @@ export default function ReviewSessionScene() {
             visibleSide={visibleSide}
             visibleHtml={visibleHtml}
             actionLabel={
-              !isBackVisible ? "Reveal Answer" : isLastCard ? "Finish" : "Next"
+              !isBackVisible
+                ? t("revealAnswer")
+                : isLastCard
+                  ? t("finish")
+                  : t("next")
             }
             onPrimaryAction={!isBackVisible ? handleReveal : handleNext}
           />

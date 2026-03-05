@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Pressable, Text, View } from "react-native"
 import { EnrichedTextInput } from "react-native-enriched"
 import { StyleSheet } from "react-native-unistyles"
@@ -21,6 +22,8 @@ export default function ActiveReviewState({
   actionLabel,
   onPrimaryAction,
 }: Props) {
+  const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
+
   return (
     <View style={styles.session}>
       <View style={styles.metaRow}>
@@ -31,9 +34,7 @@ export default function ActiveReviewState({
       </View>
 
       <View style={styles.cardSurface}>
-        <Text style={styles.sideLabel}>
-          {visibleSide === "back" ? "Back" : "Front"}
-        </Text>
+        <Text style={styles.sideLabel}>{t(visibleSide)}</Text>
         <EnrichedTextInput
           key={`${cardId}-${visibleSide}`}
           defaultValue={visibleHtml}

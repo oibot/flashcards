@@ -3,6 +3,24 @@
     "newCardAccessibilityLabel": "Neue Karte erstellen",
     "startReview": "Lernen starten"
   },
+  "reviewSession": {
+    "active": {
+      "back": "Rückseite",
+      "front": "Vorderseite"
+    },
+    "closeAccessibilityLabel": "Lernen schließen",
+    "completed": {
+      "close": "Schließen",
+      "summary_one": "Du hast {{count}} Karte gelernt.",
+      "summary_other": "Du hast {{count}} Karten gelernt.",
+      "title": "Lerneinheit abgeschlossen"
+    },
+    "finish": "Fertig",
+    "loadErrorTitle": "Karten konnten nicht geladen werden",
+    "loading": "Karten werden geladen...",
+    "next": "Weiter",
+    "revealAnswer": "Antwort anzeigen"
+  },
   "tabs": {
     "review": "Lernen"
   }

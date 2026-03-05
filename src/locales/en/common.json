@@ -3,6 +3,24 @@
     "newCardAccessibilityLabel": "Create new card",
     "startReview": "Start Review"
   },
+  "reviewSession": {
+    "active": {
+      "back": "Back",
+      "front": "Front"
+    },
+    "closeAccessibilityLabel": "Close review",
+    "completed": {
+      "close": "Close",
+      "summary_one": "You reviewed {{count}} card.",
+      "summary_other": "You reviewed {{count}} cards.",
+      "title": "Review complete"
+    },
+    "finish": "Finish",
+    "loadErrorTitle": "Could not load cards",
+    "loading": "Loading cards...",
+    "next": "Next",
+    "revealAnswer": "Reveal Answer"
+  },
   "tabs": {
     "review": "Review"
   }

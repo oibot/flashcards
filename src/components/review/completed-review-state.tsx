@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Pressable, Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -7,15 +8,19 @@ type Props = {
 }
 
 export default function CompletedReviewState({ cardCount, onClose }: Props) {
+  const { t } = useTranslation("common", {
+    keyPrefix: "reviewSession.completed",
+  })
+
   return (
     <View style={styles.centerContent}>
-      <Text style={styles.title}>Review complete</Text>
+      <Text style={styles.title}>{t("title")}</Text>
       <Text style={styles.supportingText}>
-        You reviewed {cardCount} {cardCount === 1 ? "card" : "cards"}.
+        {t("summary", { count: cardCount })}
       </Text>
       <View style={styles.actions}>
         <Pressable onPress={onClose} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonLabel}>Close</Text>
+          <Text style={styles.secondaryButtonLabel}>{t("close")}</Text>
         </Pressable>
       </View>
     </View>
