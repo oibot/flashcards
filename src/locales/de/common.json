@@ -1,4 +1,11 @@
 {
+  "editCard": {
+    "cancel": "Abbrechen",
+    "cancelAccessibilityLabel": "Abbrechen",
+    "headerTitle": "Neue Karte",
+    "saveCard": "Karte speichern",
+    "saveCardAccessibilityLabel": "Karte speichern"
+  },
   "reviewPrep": {
     "newCardAccessibilityLabel": "Neue Karte erstellen",
     "startReview": "Lernen starten"

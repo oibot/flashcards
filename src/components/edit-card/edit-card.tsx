@@ -1,5 +1,6 @@
 import { Stack, useRouter } from "expo-router"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Text, TextInput, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
@@ -13,9 +14,9 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import {
-  HeaderButtonCheckmarkIcon,
-  HeaderButtonCloseIcon,
-} from "@/components/UI/header-button-icon"
+  IconButtonCheckmark,
+  IconButtonClose,
+} from "@/components/UI/icon-button"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -96,6 +97,7 @@ const hasMeaningfulHtmlContent = (html: string) => {
 
 export default function EditCard() {
   const { theme } = useUnistyles()
+  const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard } = useCards()
   const router = useRouter()
   const frontRef = useRef<EnrichedTextInputInstance>(null)
@@ -194,11 +196,11 @@ export default function EditCard() {
     <>
       <Stack.Screen
         options={{
-          title: "New Card",
+          title: t("headerTitle"),
           unstable_headerLeftItems: () => [
             {
               type: "button",
-              label: "Cancel",
+              label: t("cancel"),
               icon: { type: "sfSymbol", name: "xmark" },
               tintColor: theme.colors.primary,
               onPress: handleClose,
@@ -207,7 +209,7 @@ export default function EditCard() {
           unstable_headerRightItems: () => [
             {
               type: "button",
-              label: "Save card",
+              label: t("saveCard"),
               icon: { type: "sfSymbol", name: "checkmark" },
               tintColor: theme.colors.accent,
               variant: "prominent",
@@ -215,16 +217,16 @@ export default function EditCard() {
             },
           ],
           headerLeft: () => (
-            <HeaderButtonCloseIcon
-              accessibilityLabel="Cancel"
+            <IconButtonClose
+              accessibilityLabel={t("cancelAccessibilityLabel")}
               onPress={handleClose}
               style={styles.headerButton}
               tintColor={theme.colors.primary}
             />
           ),
           headerRight: () => (
-            <HeaderButtonCheckmarkIcon
-              accessibilityLabel="Save card"
+            <IconButtonCheckmark
+              accessibilityLabel={t("saveCardAccessibilityLabel")}
               onPress={handleSave}
               style={styles.headerConfirmButton}
               tintColor={theme.colors.background}

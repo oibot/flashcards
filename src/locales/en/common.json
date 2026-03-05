@@ -1,4 +1,11 @@
 {
+  "editCard": {
+    "cancel": "Cancel",
+    "cancelAccessibilityLabel": "Cancel",
+    "headerTitle": "New Card",
+    "saveCard": "Save card",
+    "saveCardAccessibilityLabel": "Save card"
+  },
   "reviewPrep": {
     "newCardAccessibilityLabel": "Create new card",
     "startReview": "Start Review"

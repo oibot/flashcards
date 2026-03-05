@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Platform, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { HeaderButtonPlusIcon } from "@/components/UI/header-button-icon"
+import { IconButtonPlus } from "@/components/UI/icon-button"
 
 type Props = {
   onNewCard: () => void
@@ -32,7 +32,7 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
           headerRight: isAndroid
             ? undefined
             : () => (
-                <HeaderButtonPlusIcon
+                <IconButtonPlus
                   tintColor={theme.colors.accent}
                   accessibilityLabel={t("newCardAccessibilityLabel")}
                   onPress={onNewCard}
