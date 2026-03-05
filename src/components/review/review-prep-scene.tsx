@@ -18,6 +18,15 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
     <>
       <Stack.Screen
         options={{
+          unstable_headerRightItems: () => [
+            {
+              type: "button",
+              label: t("newCardAccessibilityLabel"),
+              icon: { type: "sfSymbol", name: "plus" },
+              tintColor: theme.colors.accent,
+              onPress: onNewCard,
+            },
+          ],
           headerRight: () => (
             <HeaderButtonPlusIcon
               tintColor={theme.colors.accent}

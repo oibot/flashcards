@@ -195,6 +195,25 @@ export default function EditCard() {
       <Stack.Screen
         options={{
           title: "New Card",
+          unstable_headerLeftItems: () => [
+            {
+              type: "button",
+              label: "Cancel",
+              icon: { type: "sfSymbol", name: "xmark" },
+              tintColor: theme.colors.primary,
+              onPress: handleClose,
+            },
+          ],
+          unstable_headerRightItems: () => [
+            {
+              type: "button",
+              label: "Save card",
+              icon: { type: "sfSymbol", name: "checkmark" },
+              tintColor: theme.colors.accent,
+              variant: "prominent",
+              onPress: handleSave,
+            },
+          ],
           headerLeft: () => (
             <HeaderButtonCloseIcon
               accessibilityLabel="Cancel"
