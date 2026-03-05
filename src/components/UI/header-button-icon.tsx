@@ -3,8 +3,10 @@ import type { ComponentProps } from "react"
 import type { StyleProp, ViewStyle } from "react-native"
 import { Pressable, StyleSheet } from "react-native"
 
+type SymbolName = ComponentProps<typeof SymbolView>["name"]
+
 type HeaderButtonIconProps = {
-  icon: ComponentProps<typeof SymbolView>["name"]
+  iconName: SymbolName
   accessibilityLabel: string
   onPress: () => void
   tintColor: string
@@ -12,8 +14,12 @@ type HeaderButtonIconProps = {
   style?: StyleProp<ViewStyle>
 }
 
-export default function HeaderButtonIcon({
-  icon,
+const plusIconName = { ios: "plus", android: "add" } as const
+const closeIconName = { ios: "xmark", android: "close" } as const
+const checkmarkIconName = { ios: "checkmark", android: "done" } as const
+
+function HeaderButtonIconBase({
+  iconName,
   accessibilityLabel,
   onPress,
   tintColor,
@@ -28,9 +34,23 @@ export default function HeaderButtonIcon({
       onPress={onPress}
       style={[styles.button, style]}
     >
-      <SymbolView name={icon} size={size} tintColor={tintColor} />
+      <SymbolView name={iconName} size={size} tintColor={tintColor} />
     </Pressable>
   )
+}
+
+type HeaderButtonInstanceProps = Omit<HeaderButtonIconProps, "iconName">
+
+export function HeaderButtonPlusIcon(props: HeaderButtonInstanceProps) {
+  return <HeaderButtonIconBase {...props} iconName={plusIconName} />
+}
+
+export function HeaderButtonCloseIcon(props: HeaderButtonInstanceProps) {
+  return <HeaderButtonIconBase {...props} iconName={closeIconName} />
+}
+
+export function HeaderButtonCheckmarkIcon(props: HeaderButtonInstanceProps) {
+  return <HeaderButtonIconBase {...props} iconName={checkmarkIconName} />
 }
 
 const styles = StyleSheet.create({

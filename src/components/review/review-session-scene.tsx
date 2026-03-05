@@ -6,7 +6,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
-import HeaderButtonIcon from "@/components/UI/header-button-icon"
+import { HeaderButtonCloseIcon } from "@/components/UI/header-button-icon"
 import { useCards } from "@/hooks/useCards"
 
 export default function ReviewSessionScene() {
@@ -94,8 +94,7 @@ export default function ReviewSessionScene() {
         options={{
           title: "",
           headerLeft: () => (
-            <HeaderButtonIcon
-              icon="xmark"
+            <HeaderButtonCloseIcon
               accessibilityLabel={t("closeAccessibilityLabel")}
               onPress={handleClose}
               style={styles.headerButton}

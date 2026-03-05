@@ -12,7 +12,10 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import HeaderButtonIcon from "@/components/UI/header-button-icon"
+import {
+  HeaderButtonCheckmarkIcon,
+  HeaderButtonCloseIcon,
+} from "@/components/UI/header-button-icon"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -193,8 +196,7 @@ export default function EditCard() {
         options={{
           title: "New Card",
           headerLeft: () => (
-            <HeaderButtonIcon
-              icon="xmark"
+            <HeaderButtonCloseIcon
               accessibilityLabel="Cancel"
               onPress={handleClose}
               style={styles.headerButton}
@@ -202,8 +204,7 @@ export default function EditCard() {
             />
           ),
           headerRight: () => (
-            <HeaderButtonIcon
-              icon="checkmark"
+            <HeaderButtonCheckmarkIcon
               accessibilityLabel="Save card"
               onPress={handleSave}
               style={styles.headerConfirmButton}
