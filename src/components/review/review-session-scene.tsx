@@ -1,11 +1,12 @@
 import { Stack, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ActivityIndicator, Text, View } from "react-native"
+import { ActivityIndicator, Platform, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
+import AndroidHeader from "@/components/UI/android-header"
 import { IconButtonClose } from "@/components/UI/icon-button"
 import { useCards } from "@/hooks/useCards"
 
@@ -14,6 +15,8 @@ export default function ReviewSessionScene() {
   const { dismiss } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const { cards, isLoading, error } = useCards()
+  const isIOS = Platform.OS === "ios"
+  const isAndroid = Platform.OS === "android"
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isBackVisible, setIsBackVisible] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
@@ -92,15 +95,29 @@ export default function ReviewSessionScene() {
     <>
       <Stack.Screen
         options={{
-          title: "",
-          headerLeft: () => (
-            <IconButtonClose
-              accessibilityLabel={t("closeAccessibilityLabel")}
-              onPress={handleClose}
-              style={styles.headerButton}
-              tintColor={theme.colors.primary}
-            />
-          ),
+          title: isIOS ? "" : undefined,
+          headerTransparent: isIOS,
+          headerShadowVisible: false,
+          ...(isIOS
+            ? {
+                headerLeft: () => (
+                  <IconButtonClose
+                    accessibilityLabel={t("closeAccessibilityLabel")}
+                    onPress={handleClose}
+                    style={styles.headerButton}
+                    tintColor={theme.colors.primary}
+                  />
+                ),
+              }
+            : {
+                header: () =>
+                  isAndroid ? (
+                    <AndroidHeader
+                      closeAccessibilityLabel={t("closeAccessibilityLabel")}
+                      onClose={handleClose}
+                    />
+                  ) : null,
+              }),
         }}
       />
       <View style={styles.container}>

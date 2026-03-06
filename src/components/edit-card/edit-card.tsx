@@ -1,5 +1,4 @@
 import { Stack, useRouter } from "expo-router"
-import { SymbolView } from "expo-symbols"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Platform, Pressable, Text, TextInput, View } from "react-native"
@@ -14,7 +13,7 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { IconButtonClose } from "@/components/UI/icon-button"
+import AndroidHeader from "@/components/UI/android-header"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -224,21 +223,11 @@ export default function EditCard() {
             : {
                 header: () =>
                   isAndroid ? (
-                    <View style={styles.androidHeader}>
-                      <View style={styles.androidHeaderLeading}>
-                        <IconButtonClose
-                          accessibilityLabel={t("cancelAccessibilityLabel")}
-                          onPress={handleClose}
-                          tintColor={theme.colors.primary}
-                        />
-                        <Text
-                          numberOfLines={1}
-                          style={styles.androidHeaderTitle}
-                        >
-                          {t("headerTitle")}
-                        </Text>
-                      </View>
-                      <View style={styles.androidHeaderActions}>
+                    <AndroidHeader
+                      title={t("headerTitle")}
+                      closeAccessibilityLabel={t("cancelAccessibilityLabel")}
+                      onClose={handleClose}
+                      rightAction={
                         <Pressable
                           accessibilityLabel={t("saveCardAccessibilityLabel")}
                           accessibilityRole="button"
@@ -249,18 +238,8 @@ export default function EditCard() {
                             Save
                           </Text>
                         </Pressable>
-                        <View style={styles.androidHeaderMoreButton}>
-                          <SymbolView
-                            name={{
-                              ios: "ellipsis",
-                              android: "more_vert",
-                            }}
-                            size={18}
-                            tintColor={theme.colors.secondary}
-                          />
-                        </View>
-                      </View>
-                    </View>
+                      }
+                    />
                   ) : null,
               }),
         }}
@@ -327,35 +306,7 @@ export default function EditCard() {
   )
 }
 
-const styles = StyleSheet.create((theme, rt) => ({
-  androidHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: Math.max(rt.insets.top, 8),
-    paddingRight: Math.max(rt.insets.right, 16),
-    paddingBottom: 10,
-    paddingLeft: Math.max(rt.insets.left, 16),
-    backgroundColor: theme.colors.background,
-  },
-  androidHeaderLeading: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginRight: 12,
-  },
-  androidHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  androidHeaderTitle: {
-    ...theme.typography.styles.headline,
-    flex: 1,
-    textAlign: "left",
-    color: theme.colors.primary,
-  },
+const styles = StyleSheet.create((theme) => ({
   androidHeaderSaveButton: {
     minHeight: 40,
     minWidth: 70,
@@ -370,12 +321,6 @@ const styles = StyleSheet.create((theme, rt) => ({
     ...theme.typography.styles.subheadline,
     color: theme.colors.background,
     fontWeight: "600",
-  },
-  androidHeaderMoreButton: {
-    width: 28,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
   },
   container: {
     flex: 1,
