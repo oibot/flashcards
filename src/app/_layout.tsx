@@ -1,14 +1,20 @@
 import "@/locales/i18n"
 
 import { Stack } from "expo-router"
+import { StatusBar } from "expo-status-bar"
 import { KeyboardProvider } from "react-native-keyboard-controller"
+import { useUnistyles } from "react-native-unistyles"
 
 import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
+  const { rt } = useUnistyles()
+  const statusBarStyle = rt.themeName === "dark" ? "light" : "dark"
+
   return (
     <KeyboardProvider>
       <DbProvider>
+        <StatusBar style={statusBarStyle} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen
