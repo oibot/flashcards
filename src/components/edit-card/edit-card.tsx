@@ -1,7 +1,8 @@
 import { Stack, useRouter } from "expo-router"
+import { SymbolView } from "expo-symbols"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Text, TextInput, View } from "react-native"
+import { Platform, Pressable, Text, TextInput, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
@@ -13,10 +14,7 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import {
-  IconButtonCheckmark,
-  IconButtonClose,
-} from "@/components/UI/icon-button"
+import { IconButtonClose } from "@/components/UI/icon-button"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -100,6 +98,8 @@ export default function EditCard() {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard } = useCards()
   const router = useRouter()
+  const isIOS = Platform.OS === "ios"
+  const isAndroid = Platform.OS === "android"
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
   const [tag, setTag] = useState("")
@@ -196,42 +196,73 @@ export default function EditCard() {
     <>
       <Stack.Screen
         options={{
-          title: t("headerTitle"),
-          unstable_headerLeftItems: () => [
-            {
-              type: "button",
-              label: t("cancel"),
-              icon: { type: "sfSymbol", name: "xmark" },
-              tintColor: theme.colors.primary,
-              onPress: handleClose,
-            },
-          ],
-          unstable_headerRightItems: () => [
-            {
-              type: "button",
-              label: t("saveCard"),
-              icon: { type: "sfSymbol", name: "checkmark" },
-              tintColor: theme.colors.accent,
-              variant: "prominent",
-              onPress: handleSave,
-            },
-          ],
-          headerLeft: () => (
-            <IconButtonClose
-              accessibilityLabel={t("cancelAccessibilityLabel")}
-              onPress={handleClose}
-              style={styles.headerButton}
-              tintColor={theme.colors.primary}
-            />
-          ),
-          headerRight: () => (
-            <IconButtonCheckmark
-              accessibilityLabel={t("saveCardAccessibilityLabel")}
-              onPress={handleSave}
-              style={styles.headerConfirmButton}
-              tintColor={theme.colors.background}
-            />
-          ),
+          title: isIOS ? "" : t("headerTitle"),
+          headerTransparent: isIOS,
+          headerShadowVisible: false,
+          ...(isIOS
+            ? {
+                unstable_headerLeftItems: () => [
+                  {
+                    type: "button",
+                    label: t("cancel"),
+                    icon: { type: "sfSymbol", name: "xmark" },
+                    tintColor: theme.colors.primary,
+                    onPress: handleClose,
+                  },
+                ],
+                unstable_headerRightItems: () => [
+                  {
+                    type: "button",
+                    label: t("saveCard"),
+                    icon: { type: "sfSymbol", name: "checkmark" },
+                    tintColor: theme.colors.accent,
+                    variant: "prominent",
+                    onPress: handleSave,
+                  },
+                ],
+              }
+            : {
+                header: () =>
+                  isAndroid ? (
+                    <View style={styles.androidHeader}>
+                      <View style={styles.androidHeaderLeading}>
+                        <IconButtonClose
+                          accessibilityLabel={t("cancelAccessibilityLabel")}
+                          onPress={handleClose}
+                          tintColor={theme.colors.primary}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={styles.androidHeaderTitle}
+                        >
+                          {t("headerTitle")}
+                        </Text>
+                      </View>
+                      <View style={styles.androidHeaderActions}>
+                        <Pressable
+                          accessibilityLabel={t("saveCardAccessibilityLabel")}
+                          accessibilityRole="button"
+                          onPress={handleSave}
+                          style={styles.androidHeaderSaveButton}
+                        >
+                          <Text style={styles.androidHeaderSaveLabel}>
+                            Save
+                          </Text>
+                        </Pressable>
+                        <View style={styles.androidHeaderMoreButton}>
+                          <SymbolView
+                            name={{
+                              ios: "ellipsis",
+                              android: "more_vert",
+                            }}
+                            size={18}
+                            tintColor={theme.colors.secondary}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  ) : null,
+              }),
         }}
       />
       <KeyboardAwareScrollView
@@ -296,7 +327,56 @@ export default function EditCard() {
   )
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
+  androidHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: Math.max(rt.insets.top, 8),
+    paddingRight: Math.max(rt.insets.right, 16),
+    paddingBottom: 10,
+    paddingLeft: Math.max(rt.insets.left, 16),
+    backgroundColor: theme.colors.background,
+  },
+  androidHeaderLeading: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginRight: 12,
+  },
+  androidHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  androidHeaderTitle: {
+    ...theme.typography.styles.headline,
+    flex: 1,
+    textAlign: "left",
+    color: theme.colors.primary,
+  },
+  androidHeaderSaveButton: {
+    minHeight: 40,
+    minWidth: 70,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.accent,
+  },
+  androidHeaderSaveLabel: {
+    ...theme.typography.styles.subheadline,
+    color: theme.colors.background,
+    fontWeight: "600",
+  },
+  androidHeaderMoreButton: {
+    width: 28,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -337,11 +417,5 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 14,
     borderCurve: "continuous",
     textAlignVertical: "top",
-  },
-  headerButton: {
-    backgroundColor: theme.colors.chromeMuted,
-  },
-  headerConfirmButton: {
-    backgroundColor: theme.colors.accent,
   },
 }))
