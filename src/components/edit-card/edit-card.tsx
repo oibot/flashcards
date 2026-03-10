@@ -1,5 +1,5 @@
 import { Stack, useRouter } from "expo-router"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Platform, Pressable, Text, TextInput, View } from "react-native"
 import type {
@@ -103,32 +103,9 @@ export default function EditCard() {
   const backRef = useRef<EnrichedTextInputInstance>(null)
   const [tag, setTag] = useState("")
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
-  const [frontStylesState, setFrontStylesState] =
+  const [currentStylesState, setCurrentStylesState] =
     useState<OnChangeStateEvent | null>(null)
-  const [backStylesState, setBackStylesState] =
-    useState<OnChangeStateEvent | null>(null)
-  const [sharedStyles, setSharedStyles] = useState<SharedToolbarState>(
-    DEFAULT_SHARED_STYLES,
-  )
-
-  const activeEditorRef = focusedEditor === "back" ? backRef : frontRef
-  const activeStylesState =
-    focusedEditor === "back" ? backStylesState : frontStylesState
-
-  useEffect(() => {
-    if (!focusedEditor) return
-
-    const targetRef = focusedEditor === "back" ? backRef : frontRef
-    const targetState =
-      focusedEditor === "back" ? backStylesState : frontStylesState
-    const currentStyles = getSharedStylesFromState(targetState)
-
-    ;(Object.keys(sharedStyles) as ToolbarStyleKey[]).forEach((styleKey) => {
-      if (currentStyles[styleKey] !== sharedStyles[styleKey]) {
-        toggleEditorStyle(targetRef, styleKey)
-      }
-    })
-  }, [backStylesState, focusedEditor, frontStylesState, sharedStyles])
+  const activeStyles = getSharedStylesFromState(currentStylesState)
 
   const handleEditorFocus = (editor: EditorSide) => {
     setFocusedEditor(editor)
@@ -138,27 +115,15 @@ export default function EditCard() {
     editor: EditorSide,
     nextState: OnChangeStateEvent,
   ) => {
-    if (editor === "front") {
-      setFrontStylesState(nextState)
-    } else {
-      setBackStylesState(nextState)
-    }
-
-    if (focusedEditor === editor) {
-      setSharedStyles(getSharedStylesFromState(nextState))
+    if (focusedEditor === null || focusedEditor === editor) {
+      setCurrentStylesState(nextState)
     }
   }
 
   const handleToggleStyle = (item: ToolbarItem) => {
-    if (!focusedEditor) return
-
     const styleKey = stateKeyByItemName[item.name]
-    toggleEditorStyle(activeEditorRef, styleKey)
-
-    setSharedStyles((currentStyles) => ({
-      ...currentStyles,
-      [styleKey]: !currentStyles[styleKey],
-    }))
+    toggleEditorStyle(frontRef, styleKey)
+    toggleEditorStyle(backRef, styleKey)
   }
 
   const handleClose = () => {
@@ -295,9 +260,9 @@ export default function EditCard() {
       <KeyboardToolbar>
         <KeyboardToolbar.Content>
           <Toolbar
-            activeStyles={sharedStyles}
+            activeStyles={activeStyles}
             onToggleStyle={handleToggleStyle}
-            stylesState={activeStylesState}
+            stylesState={currentStylesState}
           />
         </KeyboardToolbar.Content>
         <KeyboardToolbar.Done />
