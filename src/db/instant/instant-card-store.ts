@@ -2,30 +2,13 @@ import { id } from "@instantdb/react-native"
 
 import type { CardStore } from "@/db/card-store"
 import { db } from "@/db/instant/db"
-import { toTimestamp } from "@/db/instant/instant-utils"
+import { normalizeError, toCard } from "@/db/instant/instant-utils"
 import type { Card, NewCardInput } from "@/domain/card"
-
-const toCard = (card: {
-  id: string
-  tag: string
-  frontHtml: string
-  backHtml: string
-  createdAt: number | string
-  updatedAt: number | string
-}): Card => ({
-  id: card.id,
-  tag: card.tag,
-  frontHtml: card.frontHtml,
-  backHtml: card.backHtml,
-  createdAt: toTimestamp(card.createdAt),
-  updatedAt: toTimestamp(card.updatedAt),
-})
-
-const normalizeError = (error: unknown) => {
-  if (!error) return null
-  if (error instanceof Error) return error
-  return new Error(String(error))
-}
+import {
+  createInitialSchedule,
+  type ReviewGrade,
+  scheduleCardReview,
+} from "@/domain/review-scheduler"
 
 export const createInstantCardStore = (): CardStore => {
   const useCardsQuery = () => {
@@ -36,6 +19,19 @@ export const createInstantCardStore = (): CardStore => {
       cards,
       isLoading,
       error: normalizeError(error),
+    }
+  }
+
+  const useDueCardsQuery = (now = Date.now()) => {
+    const { cards, isLoading, error } = useCardsQuery()
+    const dueCards = cards
+      .filter((card) => card.dueAt <= now)
+      .sort((left, right) => left.dueAt - right.dueAt)
+
+    return {
+      cards: dueCards,
+      isLoading,
+      error,
     }
   }
 
@@ -52,6 +48,20 @@ export const createInstantCardStore = (): CardStore => {
         backHtml: input.backHtml,
         createdAt: now,
         updatedAt: now,
+        ...createInitialSchedule(now),
+      }),
+    )
+  }
+
+  const reviewCard = async (
+    card: Card,
+    grade: ReviewGrade,
+    reviewedAt = Date.now(),
+  ) => {
+    await db.transact(
+      db.tx.cards[card.id].update({
+        ...scheduleCardReview(card, grade, reviewedAt),
+        updatedAt: reviewedAt,
       }),
     )
   }
@@ -62,7 +72,9 @@ export const createInstantCardStore = (): CardStore => {
 
   return {
     useCardsQuery,
+    useDueCardsQuery,
     addCard,
+    reviewCard,
     removeCard,
   }
 }

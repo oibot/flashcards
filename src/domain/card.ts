@@ -1,3 +1,5 @@
+import type { CardState } from "@/domain/card-state"
+
 export type CardId = string
 
 export type Card = {
@@ -7,6 +9,13 @@ export type Card = {
   backHtml: string
   createdAt: number
   updatedAt: number
+  dueAt: number
+  lastReviewedAt: number
+  intervalDays: number
+  easeFactor: number
+  repetition: number
+  lapses: number
+  state: CardState
 }
 
 export type NewCardInput = {

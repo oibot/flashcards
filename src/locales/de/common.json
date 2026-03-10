@@ -7,13 +7,24 @@
     "saveCardAccessibilityLabel": "Karte speichern"
   },
   "reviewPrep": {
+    "dueCount_one": "{{count}} Karte ist jetzt fällig",
+    "dueCount_other": "{{count}} Karten sind jetzt fällig",
+    "emptyState": "Im Moment sind keine Karten fällig.",
+    "loadError": "Fällige Karten konnten nicht geladen werden.",
+    "loading": "Fällige Karten werden geprüft...",
     "newCardAccessibilityLabel": "Neue Karte erstellen",
-    "startReview": "Lernen starten"
+    "startReview": "Lernen starten",
+    "title": "Bereit zum Lernen"
   },
   "reviewSession": {
     "active": {
+      "again": "Nochmal",
       "back": "Rückseite",
-      "front": "Vorderseite"
+      "easy": "Einfach",
+      "front": "Vorderseite",
+      "good": "Gut",
+      "hard": "Schwer",
+      "revealAnswer": "Antwort anzeigen"
     },
     "closeAccessibilityLabel": "Lernen schließen",
     "completed": {
@@ -26,7 +37,8 @@
     "loadErrorTitle": "Karten konnten nicht geladen werden",
     "loading": "Karten werden geladen...",
     "next": "Weiter",
-    "revealAnswer": "Antwort anzeigen"
+    "revealAnswer": "Antwort anzeigen",
+    "saveErrorTitle": "Bewertung konnte nicht gespeichert werden"
   },
   "tabs": {
     "review": "Lernen"

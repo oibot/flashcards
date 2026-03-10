@@ -7,13 +7,24 @@
     "saveCardAccessibilityLabel": "Save card"
   },
   "reviewPrep": {
+    "dueCount_one": "{{count}} card due now",
+    "dueCount_other": "{{count}} cards due now",
+    "emptyState": "No cards are due right now.",
+    "loadError": "Could not load due cards.",
+    "loading": "Checking due cards...",
     "newCardAccessibilityLabel": "Create new card",
-    "startReview": "Start Review"
+    "startReview": "Start Review",
+    "title": "Ready to review"
   },
   "reviewSession": {
     "active": {
+      "again": "Again",
       "back": "Back",
-      "front": "Front"
+      "easy": "Easy",
+      "front": "Front",
+      "good": "Good",
+      "hard": "Hard",
+      "revealAnswer": "Reveal Answer"
     },
     "closeAccessibilityLabel": "Close review",
     "completed": {
@@ -26,7 +37,8 @@
     "loadErrorTitle": "Could not load cards",
     "loading": "Loading cards...",
     "next": "Next",
-    "revealAnswer": "Reveal Answer"
+    "revealAnswer": "Reveal Answer",
+    "saveErrorTitle": "Could not save review"
   },
   "tabs": {
     "review": "Review"

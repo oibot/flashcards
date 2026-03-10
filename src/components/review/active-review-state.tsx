@@ -3,14 +3,18 @@ import { Pressable, Text, View } from "react-native"
 import { EnrichedTextInput } from "react-native-enriched"
 import { StyleSheet } from "react-native-unistyles"
 
+import type { ReviewGrade } from "@/domain/review-scheduler"
+
 type Props = {
   cardId: string
   tag: string
   progressLabel: string
   visibleSide: "front" | "back"
   visibleHtml: string
-  actionLabel: string
-  onPrimaryAction: () => void
+  isSubmitting: boolean
+  errorMessage: string | null
+  onReveal: () => void
+  onGrade: (grade: ReviewGrade) => void
 }
 
 export default function ActiveReviewState({
@@ -19,10 +23,14 @@ export default function ActiveReviewState({
   progressLabel,
   visibleSide,
   visibleHtml,
-  actionLabel,
-  onPrimaryAction,
+  isSubmitting,
+  errorMessage,
+  onReveal,
+  onGrade,
 }: Props) {
   const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
+  const isAnswerVisible = visibleSide === "back"
+  const gradeActions: ReviewGrade[] = ["again", "hard", "good", "easy"]
 
   return (
     <View style={styles.session}>
@@ -45,9 +53,51 @@ export default function ActiveReviewState({
       </View>
 
       <View style={styles.actions}>
-        <Pressable onPress={onPrimaryAction} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonLabel}>{actionLabel}</Text>
-        </Pressable>
+        {isAnswerVisible ? (
+          <View style={styles.gradeGrid}>
+            {gradeActions.map((grade) => {
+              const isAccentAction = grade === "good" || grade === "easy"
+
+              return (
+                <Pressable
+                  key={grade}
+                  accessibilityRole="button"
+                  disabled={isSubmitting}
+                  onPress={() => onGrade(grade)}
+                  style={[
+                    styles.gradeButton,
+                    isAccentAction
+                      ? styles.gradeButtonAccent
+                      : styles.gradeButtonNeutral,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.gradeButtonLabel,
+                      isAccentAction
+                        ? styles.gradeButtonLabelAccent
+                        : styles.gradeButtonLabelNeutral,
+                    ]}
+                  >
+                    {t(grade)}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </View>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            disabled={isSubmitting}
+            onPress={onReveal}
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonLabel}>{t("revealAnswer")}</Text>
+          </Pressable>
+        )}
+        {errorMessage ? (
+          <Text style={styles.errorMessage}>{errorMessage}</Text>
+        ) : null}
       </View>
     </View>
   )
@@ -102,6 +152,11 @@ const styles = StyleSheet.create((theme) => ({
   actions: {
     gap: 12,
   },
+  gradeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
   primaryButton: {
     minHeight: 52,
     borderRadius: 16,
@@ -114,5 +169,35 @@ const styles = StyleSheet.create((theme) => ({
   primaryButtonLabel: {
     ...theme.typography.styles.headline,
     color: theme.colors.background,
+  },
+  gradeButton: {
+    flexGrow: 1,
+    flexBasis: "47%",
+    minHeight: 52,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  gradeButtonAccent: {
+    backgroundColor: theme.colors.accent,
+  },
+  gradeButtonNeutral: {
+    backgroundColor: theme.colors.secondaryBackground,
+  },
+  gradeButtonLabel: {
+    ...theme.typography.styles.headline,
+  },
+  gradeButtonLabelAccent: {
+    color: theme.colors.background,
+  },
+  gradeButtonLabelNeutral: {
+    color: theme.colors.primary,
+  },
+  errorMessage: {
+    ...theme.typography.styles.footnote,
+    color: theme.colors.secondary,
+    textAlign: "center",
   },
 }))
