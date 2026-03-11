@@ -6,7 +6,7 @@ const cardLayers = [
   {
     key: "far",
     width: "94%",
-    heightRatio: 0.61,
+    heightRatio: 0.57,
     overlapRatio: 0,
     opacity: 0.5,
     zIndex: 1,
@@ -14,7 +14,7 @@ const cardLayers = [
   {
     key: "near",
     width: "97%",
-    heightRatio: 0.63,
+    heightRatio: 0.58,
     overlapRatio: 0.92,
     opacity: 0.78,
     zIndex: 2,
@@ -22,7 +22,7 @@ const cardLayers = [
 ] as const
 
 const mainCard = {
-  heightRatio: 0.65,
+  heightRatio: 0.6,
   overlapRatio: 0.94,
   zIndex: 3,
 } as const

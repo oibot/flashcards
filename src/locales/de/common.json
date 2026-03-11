@@ -22,7 +22,8 @@
       "back": "Rückseite",
       "front": "Vorderseite",
       "good": "Gut",
-      "hard": "Schwer"
+      "hard": "Schwer",
+      "revealAnswer": "Antwort anzeigen"
     },
     "closeAccessibilityLabel": "Lernen schließen",
     "delete": {

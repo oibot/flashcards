@@ -1,33 +1,33 @@
 import { Pressable, Text } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import type { ReviewGrade } from "@/domain/review-scheduler"
+type ReviewActionVariant = "again" | "hard" | "good" | "plain"
 
 type Props = {
   disabled: boolean
-  grade: ReviewGrade
   label: string
-  onPress: (grade: ReviewGrade) => void
+  onPress: () => void
+  variant: ReviewActionVariant
 }
 
-export default function ReviewGradeButton({
+export default function ReviewActionButton({
   disabled,
-  grade,
   label,
   onPress,
+  variant,
 }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      onPress={() => onPress(grade)}
-      style={[styles.button, getGradeButtonStyle(grade)]}
+      onPress={onPress}
+      style={[styles.button, getButtonStyle(variant)]}
     >
       <Text
         adjustsFontSizeToFit
         minimumFontScale={0.8}
         numberOfLines={1}
-        style={styles.buttonLabel}
+        style={[styles.buttonLabel, getButtonLabelStyle(variant)]}
       >
         {label}
       </Text>
@@ -35,14 +35,27 @@ export default function ReviewGradeButton({
   )
 }
 
-const getGradeButtonStyle = (grade: ReviewGrade) => {
-  switch (grade) {
+const getButtonStyle = (variant: ReviewActionVariant) => {
+  switch (variant) {
     case "again":
       return styles.buttonAgain
     case "hard":
       return styles.buttonHard
     case "good":
       return styles.buttonGood
+    case "plain":
+      return styles.buttonPlain
+  }
+}
+
+const getButtonLabelStyle = (variant: ReviewActionVariant) => {
+  switch (variant) {
+    case "plain":
+      return styles.buttonLabelPlain
+    case "again":
+    case "hard":
+    case "good":
+      return styles.buttonLabelOnColor
   }
 }
 
@@ -69,10 +82,19 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.success,
     borderColor: theme.colors.success,
   },
+  buttonPlain: {
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+  },
   buttonLabel: {
     ...theme.typography.styles.body,
-    color: theme.colors.background,
     fontWeight: "600",
     textAlign: "center",
+  },
+  buttonLabelOnColor: {
+    color: theme.colors.background,
+  },
+  buttonLabelPlain: {
+    color: theme.colors.primary,
   },
 }))

@@ -4,8 +4,8 @@ import { StyleSheet } from "react-native-unistyles"
 
 import type { ReviewGrade } from "@/domain/review-scheduler"
 
+import ReviewActionButton from "./review-action-button"
 import ReviewCard from "./review-card"
-import ReviewGradeButton from "./review-grade-button"
 
 type Props = {
   cardId: string
@@ -50,19 +50,26 @@ export default function ActiveReviewState({
       />
 
       <View style={styles.actions}>
-        {isAnswerVisible ? (
-          <View style={styles.gradeGrid}>
-            {gradeActions.map((grade) => (
-              <ReviewGradeButton
+        <View style={styles.actionRow}>
+          {isAnswerVisible ? (
+            gradeActions.map((grade) => (
+              <ReviewActionButton
                 key={grade}
                 disabled={isSubmitting}
-                grade={grade}
                 label={t(grade)}
-                onPress={onGrade}
+                onPress={() => onGrade(grade)}
+                variant={grade}
               />
-            ))}
-          </View>
-        ) : null}
+            ))
+          ) : (
+            <ReviewActionButton
+              disabled={isSubmitting}
+              label={t("revealAnswer")}
+              onPress={onReveal}
+              variant="plain"
+            />
+          )}
+        </View>
         {errorMessage ? (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         ) : null}
@@ -71,7 +78,7 @@ export default function ActiveReviewState({
   )
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((theme, rt) => ({
   session: {
     flex: 1,
     alignItems: "center",
@@ -93,8 +100,9 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
     maxWidth: 340,
     gap: 12,
+    paddingBottom: rt.insets.bottom,
   },
-  gradeGrid: {
+  actionRow: {
     flexDirection: "row",
     gap: 10,
   },

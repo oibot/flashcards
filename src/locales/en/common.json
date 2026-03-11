@@ -22,7 +22,8 @@
       "back": "Back",
       "front": "Front",
       "good": "Good",
-      "hard": "Hard"
+      "hard": "Hard",
+      "revealAnswer": "Reveal Answer"
     },
     "closeAccessibilityLabel": "Close review",
     "delete": {
