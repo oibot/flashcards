@@ -27,6 +27,14 @@
       "revealAnswer": "Antwort anzeigen"
     },
     "closeAccessibilityLabel": "Lernen schließen",
+    "delete": {
+      "accessibilityLabel": "Karte löschen",
+      "cancel": "Abbrechen",
+      "confirm": "Löschen",
+      "error": "Karte konnte nicht gelöscht werden",
+      "message": "Diese Karte dauerhaft löschen?",
+      "title": "Karte löschen?"
+    },
     "completed": {
       "close": "Schließen",
       "summary_one": "Du hast {{count}} Karte gelernt.",

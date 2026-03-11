@@ -27,6 +27,14 @@
       "revealAnswer": "Reveal Answer"
     },
     "closeAccessibilityLabel": "Close review",
+    "delete": {
+      "accessibilityLabel": "Delete card",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "error": "Could not delete card",
+      "message": "Delete this card permanently?",
+      "title": "Delete card?"
+    },
     "completed": {
       "close": "Close",
       "summary_one": "You reviewed {{count}} card.",

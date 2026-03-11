@@ -10,6 +10,7 @@ type IconButtonProps = {
   accessibilityLabel: string
   onPress: () => void
   tintColor: string
+  disabled?: boolean
   size?: number
   style?: StyleProp<ViewStyle>
 }
@@ -17,12 +18,14 @@ type IconButtonProps = {
 const plusIconName = { ios: "plus", android: "add" } as const
 const closeIconName = { ios: "xmark", android: "close" } as const
 const checkmarkIconName = { ios: "checkmark", android: "done" } as const
+const trashIconName = { ios: "trash", android: "delete" } as const
 
 function IconButtonBase({
   iconName,
   accessibilityLabel,
   onPress,
   tintColor,
+  disabled = false,
   size = 16,
   style,
 }: IconButtonProps) {
@@ -30,9 +33,10 @@ function IconButtonBase({
     <Pressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      disabled={disabled}
       hitSlop={10}
       onPress={onPress}
-      style={[styles.button, style]}
+      style={[styles.button, disabled ? styles.buttonDisabled : null, style]}
     >
       <SymbolView name={iconName} size={size} tintColor={tintColor} />
     </Pressable>
@@ -53,6 +57,10 @@ export function IconButtonCheckmark(props: IconButtonInstanceProps) {
   return <IconButtonBase {...props} iconName={checkmarkIconName} />
 }
 
+export function IconButtonTrash(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={trashIconName} />
+}
+
 const styles = StyleSheet.create({
   button: {
     width: 36,
@@ -61,5 +69,8 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     alignItems: "center",
     justifyContent: "center",
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 })

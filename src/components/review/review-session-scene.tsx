@@ -1,13 +1,13 @@
 import { Stack, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ActivityIndicator, Platform, Text, View } from "react-native"
+import { ActivityIndicator, Alert, Platform, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
 import AndroidHeader from "@/components/UI/android-header"
-import { IconButtonClose } from "@/components/UI/icon-button"
+import { IconButtonClose, IconButtonTrash } from "@/components/UI/icon-button"
 import type { Card } from "@/domain/card"
 import type { ReviewGrade } from "@/domain/review-scheduler"
 import { useDueCards } from "@/hooks/useDueCards"
@@ -16,18 +16,27 @@ export default function ReviewSessionScene() {
   const { theme } = useUnistyles()
   const { dismiss } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
-  const { cards: dueCards, isLoading, error, reviewCard } = useDueCards()
+  const {
+    cards: dueCards,
+    isLoading,
+    error,
+    removeCard,
+    reviewCard,
+  } = useDueCards()
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
   const [sessionCards, setSessionCards] = useState<Card[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isBackVisible, setIsBackVisible] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
+  const [reviewedCount, setReviewedCount] = useState(0)
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
-  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [isDeletingCard, setIsDeletingCard] = useState(false)
+  const [mutationError, setMutationError] = useState<string | null>(null)
 
   const currentCard = sessionCards[currentIndex] ?? null
   const isLastCard = currentIndex === sessionCards.length - 1
+  const isMutatingCard = isSubmittingReview || isDeletingCard
   const progressLabel =
     sessionCards.length > 0
       ? `${currentIndex + 1} / ${sessionCards.length}`
@@ -40,7 +49,9 @@ export default function ReviewSessionScene() {
     : ""
 
   useEffect(() => {
-    if (sessionCards.length > 0 || isLoading || error) return
+    if (isSessionComplete || sessionCards.length > 0 || isLoading || error) {
+      return
+    }
 
     if (dueCards.length === 0) {
       dismiss()
@@ -48,7 +59,14 @@ export default function ReviewSessionScene() {
     }
 
     setSessionCards(dueCards)
-  }, [dismiss, dueCards, error, isLoading, sessionCards.length])
+  }, [
+    dismiss,
+    dueCards,
+    error,
+    isLoading,
+    isSessionComplete,
+    sessionCards.length,
+  ])
 
   const handleClose = () => {
     dismiss()
@@ -59,23 +77,25 @@ export default function ReviewSessionScene() {
   }
 
   const handleGrade = async (grade: ReviewGrade) => {
-    if (!currentCard || isSubmittingReview) return
+    if (!currentCard || isMutatingCard) return
 
     setIsSubmittingReview(true)
-    setReviewError(null)
+    setMutationError(null)
 
     try {
       await reviewCard(currentCard, grade)
+      setReviewedCount((count) => count + 1)
 
       if (isLastCard) {
         setIsSessionComplete(true)
+        setIsBackVisible(false)
         return
       }
 
       setCurrentIndex((index) => index + 1)
       setIsBackVisible(false)
     } catch (reviewMutationError) {
-      setReviewError(
+      setMutationError(
         reviewMutationError instanceof Error
           ? reviewMutationError.message
           : t("saveErrorTitle"),
@@ -85,30 +105,57 @@ export default function ReviewSessionScene() {
     }
   }
 
-  if (isLoading || (!error && sessionCards.length === 0)) {
-    return (
-      <View style={styles.centerContent}>
-        <ActivityIndicator color={theme.colors.accent} />
-        <Text style={styles.supportingText}>{t("loading")}</Text>
-      </View>
-    )
+  const handleDeleteConfirmed = async () => {
+    if (!currentCard || isMutatingCard) return
+
+    setIsDeletingCard(true)
+    setMutationError(null)
+
+    try {
+      await removeCard(currentCard.id)
+
+      const nextSessionCards = sessionCards.filter(
+        (card) => card.id !== currentCard.id,
+      )
+
+      setSessionCards(nextSessionCards)
+      setCurrentIndex(
+        nextSessionCards.length === 0
+          ? 0
+          : Math.min(currentIndex, nextSessionCards.length - 1),
+      )
+      setIsBackVisible(false)
+
+      if (nextSessionCards.length === 0) {
+        setIsSessionComplete(true)
+      }
+    } catch (removeCardError) {
+      setMutationError(
+        removeCardError instanceof Error
+          ? removeCardError.message
+          : t("delete.error"),
+      )
+    } finally {
+      setIsDeletingCard(false)
+    }
   }
 
-  if (error) {
-    return (
-      <View style={styles.centerContent}>
-        <Text style={styles.title}>{t("loadErrorTitle")}</Text>
-        <Text style={styles.supportingText}>{error.message}</Text>
-      </View>
-    )
-  }
+  const handleDelete = () => {
+    if (!currentCard || isMutatingCard) return
 
-  if (sessionCards.length === 0) {
-    return null
-  }
-
-  const handleReviewGrade = (grade: ReviewGrade) => {
-    void handleGrade(grade)
+    Alert.alert(t("delete.title"), t("delete.message"), [
+      {
+        text: t("delete.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("delete.confirm"),
+        style: "destructive",
+        onPress: () => {
+          void handleDeleteConfirmed()
+        },
+      },
+    ])
   }
 
   if (isSessionComplete) {
@@ -143,12 +190,38 @@ export default function ReviewSessionScene() {
         />
         <View style={styles.container}>
           <CompletedReviewState
-            cardCount={sessionCards.length}
+            cardCount={reviewedCount}
             onClose={handleClose}
           />
         </View>
       </>
     )
+  }
+
+  if (isLoading || (!error && sessionCards.length === 0)) {
+    return (
+      <View style={styles.centerContent}>
+        <ActivityIndicator color={theme.colors.accent} />
+        <Text style={styles.supportingText}>{t("loading")}</Text>
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContent}>
+        <Text style={styles.title}>{t("loadErrorTitle")}</Text>
+        <Text style={styles.supportingText}>{error.message}</Text>
+      </View>
+    )
+  }
+
+  if (sessionCards.length === 0) {
+    return null
+  }
+
+  const handleReviewGrade = (grade: ReviewGrade) => {
+    void handleGrade(grade)
   }
 
   return (
@@ -168,6 +241,15 @@ export default function ReviewSessionScene() {
                     tintColor={theme.colors.primary}
                   />
                 ),
+                unstable_headerRightItems: () => [
+                  {
+                    type: "button",
+                    label: t("delete.accessibilityLabel"),
+                    icon: { type: "sfSymbol", name: "trash" },
+                    tintColor: theme.colors.destructive,
+                    onPress: handleDelete,
+                  },
+                ],
               }
             : {
                 header: () =>
@@ -175,6 +257,15 @@ export default function ReviewSessionScene() {
                     <AndroidHeader
                       closeAccessibilityLabel={t("closeAccessibilityLabel")}
                       onClose={handleClose}
+                      rightAction={
+                        <IconButtonTrash
+                          accessibilityLabel={t("delete.accessibilityLabel")}
+                          disabled={isMutatingCard}
+                          onPress={handleDelete}
+                          style={styles.headerButton}
+                          tintColor={theme.colors.destructive}
+                        />
+                      }
                     />
                   ) : null,
               }),
@@ -187,8 +278,8 @@ export default function ReviewSessionScene() {
           progressLabel={progressLabel}
           visibleSide={visibleSide}
           visibleHtml={visibleHtml}
-          isSubmitting={isSubmittingReview}
-          errorMessage={reviewError}
+          isSubmitting={isMutatingCard}
+          errorMessage={mutationError}
           onReveal={handleReveal}
           onGrade={handleReviewGrade}
         />
