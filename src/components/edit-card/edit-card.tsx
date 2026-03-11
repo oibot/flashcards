@@ -99,6 +99,7 @@ export default function EditCard() {
   const router = useRouter()
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
+  const tagRef = useRef<TextInput>(null)
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
   const [tag, setTag] = useState("")
@@ -135,6 +136,15 @@ export default function EditCard() {
     router.replace("/(tabs)/(review)")
   }
 
+  const resetForm = () => {
+    setTag("")
+    setFocusedEditor(null)
+    setCurrentStylesState(null)
+    frontRef.current?.setValue("")
+    backRef.current?.setValue("")
+    tagRef.current?.focus()
+  }
+
   const handleSave = async () => {
     const trimmedTag = tag.trim()
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
@@ -153,7 +163,7 @@ export default function EditCard() {
       frontHtml,
       backHtml,
     })
-    handleClose()
+    resetForm()
   }
 
   return (
@@ -224,6 +234,7 @@ export default function EditCard() {
               onChangeText={setTag}
               placeholder="e.g. Spanish"
               placeholderTextColor={theme.colors.secondary}
+              ref={tagRef}
               style={styles.tagInput}
               value={tag}
             />
