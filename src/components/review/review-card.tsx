@@ -2,30 +2,7 @@ import { Pressable, Text, View } from "react-native"
 import { EnrichedTextInput } from "react-native-enriched"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-const cardLayers = [
-  {
-    key: "far",
-    width: "94%",
-    heightRatio: 0.57,
-    overlapRatio: 0,
-    opacity: 0.5,
-    zIndex: 1,
-  },
-  {
-    key: "near",
-    width: "97%",
-    heightRatio: 0.58,
-    overlapRatio: 0.92,
-    opacity: 0.78,
-    zIndex: 2,
-  },
-] as const
-
-const mainCard = {
-  heightRatio: 0.6,
-  overlapRatio: 0.94,
-  zIndex: 3,
-} as const
+const CARD_HEIGHT_RATIO = 0.65
 
 type Props = {
   cardId: string
@@ -46,53 +23,29 @@ export default function ReviewCard({
 }: Props) {
   const { rt } = useUnistyles()
   const isAnswerVisible = visibleSide === "back"
-  const cardHeight = rt.screen.height * mainCard.heightRatio
+  const cardHeight = rt.screen.height * CARD_HEIGHT_RATIO
 
   return (
     <View style={styles.cardStage}>
-      <View style={styles.stackColumn}>
-        {cardLayers.map((layer, index) => (
-          <View
-            key={layer.key}
-            style={[
-              styles.cardLayer,
-              {
-                height: rt.screen.height * layer.heightRatio,
-                marginTop: index === 0 ? 0 : -cardHeight * layer.overlapRatio,
-                opacity: layer.opacity,
-                width: layer.width,
-                zIndex: layer.zIndex,
-              },
-            ]}
+      <Pressable
+        accessibilityRole={!isAnswerVisible ? "button" : undefined}
+        disabled={isSubmitting || isAnswerVisible}
+        onPress={onReveal}
+        style={[styles.cardSurface, { minHeight: cardHeight }]}
+      >
+        <Text numberOfLines={1} style={styles.tagLabel}>
+          {headerLabel}
+        </Text>
+        <View pointerEvents="none" style={styles.cardContainer}>
+          <EnrichedTextInput
+            key={`${cardId}-${visibleSide}`}
+            defaultValue={visibleHtml}
+            editable={false}
+            scrollEnabled={false}
+            style={styles.cardContent}
           />
-        ))}
-        <Pressable
-          accessibilityRole={!isAnswerVisible ? "button" : undefined}
-          disabled={isSubmitting || isAnswerVisible}
-          onPress={onReveal}
-          style={[
-            styles.cardSurface,
-            {
-              marginTop: -cardHeight * mainCard.overlapRatio,
-              minHeight: cardHeight,
-              zIndex: mainCard.zIndex,
-            },
-          ]}
-        >
-          <Text numberOfLines={1} style={styles.tagLabel}>
-            {headerLabel}
-          </Text>
-          <View pointerEvents="none" style={styles.cardContainer}>
-            <EnrichedTextInput
-              key={`${cardId}-${visibleSide}`}
-              defaultValue={visibleHtml}
-              editable={false}
-              scrollEnabled={false}
-              style={styles.cardContent}
-            />
-          </View>
-        </Pressable>
-      </View>
+        </View>
+      </Pressable>
     </View>
   )
 }
@@ -104,20 +57,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  stackColumn: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  cardLayer: {
-    alignSelf: "center",
-    borderRadius: 28,
-    borderCurve: "continuous",
-    backgroundColor: theme.colors.secondaryBackground,
-    borderWidth: 1,
-    borderColor: theme.colors.chromeMuted,
-  },
   cardSurface: {
+    width: "100%",
     alignSelf: "center",
     paddingHorizontal: 24,
     paddingTop: 20,
