@@ -68,6 +68,9 @@ export default function ActiveReviewState({
                   ]}
                 >
                   <Text
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                    numberOfLines={1}
                     style={[
                       styles.gradeButtonLabel,
                       isAccentAction
@@ -115,18 +118,16 @@ const styles = StyleSheet.create((theme) => ({
   },
   gradeGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: 10,
   },
   gradeButton: {
-    flexGrow: 1,
-    flexBasis: "47%",
-    minHeight: 48,
-    borderRadius: 14,
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
     borderCurve: "continuous",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: theme.colors.chromeMuted,
   },
@@ -138,8 +139,9 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background,
   },
   gradeButtonLabel: {
-    ...theme.typography.styles.subheadline,
+    ...theme.typography.styles.body,
     fontWeight: "600",
+    textAlign: "center",
   },
   gradeButtonLabelAccent: {
     color: theme.colors.background,

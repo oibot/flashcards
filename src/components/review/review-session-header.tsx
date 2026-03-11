@@ -29,7 +29,7 @@ export default function ReviewSessionHeader({
       <Stack.Screen
         options={{
           title: "",
-          headerTransparent: true,
+          headerTransparent: false,
           headerShadowVisible: false,
           unstable_headerLeftItems: () => [
             {
