@@ -31,7 +31,7 @@ export default function ActiveReviewState({
 }: Props) {
   const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
   const isAnswerVisible = visibleSide === "back"
-  const gradeActions: ReviewGrade[] = ["again", "hard", "good", "easy"]
+  const gradeActions: ReviewGrade[] = ["again", "hard", "good"]
 
   return (
     <View style={styles.session}>
@@ -52,7 +52,7 @@ export default function ActiveReviewState({
         {isAnswerVisible ? (
           <View style={styles.gradeGrid}>
             {gradeActions.map((grade) => {
-              const isAccentAction = grade === "good" || grade === "easy"
+              const isAccentAction = grade === "good"
 
               return (
                 <Pressable

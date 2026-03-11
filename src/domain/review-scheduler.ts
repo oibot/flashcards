@@ -1,7 +1,7 @@
 import type { Card } from "@/domain/card"
 import type { CardState } from "@/domain/card-state"
 
-export type ReviewGrade = "again" | "hard" | "good" | "easy"
+export type ReviewGrade = "again" | "hard" | "good"
 
 export type CardSchedule = Pick<
   Card,
@@ -18,15 +18,12 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000
 const AGAIN_INTERVAL_MS = 10 * 60 * 1000
 const INITIAL_HARD_INTERVAL_DAYS = 1
 const INITIAL_GOOD_INTERVAL_DAYS = 2
-const INITIAL_EASY_INTERVAL_DAYS = 4
 const HARD_INTERVAL_MULTIPLIER = 1.2
-const EASY_INTERVAL_MULTIPLIER = 1.3
 
 export const DEFAULT_EASE_FACTOR = 2.5
 export const MINIMUM_EASE_FACTOR = 1.3
 export const AGAIN_EASE_FACTOR_PENALTY = 0.2
 export const HARD_EASE_FACTOR_DELTA = -0.15
-export const EASY_EASE_FACTOR_DELTA = 0.15
 export const NEVER_REVIEWED_AT = 0
 
 function clampEaseFactor(value: number) {
@@ -45,8 +42,6 @@ function getLearningInterval(grade: Exclude<ReviewGrade, "again">) {
       return INITIAL_HARD_INTERVAL_DAYS
     case "good":
       return INITIAL_GOOD_INTERVAL_DAYS
-    case "easy":
-      return INITIAL_EASY_INTERVAL_DAYS
   }
 }
 
@@ -65,11 +60,6 @@ function getReviewInterval(
       return Math.max(
         INITIAL_HARD_INTERVAL_DAYS,
         Math.ceil(intervalDays * easeFactor),
-      )
-    case "easy":
-      return Math.max(
-        INITIAL_HARD_INTERVAL_DAYS,
-        Math.ceil(intervalDays * easeFactor * EASY_INTERVAL_MULTIPLIER),
       )
   }
 }
@@ -116,12 +106,7 @@ export function scheduleCardReview(
 
   const nextInterval = getNextInterval(card, grade)
 
-  const easeFactorDelta =
-    grade === "hard"
-      ? HARD_EASE_FACTOR_DELTA
-      : grade === "easy"
-        ? EASY_EASE_FACTOR_DELTA
-        : 0
+  const easeFactorDelta = grade === "hard" ? HARD_EASE_FACTOR_DELTA : 0
 
   return {
     dueAt: now + nextInterval * DAY_IN_MS,
