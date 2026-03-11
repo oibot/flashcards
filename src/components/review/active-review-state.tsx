@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next"
-import { Pressable, Text, View } from "react-native"
+import { Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import type { ReviewGrade } from "@/domain/review-scheduler"
 
 import ReviewCard from "./review-card"
+import ReviewGradeButton from "./review-grade-button"
 
 type Props = {
   cardId: string
@@ -51,38 +52,15 @@ export default function ActiveReviewState({
       <View style={styles.actions}>
         {isAnswerVisible ? (
           <View style={styles.gradeGrid}>
-            {gradeActions.map((grade) => {
-              const isAccentAction = grade === "good"
-
-              return (
-                <Pressable
-                  key={grade}
-                  accessibilityRole="button"
-                  disabled={isSubmitting}
-                  onPress={() => onGrade(grade)}
-                  style={[
-                    styles.gradeButton,
-                    isAccentAction
-                      ? styles.gradeButtonAccent
-                      : styles.gradeButtonNeutral,
-                  ]}
-                >
-                  <Text
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                    numberOfLines={1}
-                    style={[
-                      styles.gradeButtonLabel,
-                      isAccentAction
-                        ? styles.gradeButtonLabelAccent
-                        : styles.gradeButtonLabelNeutral,
-                    ]}
-                  >
-                    {t(grade)}
-                  </Text>
-                </Pressable>
-              )
-            })}
+            {gradeActions.map((grade) => (
+              <ReviewGradeButton
+                key={grade}
+                disabled={isSubmitting}
+                grade={grade}
+                label={t(grade)}
+                onPress={onGrade}
+              />
+            ))}
           </View>
         ) : null}
         {errorMessage ? (
@@ -119,35 +97,6 @@ const styles = StyleSheet.create((theme) => ({
   gradeGrid: {
     flexDirection: "row",
     gap: 10,
-  },
-  gradeButton: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: 12,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.chromeMuted,
-  },
-  gradeButtonAccent: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
-  },
-  gradeButtonNeutral: {
-    backgroundColor: theme.colors.background,
-  },
-  gradeButtonLabel: {
-    ...theme.typography.styles.body,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  gradeButtonLabelAccent: {
-    color: theme.colors.background,
-  },
-  gradeButtonLabelNeutral: {
-    color: theme.colors.primary,
   },
   errorMessage: {
     ...theme.typography.styles.footnote,
