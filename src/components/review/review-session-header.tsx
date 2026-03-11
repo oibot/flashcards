@@ -37,6 +37,10 @@ export default function ReviewSessionHeader({
           title: "",
           headerTransparent: false,
           headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.primary,
           unstable_headerLeftItems: () => [
             {
               type: "button",

@@ -103,6 +103,7 @@ const lightTheme = {
     warning: "#D98E04",
     success: "#1F9D55",
     chromeMuted: "rgba(0, 0, 0, 0.08)",
+    shadowSoft: "rgba(0, 0, 0, 0.08)",
   },
   typography,
 }
@@ -118,6 +119,7 @@ const otherTheme = {
     warning: "#F4B740",
     success: "#4DD18B",
     chromeMuted: "rgba(255, 255, 255, 0.12)",
+    shadowSoft: "rgba(0, 0, 0, 0.16)",
   },
   typography,
 }

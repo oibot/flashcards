@@ -174,6 +174,6 @@ const styles = StyleSheet.create((theme, rt) => ({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.colors.accent,
-    boxShadow: `0 8px 18px ${theme.colors.chromeMuted}`,
+    boxShadow: `0 8px 18px ${theme.colors.shadowSoft}`,
   },
 }))

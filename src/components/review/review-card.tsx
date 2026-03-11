@@ -69,7 +69,7 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.chromeMuted,
     justifyContent: "space-between",
-    boxShadow: `0 18px 30px ${theme.colors.chromeMuted}`,
+    boxShadow: `0 18px 30px ${theme.colors.shadowSoft}`,
   },
   tagLabel: {
     ...theme.typography.styles.caption,
