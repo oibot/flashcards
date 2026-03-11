@@ -1,28 +1,34 @@
+import type { NativeStackHeaderItem } from "@react-navigation/native-stack"
 import { Stack } from "expo-router"
 import { useTranslation } from "react-i18next"
 import { Platform } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
-import { IconButtonTrash } from "@/components/UI/icon-button"
+import { IconButtonTrash, IconButtonUndo } from "@/components/UI/icon-button"
 
 type Props = {
   isComplete: boolean
   isMutating: boolean
   onClose: () => void
   onDelete: () => void
+  visibleSide?: "front" | "back"
+  onShowFront?: () => void
 }
 
 export default function ReviewSessionHeader({
   isComplete,
   isMutating,
+  visibleSide,
   onClose,
   onDelete,
+  onShowFront,
 }: Props) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
+  const canShowFront = visibleSide === "back" && onShowFront != null
 
   if (isIOS) {
     return (
@@ -44,13 +50,29 @@ export default function ReviewSessionHeader({
             ? {}
             : {
                 unstable_headerRightItems: () => [
+                  ...(canShowFront
+                    ? [
+                        {
+                          type: "button",
+                          label: t("showFrontAccessibilityLabel"),
+                          icon: {
+                            type: "sfSymbol",
+                            name: "arrow.uturn.backward",
+                          },
+                          disabled: isMutating,
+                          tintColor: theme.colors.primary,
+                          onPress: onShowFront,
+                        } satisfies NativeStackHeaderItem,
+                      ]
+                    : []),
                   {
                     type: "button",
                     label: t("delete.accessibilityLabel"),
                     icon: { type: "sfSymbol", name: "trash" },
+                    disabled: isMutating,
                     tintColor: theme.colors.destructive,
                     onPress: onDelete,
-                  },
+                  } satisfies NativeStackHeaderItem,
                 ],
               }),
         }}
@@ -71,13 +93,24 @@ export default function ReviewSessionHeader({
               onClose={onClose}
               rightAction={
                 isComplete ? null : (
-                  <IconButtonTrash
-                    accessibilityLabel={t("delete.accessibilityLabel")}
-                    disabled={isMutating}
-                    onPress={onDelete}
-                    style={styles.headerButton}
-                    tintColor={theme.colors.destructive}
-                  />
+                  <>
+                    {canShowFront ? (
+                      <IconButtonUndo
+                        accessibilityLabel={t("showFrontAccessibilityLabel")}
+                        disabled={isMutating}
+                        onPress={onShowFront}
+                        style={styles.headerButton}
+                        tintColor={theme.colors.primary}
+                      />
+                    ) : null}
+                    <IconButtonTrash
+                      accessibilityLabel={t("delete.accessibilityLabel")}
+                      disabled={isMutating}
+                      onPress={onDelete}
+                      style={styles.headerButton}
+                      tintColor={theme.colors.destructive}
+                    />
+                  </>
                 )
               }
             />

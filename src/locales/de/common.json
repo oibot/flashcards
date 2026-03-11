@@ -44,6 +44,7 @@
     "loadErrorTitle": "Karten konnten nicht geladen werden",
     "loading": "Karten werden geladen...",
     "next": "Weiter",
+    "showFrontAccessibilityLabel": "Vorderseite der Karte anzeigen",
     "saveErrorTitle": "Bewertung konnte nicht gespeichert werden"
   },
   "tabs": {

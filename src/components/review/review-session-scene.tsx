@@ -58,8 +58,10 @@ export default function ReviewSessionScene() {
       <ReviewSessionHeader
         isComplete={false}
         isMutating={session.isMutatingCard}
+        visibleSide={session.visibleSide}
         onClose={session.close}
         onDelete={session.deleteCurrent}
+        onShowFront={session.showFront}
       />
       <View style={styles.container}>
         <ActiveReviewState

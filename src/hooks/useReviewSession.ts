@@ -76,6 +76,12 @@ export function useReviewSession({
     setIsBackVisible(true)
   }
 
+  const showFront = () => {
+    if (isMutatingCard) return
+
+    setIsBackVisible(false)
+  }
+
   const grade = async (reviewGrade: ReviewGrade) => {
     if (!currentCard || isMutatingCard) return
 
@@ -174,5 +180,6 @@ export function useReviewSession({
     deleteCurrent,
     grade,
     reveal,
+    showFront,
   }
 }

@@ -44,6 +44,7 @@
     "loadErrorTitle": "Could not load cards",
     "loading": "Loading cards...",
     "next": "Next",
+    "showFrontAccessibilityLabel": "Show front of card",
     "saveErrorTitle": "Could not save review"
   },
   "tabs": {
