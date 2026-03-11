@@ -23,8 +23,7 @@
       "easy": "Easy",
       "front": "Front",
       "good": "Good",
-      "hard": "Hard",
-      "revealAnswer": "Reveal Answer"
+      "hard": "Hard"
     },
     "closeAccessibilityLabel": "Close review",
     "delete": {
@@ -45,7 +44,6 @@
     "loadErrorTitle": "Could not load cards",
     "loading": "Loading cards...",
     "next": "Next",
-    "revealAnswer": "Reveal Answer",
     "saveErrorTitle": "Could not save review"
   },
   "tabs": {
