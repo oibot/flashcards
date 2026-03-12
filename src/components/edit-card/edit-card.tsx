@@ -1,12 +1,11 @@
 import { useRouter } from "expo-router"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Text, View } from "react-native"
+import { View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
 } from "react-native-enriched"
-import { EnrichedTextInput } from "react-native-enriched"
 import {
   KeyboardAwareScrollView,
   KeyboardToolbar,
@@ -16,6 +15,7 @@ import { StyleSheet } from "react-native-unistyles"
 import { TagInput, type TagInputHandle } from "@/components/UI/tag-input"
 import { useCards } from "@/hooks/useCards"
 
+import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
 import Toolbar, {
   type SharedToolbarState,
@@ -175,28 +175,22 @@ export default function EditCard() {
       >
         <View style={styles.fields}>
           <TagInput onChange={setTags} ref={tagInputRef} tags={tags} />
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("frontLabel")}</Text>
-            <EnrichedTextInput
-              ref={frontRef}
-              onChangeState={(e) =>
-                handleEditorStateChange("front", e.nativeEvent)
-              }
-              onFocus={() => handleEditorFocus("front")}
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t("backLabel")}</Text>
-            <EnrichedTextInput
-              ref={backRef}
-              onChangeState={(e) =>
-                handleEditorStateChange("back", e.nativeEvent)
-              }
-              onFocus={() => handleEditorFocus("back")}
-              style={styles.input}
-            />
-          </View>
+          <CardSideField
+            editorRef={frontRef}
+            label={t("frontLabel")}
+            onFocus={() => handleEditorFocus("front")}
+            onStateChange={(nextState) =>
+              handleEditorStateChange("front", nextState)
+            }
+          />
+          <CardSideField
+            editorRef={backRef}
+            label={t("backLabel")}
+            onFocus={() => handleEditorFocus("back")}
+            onStateChange={(nextState) =>
+              handleEditorStateChange("back", nextState)
+            }
+          />
         </View>
       </KeyboardAwareScrollView>
 
@@ -226,25 +220,5 @@ const styles = StyleSheet.create((theme) => ({
   fields: {
     gap: 12,
     backgroundColor: theme.colors.background,
-  },
-  field: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: theme.colors.secondary,
-  },
-  input: {
-    width: "100%",
-    minHeight: 180,
-    fontSize: 20,
-    color: theme.colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: theme.colors.secondaryBackground,
-    borderRadius: 14,
-    borderCurve: "continuous",
-    textAlignVertical: "top",
   },
 }))
