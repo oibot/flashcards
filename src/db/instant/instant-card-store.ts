@@ -4,6 +4,7 @@ import type { CardStore } from "@/db/card-store"
 import { db } from "@/db/instant/db"
 import { normalizeError, toCard } from "@/db/instant/instant-utils"
 import type { Card, NewCardInput } from "@/domain/card"
+import { parseTags } from "@/domain/card"
 import {
   createInitialSchedule,
   type ReviewGrade,
@@ -12,7 +13,7 @@ import {
 
 export const createInstantCardStore = (): CardStore => {
   const useCardsQuery = () => {
-    const { isLoading, error, data } = db.useQuery({ cards: {} })
+    const { isLoading, error, data } = db.useQuery({ cards: { tags: {} } })
     const cards = data?.cards?.map(toCard) ?? []
 
     return {
@@ -36,21 +37,50 @@ export const createInstantCardStore = (): CardStore => {
   }
 
   const addCard = async (input: NewCardInput) => {
-    const tag = input.tag.trim()
-    if (!tag) return
-
+    const tags = parseTags(input.tags)
+    const cardId = id()
     const now = Date.now()
+    const existingTags =
+      tags.length > 0
+        ? (
+            await db.queryOnce({
+              tags: {
+                $: {
+                  where: {
+                    title: { $in: tags },
+                  },
+                },
+              },
+            })
+          ).data.tags
+        : []
 
-    await db.transact(
-      db.tx.cards[id()].update({
-        tag,
-        frontHtml: input.frontHtml,
-        backHtml: input.backHtml,
-        createdAt: now,
-        updatedAt: now,
-        ...createInitialSchedule(now),
-      }),
+    const existingTagIdByTitle = new Map(
+      existingTags.map((tag) => [tag.title, tag.id]),
     )
+    const missingTags = tags.filter((tag) => !existingTagIdByTitle.has(tag))
+    const newTagIdByTitle = new Map(missingTags.map((tag) => [tag, id()]))
+    const tagIds = tags.flatMap((tag) => {
+      const tagId = existingTagIdByTitle.get(tag) ?? newTagIdByTitle.get(tag)
+      return tagId ? [tagId] : []
+    })
+
+    const cardTransaction = db.tx.cards[cardId].update({
+      frontHtml: input.frontHtml,
+      backHtml: input.backHtml,
+      createdAt: now,
+      updatedAt: now,
+      ...createInitialSchedule(now),
+    })
+
+    await db.transact([
+      ...missingTags.map((tag) =>
+        db.tx.tags[newTagIdByTitle.get(tag)!].create({ title: tag }),
+      ),
+      tagIds.length > 0
+        ? cardTransaction.link({ tags: tagIds })
+        : cardTransaction,
+    ])
   }
 
   const reviewCard = async (

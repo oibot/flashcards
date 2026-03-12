@@ -4,7 +4,8 @@ import type { AppSchema } from "@/db/instant/instant.schema"
 import type { Card } from "@/domain/card"
 import { parseCardState } from "@/domain/card-state"
 
-type InstantCardRecord = InstaQLEntity<AppSchema, "cards">
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+type InstantCardRecord = InstaQLEntity<AppSchema, "cards", { tags: {} }>
 
 export function toTimestamp(value: number | string) {
   if (typeof value === "number") return value
@@ -24,7 +25,7 @@ export function toCard(card: InstantCardRecord): Card {
 
   return {
     id: card.id,
-    tag: card.tag,
+    tags: card.tags.map((tag) => tag.title),
     frontHtml: card.frontHtml,
     backHtml: card.backHtml,
     createdAt: toTimestamp(card.createdAt),

@@ -3,7 +3,6 @@ import { i } from "@instantdb/react-native"
 const schema = i.schema({
   entities: {
     cards: i.entity({
-      tag: i.string().indexed(),
       frontHtml: i.string(),
       backHtml: i.string(),
       createdAt: i.date(),
@@ -16,8 +15,16 @@ const schema = i.schema({
       lapses: i.number(),
       state: i.string(),
     }),
+    tags: i.entity({
+      title: i.string().unique().indexed(),
+    }),
   },
-  links: {},
+  links: {
+    cardsTags: {
+      forward: { on: "cards", has: "many", label: "tags" },
+      reverse: { on: "tags", has: "many", label: "cards" },
+    },
+  },
 })
 
 export type AppSchema = typeof schema

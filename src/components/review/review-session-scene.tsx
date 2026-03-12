@@ -66,7 +66,7 @@ export default function ReviewSessionScene() {
       <View style={styles.container}>
         <ActiveReviewState
           cardId={session.currentCard.id}
-          tag={session.currentCard.tag}
+          tags={session.currentCard.tags}
           progressLabel={session.progressLabel}
           visibleSide={session.visibleSide}
           visibleHtml={session.visibleHtml}

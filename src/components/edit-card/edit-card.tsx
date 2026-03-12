@@ -14,6 +14,7 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
+import { parseTags } from "@/domain/card"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -102,7 +103,7 @@ export default function EditCard() {
   const tagRef = useRef<TextInput>(null)
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
-  const [tag, setTag] = useState("")
+  const [tagsInput, setTagsInput] = useState("")
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [currentStylesState, setCurrentStylesState] =
     useState<OnChangeStateEvent | null>(null)
@@ -137,7 +138,7 @@ export default function EditCard() {
   }
 
   const resetForm = () => {
-    setTag("")
+    setTagsInput("")
     setFocusedEditor(null)
     setCurrentStylesState(null)
     frontRef.current?.setValue("")
@@ -145,13 +146,13 @@ export default function EditCard() {
     tagRef.current?.focus()
   }
 
+  const parsedTags = parseTags(tagsInput)
+
   const handleSave = async () => {
-    const trimmedTag = tag.trim()
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
     const backHtml = (await backRef.current?.getHTML()) ?? ""
 
     if (
-      !trimmedTag ||
       !hasMeaningfulHtmlContent(frontHtml) ||
       !hasMeaningfulHtmlContent(backHtml)
     ) {
@@ -159,7 +160,7 @@ export default function EditCard() {
     }
 
     await addCard({
-      tag: trimmedTag,
+      tags: parsedTags,
       frontHtml,
       backHtml,
     })
@@ -227,16 +228,16 @@ export default function EditCard() {
       >
         <View style={styles.fields}>
           <View style={styles.field}>
-            <Text style={styles.label}>Tag</Text>
+            <Text style={styles.label}>Tags</Text>
             <TextInput
               autoCapitalize="words"
               autoCorrect={false}
-              onChangeText={setTag}
-              placeholder="e.g. Spanish"
+              onChangeText={setTagsInput}
+              placeholder="e.g. Spanish, Verbs"
               placeholderTextColor={theme.colors.secondary}
               ref={tagRef}
               style={styles.tagInput}
-              value={tag}
+              value={tagsInput}
             />
           </View>
           <View style={styles.field}>

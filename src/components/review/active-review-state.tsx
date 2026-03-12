@@ -9,7 +9,7 @@ import ReviewCard from "./review-card"
 
 type Props = {
   cardId: string
-  tag: string
+  tags: string[]
   progressLabel: string
   visibleSide: "front" | "back"
   visibleHtml: string
@@ -19,9 +19,13 @@ type Props = {
   onGrade: (grade: ReviewGrade) => void
 }
 
+const formatCardTags = (tags: string[]) => {
+  return tags.join(" • ")
+}
+
 export default function ActiveReviewState({
   cardId,
-  tag,
+  tags,
   progressLabel,
   visibleSide,
   visibleHtml,
@@ -42,7 +46,7 @@ export default function ActiveReviewState({
 
       <ReviewCard
         cardId={cardId}
-        headerLabel={tag}
+        headerLabel={formatCardTags(tags)}
         isSubmitting={isSubmitting}
         onReveal={onReveal}
         visibleHtml={visibleHtml}
