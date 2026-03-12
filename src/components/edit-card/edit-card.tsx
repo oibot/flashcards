@@ -236,8 +236,6 @@ export default function EditCard() {
                 handleEditorStateChange("front", e.nativeEvent)
               }
               onFocus={() => handleEditorFocus("front")}
-              placeholder={t("frontPlaceholder")}
-              placeholderTextColor={theme.colors.secondary}
               style={styles.input}
             />
           </View>
@@ -249,8 +247,6 @@ export default function EditCard() {
                 handleEditorStateChange("back", e.nativeEvent)
               }
               onFocus={() => handleEditorFocus("back")}
-              placeholder={t("backPlaceholder")}
-              placeholderTextColor={theme.colors.secondary}
               style={styles.input}
             />
           </View>

@@ -1,11 +1,9 @@
 {
   "editCard": {
     "backLabel": "Rückseite",
-    "backPlaceholder": "Antwort eingeben...",
     "cancel": "Abbrechen",
     "cancelAccessibilityLabel": "Abbrechen",
     "frontLabel": "Vorderseite",
-    "frontPlaceholder": "Frage eingeben...",
     "headerTitle": "Neue Karte",
     "saveCard": "Karte speichern",
     "saveCardAccessibilityLabel": "Karte speichern",
