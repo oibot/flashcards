@@ -1,10 +1,15 @@
 {
   "editCard": {
+    "backLabel": "Back",
+    "backPlaceholder": "Type the answer...",
     "cancel": "Cancel",
     "cancelAccessibilityLabel": "Cancel",
+    "frontLabel": "Front",
+    "frontPlaceholder": "Type a prompt...",
     "headerTitle": "New Card",
     "saveCard": "Save card",
-    "saveCardAccessibilityLabel": "Save card"
+    "saveCardAccessibilityLabel": "Save card",
+    "tagsLabel": "Tags"
   },
   "reviewPrep": {
     "dueCount_one": "{{count}} card due now",

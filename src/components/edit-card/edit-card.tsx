@@ -1,7 +1,7 @@
 import { Stack, useRouter } from "expo-router"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Platform, Pressable, Text, TextInput, View } from "react-native"
+import { Platform, Pressable, Text, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
@@ -14,7 +14,7 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
-import { parseTags } from "@/domain/card"
+import { TagInput, type TagInputHandle } from "@/components/UI/tag-input"
 import { useCards } from "@/hooks/useCards"
 
 import Toolbar, {
@@ -100,10 +100,10 @@ export default function EditCard() {
   const router = useRouter()
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
-  const tagRef = useRef<TextInput>(null)
+  const tagInputRef = useRef<TagInputHandle>(null)
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
-  const [tagsInput, setTagsInput] = useState("")
+  const [tags, setTags] = useState<string[]>([])
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [currentStylesState, setCurrentStylesState] =
     useState<OnChangeStateEvent | null>(null)
@@ -138,19 +138,19 @@ export default function EditCard() {
   }
 
   const resetForm = () => {
-    setTagsInput("")
+    setTags([])
     setFocusedEditor(null)
     setCurrentStylesState(null)
+    tagInputRef.current?.clear()
     frontRef.current?.setValue("")
     backRef.current?.setValue("")
-    tagRef.current?.focus()
+    tagInputRef.current?.focus()
   }
-
-  const parsedTags = parseTags(tagsInput)
 
   const handleSave = async () => {
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
     const backHtml = (await backRef.current?.getHTML()) ?? ""
+    const nextTags = tagInputRef.current?.commitInput() ?? tags
 
     if (
       !hasMeaningfulHtmlContent(frontHtml) ||
@@ -160,7 +160,7 @@ export default function EditCard() {
     }
 
     await addCard({
-      tags: parsedTags,
+      tags: nextTags,
       frontHtml,
       backHtml,
     })
@@ -211,7 +211,7 @@ export default function EditCard() {
                           style={styles.androidHeaderSaveButton}
                         >
                           <Text style={styles.androidHeaderSaveLabel}>
-                            Save
+                            {t("saveCard")}
                           </Text>
                         </Pressable>
                       }
@@ -227,41 +227,29 @@ export default function EditCard() {
         contentInsetAdjustmentBehavior="automatic"
       >
         <View style={styles.fields}>
+          <TagInput onChange={setTags} ref={tagInputRef} tags={tags} />
           <View style={styles.field}>
-            <Text style={styles.label}>Tags</Text>
-            <TextInput
-              autoCapitalize="words"
-              autoCorrect={false}
-              onChangeText={setTagsInput}
-              placeholder="e.g. Spanish, Verbs"
-              placeholderTextColor={theme.colors.secondary}
-              ref={tagRef}
-              style={styles.tagInput}
-              value={tagsInput}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>Front</Text>
+            <Text style={styles.label}>{t("frontLabel")}</Text>
             <EnrichedTextInput
               ref={frontRef}
               onChangeState={(e) =>
                 handleEditorStateChange("front", e.nativeEvent)
               }
               onFocus={() => handleEditorFocus("front")}
-              placeholder="Type a prompt..."
+              placeholder={t("frontPlaceholder")}
               placeholderTextColor={theme.colors.secondary}
               style={styles.input}
             />
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>Back</Text>
+            <Text style={styles.label}>{t("backLabel")}</Text>
             <EnrichedTextInput
               ref={backRef}
               onChangeState={(e) =>
                 handleEditorStateChange("back", e.nativeEvent)
               }
               onFocus={() => handleEditorFocus("back")}
-              placeholder="Type the answer..."
+              placeholder={t("backPlaceholder")}
               placeholderTextColor={theme.colors.secondary}
               style={styles.input}
             />
@@ -318,15 +306,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 13,
     fontWeight: "600",
     color: theme.colors.secondary,
-  },
-  tagInput: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: theme.colors.secondaryBackground,
-    borderRadius: 14,
-    borderCurve: "continuous",
   },
   input: {
     width: "100%",
