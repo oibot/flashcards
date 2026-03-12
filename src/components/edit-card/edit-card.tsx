@@ -1,7 +1,7 @@
-import { Stack, useRouter } from "expo-router"
+import { useRouter } from "expo-router"
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Platform, Pressable, Text, View } from "react-native"
+import { Text, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
@@ -11,12 +11,12 @@ import {
   KeyboardAwareScrollView,
   KeyboardToolbar,
 } from "react-native-keyboard-controller"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
-import AndroidHeader from "@/components/UI/android-header"
 import { TagInput, type TagInputHandle } from "@/components/UI/tag-input"
 import { useCards } from "@/hooks/useCards"
 
+import EditCardHeader from "./edit-card-header"
 import Toolbar, {
   type SharedToolbarState,
   stateKeyByItemName,
@@ -94,12 +94,9 @@ const hasMeaningfulHtmlContent = (html: string) => {
 }
 
 export default function EditCard() {
-  const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard } = useCards()
   const router = useRouter()
-  const isIOS = Platform.OS === "ios"
-  const isAndroid = Platform.OS === "android"
   const tagInputRef = useRef<TagInputHandle>(null)
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
@@ -169,57 +166,7 @@ export default function EditCard() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: isIOS ? "" : t("headerTitle"),
-          headerTransparent: isIOS,
-          headerShadowVisible: false,
-          ...(isIOS
-            ? {
-                unstable_headerLeftItems: () => [
-                  {
-                    type: "button",
-                    label: t("cancel"),
-                    icon: { type: "sfSymbol", name: "xmark" },
-                    tintColor: theme.colors.primary,
-                    onPress: handleClose,
-                  },
-                ],
-                unstable_headerRightItems: () => [
-                  {
-                    type: "button",
-                    label: t("saveCard"),
-                    icon: { type: "sfSymbol", name: "checkmark" },
-                    tintColor: theme.colors.accent,
-                    variant: "prominent",
-                    onPress: handleSave,
-                  },
-                ],
-              }
-            : {
-                header: () =>
-                  isAndroid ? (
-                    <AndroidHeader
-                      title={t("headerTitle")}
-                      closeAccessibilityLabel={t("cancelAccessibilityLabel")}
-                      onClose={handleClose}
-                      rightAction={
-                        <Pressable
-                          accessibilityLabel={t("saveCardAccessibilityLabel")}
-                          accessibilityRole="button"
-                          onPress={handleSave}
-                          style={styles.androidHeaderSaveButton}
-                        >
-                          <Text style={styles.androidHeaderSaveLabel}>
-                            {t("saveCard")}
-                          </Text>
-                        </Pressable>
-                      }
-                    />
-                  ) : null,
-              }),
-        }}
-      />
+      <EditCardHeader onClose={handleClose} onSave={handleSave} />
       <KeyboardAwareScrollView
         style={styles.container}
         bottomOffset={44}
@@ -268,21 +215,6 @@ export default function EditCard() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  androidHeaderSaveButton: {
-    minHeight: 40,
-    minWidth: 70,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.accent,
-  },
-  androidHeaderSaveLabel: {
-    ...theme.typography.styles.subheadline,
-    color: theme.colors.background,
-    fontWeight: "600",
-  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
