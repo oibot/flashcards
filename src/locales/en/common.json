@@ -13,6 +13,11 @@
     "headerTitle": "New Card",
     "saveCard": "Save card",
     "saveCardAccessibilityLabel": "Save card",
+    "tagsMenu": {
+      "accessibilityLabel": "Add existing tag",
+      "cancel": "Cancel",
+      "title": "Existing tags"
+    },
     "tagsLabel": "Tags"
   },
   "reviewPrep": {

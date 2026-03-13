@@ -18,6 +18,7 @@ type TagInputProps = {
   onChange: (tags: string[]) => void
   error?: string
   maxTags?: number
+  accessory?: React.ReactNode
   ref?: Ref<TagInputHandle>
 }
 
@@ -26,6 +27,7 @@ export function TagInput({
   onChange,
   error,
   maxTags,
+  accessory,
   ref,
 }: TagInputProps) {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
@@ -105,50 +107,60 @@ export function TagInput({
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{t("tagsLabel")}</Text>
-      <Pressable
-        onPress={() => {
-          if (hasReachedMaxTags) {
-            return
-          }
-
-          inputRef.current?.focus()
-        }}
+      <View
         style={[
           styles.inputContainer,
           !!error ? styles.inputContainerError : null,
         ]}
       >
-        {tags.map((tag, index) => (
-          <View key={`${tag}-${index}`} style={styles.tag}>
-            <Text numberOfLines={1} style={styles.tagLabel}>
-              {tag}
-            </Text>
-            <Pressable
-              accessibilityLabel={`Remove ${tag}`}
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={() => handleRemoveTag(index)}
-              style={styles.tagRemoveButton}
-            >
-              <Text style={styles.tagRemoveLabel}>x</Text>
-            </Pressable>
+        <Pressable
+          onPress={() => {
+            if (hasReachedMaxTags) {
+              return
+            }
+
+            inputRef.current?.focus()
+          }}
+          style={styles.inputContent}
+        >
+          {tags.map((tag, index) => (
+            <View key={`${tag}-${index}`} style={styles.tag}>
+              <Text numberOfLines={1} style={styles.tagLabel}>
+                {tag}
+              </Text>
+              <Pressable
+                accessibilityLabel={`Remove ${tag}`}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => handleRemoveTag(index)}
+                style={styles.tagRemoveButton}
+              >
+                <Text style={styles.tagRemoveLabel}>x</Text>
+              </Pressable>
+            </View>
+          ))}
+          <TextInput
+            autoCapitalize="words"
+            autoCorrect={false}
+            editable={!hasReachedMaxTags}
+            onBlur={commitInput}
+            onChangeText={handleInputChange}
+            onKeyPress={handleKeyPress}
+            onSubmitEditing={commitInput}
+            ref={inputRef}
+            returnKeyType="done"
+            style={styles.input}
+            submitBehavior="submit"
+            value={input}
+          />
+        </Pressable>
+        {!!accessory && (
+          <View style={styles.accessoryContainer}>
+            <View style={styles.accessoryDivider} />
+            <View style={styles.accessoryContent}>{accessory}</View>
           </View>
-        ))}
-        <TextInput
-          autoCapitalize="words"
-          autoCorrect={false}
-          editable={!hasReachedMaxTags}
-          onBlur={commitInput}
-          onChangeText={handleInputChange}
-          onKeyPress={handleKeyPress}
-          onSubmitEditing={commitInput}
-          ref={inputRef}
-          returnKeyType="done"
-          style={styles.input}
-          submitBehavior="submit"
-          value={input}
-        />
-      </Pressable>
+        )}
+      </View>
       {!!error && <Text style={styles.error}>{error}</Text>}
     </View>
   )
@@ -166,18 +178,26 @@ const styles = StyleSheet.create((theme) => ({
   inputContainer: {
     minHeight: 52,
     flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    alignItems: "stretch",
     backgroundColor: theme.colors.secondaryBackground,
     borderRadius: 14,
     borderCurve: "continuous",
+    overflow: "hidden",
   },
   inputContainerError: {
     borderWidth: 1,
     borderColor: theme.colors.destructive,
+  },
+  inputContent: {
+    flex: 1,
+    minHeight: 52,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 8,
+    paddingLeft: 14,
+    paddingRight: 10,
+    paddingVertical: 10,
   },
   tag: {
     maxWidth: "100%",
@@ -214,6 +234,21 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 6,
     color: theme.colors.primary,
     ...theme.typography.styles.body,
+  },
+  accessoryContainer: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    flexShrink: 0,
+  },
+  accessoryDivider: {
+    width: 1,
+    backgroundColor: theme.colors.chromeMuted,
+  },
+  accessoryContent: {
+    minWidth: 52,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
   },
   error: {
     ...theme.typography.styles.footnote,

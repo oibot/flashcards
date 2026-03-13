@@ -13,6 +13,11 @@
     "headerTitle": "Neue Karte",
     "saveCard": "Karte speichern",
     "saveCardAccessibilityLabel": "Karte speichern",
+    "tagsMenu": {
+      "accessibilityLabel": "Vorhandenes Tag hinzufugen",
+      "cancel": "Abbrechen",
+      "title": "Vorhandene Tags"
+    },
     "tagsLabel": "Tags"
   },
   "reviewPrep": {

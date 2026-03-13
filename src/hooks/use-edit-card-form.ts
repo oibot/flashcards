@@ -14,6 +14,7 @@ import {
   type ToolbarItem,
   type ToolbarStyleKey,
 } from "@/components/UI/toolbar"
+import { parseTags } from "@/domain/card"
 import { useCards } from "@/hooks/use-cards"
 
 type EditorSide = "front" | "back"
@@ -86,7 +87,7 @@ const hasMeaningfulHtmlContent = (html: string) => {
 }
 
 export function useEditCardForm() {
-  const { addCard } = useCards()
+  const { addCard, cards } = useCards()
   const { back, canGoBack, replace } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const tagInputRef = useRef<TagInputHandle>(null)
@@ -96,6 +97,8 @@ export function useEditCardForm() {
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [currentStylesState, setCurrentStylesState] =
     useState<OnChangeStateEvent | null>(null)
+  const existingTags = [...new Set(cards.flatMap((card) => card.tags))].sort()
+  const availableTags = existingTags.filter((tag) => !tags.includes(tag))
 
   const handleEditorFocus = (editor: EditorSide) => {
     setFocusedEditor(editor)
@@ -115,6 +118,10 @@ export function useEditCardForm() {
 
     toggleEditorStyle(frontRef, styleKey)
     toggleEditorStyle(backRef, styleKey)
+  }
+
+  const handleAddTag = (tag: string) => {
+    setTags((currentTags) => parseTags([...currentTags, tag]))
   }
 
   const close = () => {
@@ -192,6 +199,7 @@ export function useEditCardForm() {
     backRef,
     currentStylesState,
     frontRef,
+    handleAddTag,
     handleClose,
     handleEditorFocus,
     handleEditorStateChange,
@@ -199,6 +207,7 @@ export function useEditCardForm() {
     handleToggleStyle,
     setTags,
     tagInputRef,
+    availableTags,
     tags,
   }
 }

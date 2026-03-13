@@ -7,6 +7,7 @@ import {
 import { StyleSheet } from "react-native-unistyles"
 
 import { TagInput } from "@/components/UI/tag-input"
+import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
 
@@ -17,9 +18,11 @@ export default function EditCard() {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const {
     activeStyles,
+    availableTags,
     backRef,
     currentStylesState,
     frontRef,
+    handleAddTag,
     handleClose,
     handleEditorFocus,
     handleEditorStateChange,
@@ -40,7 +43,17 @@ export default function EditCard() {
         contentInsetAdjustmentBehavior="automatic"
       >
         <View style={styles.fields}>
-          <TagInput onChange={setTags} ref={tagInputRef} tags={tags} />
+          <TagInput
+            accessory={
+              <TagsMenu
+                availableTags={availableTags}
+                onSelectTag={handleAddTag}
+              />
+            }
+            onChange={setTags}
+            ref={tagInputRef}
+            tags={tags}
+          />
           <CardSideField
             editorRef={frontRef}
             label={t("frontLabel")}
