@@ -10,6 +10,7 @@ export type TagInputHandle = {
   clear: () => void
   commitInput: () => string[]
   focus: () => void
+  hasPendingInput: () => boolean
 }
 
 type TagInputProps = {
@@ -64,6 +65,7 @@ export function TagInput({
 
       inputRef.current?.focus()
     },
+    hasPendingInput: () => input.trim().length > 0,
   }))
 
   const handleInputChange = (text: string) => {

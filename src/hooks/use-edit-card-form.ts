@@ -1,5 +1,7 @@
 import { useRouter } from "expo-router"
 import { type RefObject, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { Alert } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
@@ -85,7 +87,8 @@ const hasMeaningfulHtmlContent = (html: string) => {
 
 export function useEditCardForm() {
   const { addCard } = useCards()
-  const router = useRouter()
+  const { back, canGoBack, replace } = useRouter()
+  const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const tagInputRef = useRef<TagInputHandle>(null)
   const frontRef = useRef<EnrichedTextInputInstance>(null)
   const backRef = useRef<EnrichedTextInputInstance>(null)
@@ -114,13 +117,44 @@ export function useEditCardForm() {
     toggleEditorStyle(backRef, styleKey)
   }
 
-  const handleClose = () => {
-    if (router.canGoBack()) {
-      router.back()
+  const close = () => {
+    if (canGoBack()) {
+      back()
       return
     }
 
-    router.replace("/(tabs)/(review)")
+    replace("/(tabs)/(review)")
+  }
+
+  const hasUnsavedChanges = async () => {
+    const frontHtml = (await frontRef.current?.getHTML()) ?? ""
+    const backHtml = (await backRef.current?.getHTML()) ?? ""
+
+    return (
+      tags.length > 0 ||
+      tagInputRef.current?.hasPendingInput() === true ||
+      hasMeaningfulHtmlContent(frontHtml) ||
+      hasMeaningfulHtmlContent(backHtml)
+    )
+  }
+
+  const handleClose = async () => {
+    if (!(await hasUnsavedChanges())) {
+      close()
+      return
+    }
+
+    Alert.alert(t("discard.title"), t("discard.message"), [
+      {
+        text: t("discard.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("discard.confirm"),
+        style: "destructive",
+        onPress: close,
+      },
+    ])
   }
 
   const resetForm = () => {

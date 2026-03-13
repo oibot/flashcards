@@ -3,6 +3,12 @@
     "backLabel": "Rückseite",
     "cancel": "Abbrechen",
     "cancelAccessibilityLabel": "Abbrechen",
+    "discard": {
+      "cancel": "Weiter bearbeiten",
+      "confirm": "Verwerfen",
+      "message": "Diesen Kartenentwurf verwerfen?",
+      "title": "Ungespeicherte Änderungen"
+    },
     "frontLabel": "Vorderseite",
     "headerTitle": "Neue Karte",
     "saveCard": "Karte speichern",

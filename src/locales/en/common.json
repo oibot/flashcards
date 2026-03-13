@@ -3,6 +3,12 @@
     "backLabel": "Back",
     "cancel": "Cancel",
     "cancelAccessibilityLabel": "Cancel",
+    "discard": {
+      "cancel": "Keep editing",
+      "confirm": "Discard",
+      "message": "Discard this card draft?",
+      "title": "Unsaved changes"
+    },
     "frontLabel": "Front",
     "headerTitle": "New Card",
     "saveCard": "Save card",
