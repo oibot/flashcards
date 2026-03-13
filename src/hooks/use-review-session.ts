@@ -6,7 +6,7 @@ import { Alert } from "react-native"
 import type { Card } from "@/domain/card"
 import type { ReviewGrade } from "@/domain/review-scheduler"
 import type { ReviewSessionSeed } from "@/domain/review-session"
-import { useDueCards } from "@/hooks/useDueCards"
+import { useDueCards } from "@/hooks/use-due-cards"
 
 type UseReviewSessionOptions = {
   initialSeed?: ReviewSessionSeed

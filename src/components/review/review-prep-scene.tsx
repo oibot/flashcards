@@ -11,7 +11,7 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconButtonPlus } from "@/components/UI/icon-button"
-import { useDueCards } from "@/hooks/useDueCards"
+import { useDueCards } from "@/hooks/use-due-cards"
 
 type Props = {
   onNewCard: () => void

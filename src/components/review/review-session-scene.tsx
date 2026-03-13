@@ -5,7 +5,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
 import ReviewSessionHeader from "@/components/review/review-session-header"
-import { useReviewSession } from "@/hooks/useReviewSession"
+import { useReviewSession } from "@/hooks/use-review-session"
 
 export default function ReviewSessionScene() {
   const { theme } = useUnistyles()

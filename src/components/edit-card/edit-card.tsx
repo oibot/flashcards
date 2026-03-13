@@ -7,11 +7,11 @@ import {
 import { StyleSheet } from "react-native-unistyles"
 
 import { TagInput } from "@/components/UI/tag-input"
+import Toolbar from "@/components/UI/toolbar"
+import { useEditCardForm } from "@/hooks/use-edit-card-form"
 
 import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
-import Toolbar from "./toolbar"
-import { useEditCardForm } from "./use-edit-card-form"
 
 export default function EditCard() {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })

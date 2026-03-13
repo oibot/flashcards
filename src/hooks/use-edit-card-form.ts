@@ -6,14 +6,13 @@ import type {
 } from "react-native-enriched"
 
 import { type TagInputHandle } from "@/components/UI/tag-input"
-import { useCards } from "@/hooks/useCards"
-
 import {
   type SharedToolbarState,
   stateKeyByItemName,
   type ToolbarItem,
   type ToolbarStyleKey,
-} from "./toolbar"
+} from "@/components/UI/toolbar"
+import { useCards } from "@/hooks/use-cards"
 
 type EditorSide = "front" | "back"
 
