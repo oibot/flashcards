@@ -24,11 +24,31 @@ export type NewCardInput = {
   backHtml: string
 }
 
+export function normalizeTagTitle(tag: string) {
+  const normalizedWhitespace = tag.trim().replace(/\s+/g, " ")
+
+  if (normalizedWhitespace.length === 0) {
+    return ""
+  }
+
+  return normalizedWhitespace
+    .split(" ")
+    .map((part) => {
+      const [firstCharacter = "", ...restCharacters] = [...part]
+
+      return (
+        firstCharacter.toLocaleUpperCase() +
+        restCharacters.join("").toLocaleLowerCase()
+      )
+    })
+    .join(" ")
+}
+
 export function parseTags(tags: string[] | string) {
   const tagValues = Array.isArray(tags) ? tags : tags.split(",")
 
   return tagValues
-    .map((tag) => tag.trim())
+    .map(normalizeTagTitle)
     .filter(
       (tag, index, allTags) => tag.length > 0 && allTags.indexOf(tag) === index,
     )

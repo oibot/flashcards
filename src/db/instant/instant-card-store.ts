@@ -3,8 +3,7 @@ import { id } from "@instantdb/react-native"
 import type { CardStore } from "@/db/card-store"
 import { db } from "@/db/instant/db"
 import { normalizeError, toCard } from "@/db/instant/instant-utils"
-import type { Card, NewCardInput } from "@/domain/card"
-import { parseTags } from "@/domain/card"
+import { type Card, type NewCardInput, parseTags } from "@/domain/card"
 import {
   createInitialSchedule,
   type ReviewGrade,
