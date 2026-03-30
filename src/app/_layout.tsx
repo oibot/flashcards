@@ -9,6 +9,7 @@ import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
   const { rt } = useUnistyles()
+  const isLoggedIn = false
   const statusBarStyle = rt.themeName === "dark" ? "light" : "dark"
 
   return (
@@ -16,27 +17,32 @@ export default function Layout() {
       <DbProvider>
         <StatusBar style={statusBarStyle} />
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="(modals)/new-card"
-            options={{
-              headerTitle: "",
-              headerShown: true,
-              headerShadowVisible: false,
-              headerTransparent: true,
-              presentation: "modal",
-            }}
-          />
-          <Stack.Screen
-            name="(modals)/review-session"
-            options={{
-              headerTitle: "",
-              headerShown: true,
-              headerShadowVisible: false,
-              headerTransparent: true,
-              presentation: "fullScreenModal",
-            }}
-          />
+          <Stack.Protected guard={isLoggedIn}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="(modals)/new-card"
+              options={{
+                headerTitle: "",
+                headerShown: true,
+                headerShadowVisible: false,
+                headerTransparent: true,
+                presentation: "modal",
+              }}
+            />
+            <Stack.Screen
+              name="(modals)/review-session"
+              options={{
+                headerTitle: "",
+                headerShown: true,
+                headerShadowVisible: false,
+                headerTransparent: true,
+                presentation: "fullScreenModal",
+              }}
+            />
+          </Stack.Protected>
+          <Stack.Protected guard={!isLoggedIn}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
         </Stack>
       </DbProvider>
     </KeyboardProvider>

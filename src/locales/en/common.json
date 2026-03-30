@@ -1,4 +1,14 @@
 {
+  "auth": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "codeLabel": "Code",
+    "codePlaceholder": "123456",
+    "requestMagicCode": "Request code",
+    "requestMagicCodeAccessibilityLabel": "Request a code",
+    "requestSent": "A code would be sent to {{email}}.",
+    "title": "Sign in"
+  },
   "editCard": {
     "backLabel": "Back",
     "cancel": "Cancel",
