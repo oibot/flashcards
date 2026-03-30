@@ -76,7 +76,14 @@
     "showFrontAccessibilityLabel": "Vorderseite der Karte anzeigen",
     "saveErrorTitle": "Bewertung konnte nicht gespeichert werden"
   },
+  "settings": {
+    "signOut": "Abmelden",
+    "signOutAccessibilityLabel": "Abmelden",
+    "signOutError": "Abmeldung fehlgeschlagen.",
+    "title": "Einstellungen"
+  },
   "tabs": {
-    "review": "Lernen"
+    "review": "Lernen",
+    "settings": "Einstellungen"
   }
 }

@@ -76,7 +76,14 @@
     "showFrontAccessibilityLabel": "Show front of card",
     "saveErrorTitle": "Could not save review"
   },
+  "settings": {
+    "signOut": "Log out",
+    "signOutAccessibilityLabel": "Log out",
+    "signOutError": "Could not log out.",
+    "title": "Settings"
+  },
   "tabs": {
-    "review": "Review"
+    "review": "Review",
+    "settings": "Settings"
   }
 }
