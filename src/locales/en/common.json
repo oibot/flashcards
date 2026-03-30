@@ -6,7 +6,12 @@
     "codePlaceholder": "123456",
     "requestMagicCode": "Request code",
     "requestMagicCodeAccessibilityLabel": "Request a code",
+    "requestCodeError": "Could not send code.",
+    "requestingCode": "Requesting code...",
     "requestSent": "A code would be sent to {{email}}.",
+    "signInAccessibilityLabel": "Sign in with code",
+    "signInButton": "Sign in",
+    "signInError": "Could not sign in.",
     "title": "Sign in"
   },
   "editCard": {

@@ -2,13 +2,41 @@ import { Stack } from "expo-router"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { TextInputProps } from "react-native"
-import { Pressable, Text, TextInput, View } from "react-native"
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native"
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
+import { db } from "@/db/instant/db"
 
 type AuthFieldProps = {
   label: string
 } & TextInputProps
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "body" in error &&
+    error.body &&
+    typeof error.body === "object" &&
+    "message" in error.body &&
+    typeof error.body.message === "string"
+  ) {
+    return error.body.message
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return fallback
+}
 
 function AuthField({ label, ...props }: AuthFieldProps) {
   return (
@@ -20,22 +48,64 @@ function AuthField({ label, ...props }: AuthFieldProps) {
 }
 
 export default function AuthScene() {
+  const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "auth" })
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")
-  const [hasRequestedCode, setHasRequestedCode] = useState(false)
+  const [sentEmail, setSentEmail] = useState("")
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isSendingCode, setIsSendingCode] = useState(false)
+  const [isSigningIn, setIsSigningIn] = useState(false)
 
-  const isRequestDisabled = email.trim().length === 0
-  const requestFeedback = hasRequestedCode
-    ? t("requestSent", { email: email.trim() })
-    : null
+  const trimmedEmail = email.trim()
+  const trimmedCode = code.trim()
+  const isRequestDisabled =
+    trimmedEmail.length === 0 || isSendingCode || isSigningIn
+  const isSignInDisabled =
+    trimmedEmail.length === 0 ||
+    trimmedCode.length === 0 ||
+    isSendingCode ||
+    isSigningIn
 
   const handleRequestMagicCode = () => {
-    if (isRequestDisabled) {
-      return
-    }
+    if (isRequestDisabled) return
 
-    setHasRequestedCode(true)
+    setErrorMessage(null)
+    setStatusMessage(null)
+    setIsSendingCode(true)
+
+    db.auth
+      .sendMagicCode({ email: trimmedEmail })
+      .then(() => {
+        setSentEmail(trimmedEmail)
+        setStatusMessage(t("requestSent", { email: trimmedEmail }))
+      })
+      .catch((error: unknown) => {
+        setSentEmail("")
+        setStatusMessage(null)
+        setErrorMessage(getErrorMessage(error, t("requestCodeError")))
+      })
+      .finally(() => {
+        setIsSendingCode(false)
+      })
+  }
+
+  const handleSignIn = () => {
+    if (isSignInDisabled) return
+
+    setErrorMessage(null)
+    setStatusMessage(null)
+    setIsSigningIn(true)
+
+    db.auth
+      .signInWithMagicCode({ email: trimmedEmail, code: trimmedCode })
+      .catch((error: unknown) => {
+        setErrorMessage(getErrorMessage(error, t("signInError")))
+      })
+      .finally(() => {
+        setIsSigningIn(false)
+      })
   }
 
   return (
@@ -91,11 +161,48 @@ export default function AuthScene() {
                   isRequestDisabled ? styles.buttonLabelDisabled : null,
                 ]}
               >
-                {t("requestMagicCode")}
+                {isSendingCode ? t("requestingCode") : t("requestMagicCode")}
               </Text>
             </Pressable>
-            {requestFeedback ? (
-              <Text style={styles.feedback}>{requestFeedback}</Text>
+            <Pressable
+              accessibilityLabel={t("signInAccessibilityLabel")}
+              accessibilityRole="button"
+              disabled={isSignInDisabled}
+              onPress={handleSignIn}
+              style={[
+                styles.secondaryButton,
+                isSignInDisabled ? styles.secondaryButtonDisabled : null,
+              ]}
+            >
+              {isSigningIn ? (
+                <ActivityIndicator color={theme.colors.accent} />
+              ) : (
+                <Text
+                  style={[
+                    styles.secondaryButtonLabel,
+                    isSignInDisabled
+                      ? styles.secondaryButtonLabelDisabled
+                      : null,
+                  ]}
+                >
+                  {t("signInButton")}
+                </Text>
+              )}
+            </Pressable>
+            {statusMessage ? (
+              <Text selectable style={styles.feedback}>
+                {statusMessage}
+              </Text>
+            ) : null}
+            {errorMessage ? (
+              <Text selectable style={styles.error}>
+                {errorMessage}
+              </Text>
+            ) : null}
+            {sentEmail && !statusMessage && !errorMessage ? (
+              <Text selectable style={styles.feedback}>
+                {t("requestSent", { email: sentEmail })}
+              </Text>
             ) : null}
           </View>
         </View>
@@ -169,8 +276,34 @@ const styles = StyleSheet.create((theme, rt) => ({
   buttonLabelDisabled: {
     color: theme.colors.primary,
   },
+  secondaryButton: {
+    minHeight: 54,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: theme.colors.accent,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.background,
+  },
+  secondaryButtonDisabled: {
+    borderColor: theme.colors.chromeMuted,
+    backgroundColor: theme.colors.secondaryBackground,
+  },
+  secondaryButtonLabel: {
+    ...theme.typography.styles.headline,
+    color: theme.colors.accent,
+  },
+  secondaryButtonLabelDisabled: {
+    color: theme.colors.secondary,
+  },
   feedback: {
     ...theme.typography.styles.footnote,
     color: theme.colors.secondary,
+  },
+  error: {
+    ...theme.typography.styles.footnote,
+    color: theme.colors.destructive,
   },
 }))

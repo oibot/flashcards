@@ -6,7 +6,12 @@
     "codePlaceholder": "123456",
     "requestMagicCode": "Code anfordern",
     "requestMagicCodeAccessibilityLabel": "Einen Code anfordern",
+    "requestCodeError": "Code konnte nicht gesendet werden.",
+    "requestingCode": "Code wird angefordert...",
     "requestSent": "Ein Code würde an {{email}} gesendet werden.",
+    "signInAccessibilityLabel": "Mit Code anmelden",
+    "signInButton": "Anmelden",
+    "signInError": "Anmeldung fehlgeschlagen.",
     "title": "Anmelden"
   },
   "editCard": {
