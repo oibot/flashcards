@@ -12,31 +12,11 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { db } from "@/db/instant/db"
+import { useAuthActions } from "@/auth/use-auth-actions"
 
 type AuthFieldProps = {
   label: string
 } & TextInputProps
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (
-    error &&
-    typeof error === "object" &&
-    "body" in error &&
-    error.body &&
-    typeof error.body === "object" &&
-    "message" in error.body &&
-    typeof error.body.message === "string"
-  ) {
-    return error.body.message
-  }
-
-  if (error instanceof Error) {
-    return error.message
-  }
-
-  return fallback
-}
 
 function AuthField({ label, ...props }: AuthFieldProps) {
   return (
@@ -50,6 +30,7 @@ function AuthField({ label, ...props }: AuthFieldProps) {
 export default function AuthScene() {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "auth" })
+  const { requestCode, signInWithCode } = useAuthActions()
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")
   const [sentEmail, setSentEmail] = useState("")
@@ -75,8 +56,7 @@ export default function AuthScene() {
     setStatusMessage(null)
     setIsSendingCode(true)
 
-    db.auth
-      .sendMagicCode({ email: trimmedEmail })
+    requestCode({ email: trimmedEmail })
       .then(() => {
         setSentEmail(trimmedEmail)
         setStatusMessage(t("requestSent", { email: trimmedEmail }))
@@ -84,7 +64,9 @@ export default function AuthScene() {
       .catch((error: unknown) => {
         setSentEmail("")
         setStatusMessage(null)
-        setErrorMessage(getErrorMessage(error, t("requestCodeError")))
+        setErrorMessage(
+          error instanceof Error ? error.message : t("requestCodeError"),
+        )
       })
       .finally(() => {
         setIsSendingCode(false)
@@ -98,10 +80,11 @@ export default function AuthScene() {
     setStatusMessage(null)
     setIsSigningIn(true)
 
-    db.auth
-      .signInWithMagicCode({ email: trimmedEmail, code: trimmedCode })
+    signInWithCode({ email: trimmedEmail, code: trimmedCode })
       .catch((error: unknown) => {
-        setErrorMessage(getErrorMessage(error, t("signInError")))
+        setErrorMessage(
+          error instanceof Error ? error.message : t("signInError"),
+        )
       })
       .finally(() => {
         setIsSigningIn(false)

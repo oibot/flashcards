@@ -6,12 +6,12 @@ import { ActivityIndicator, View } from "react-native"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { useAuthSession } from "@/auth/use-auth-session"
 import { DbProvider } from "@/db/db-context"
-import { db } from "@/db/instant/db"
 
 export default function Layout() {
   const { rt, theme } = useUnistyles()
-  const { isLoading, user } = db.useAuth()
+  const { status, user } = useAuthSession()
   const isLoggedIn = !!user
   const statusBarStyle = rt.themeName === "dark" ? "light" : "dark"
 
@@ -19,7 +19,7 @@ export default function Layout() {
     <KeyboardProvider>
       <DbProvider>
         <StatusBar style={statusBarStyle} />
-        {isLoading ? (
+        {status === "loading" ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator color={theme.colors.accent} />
           </View>
