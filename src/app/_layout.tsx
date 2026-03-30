@@ -6,12 +6,14 @@ import { KeyboardProvider } from "react-native-keyboard-controller"
 import { useUnistyles } from "react-native-unistyles"
 
 import { useAuthSession } from "@/auth/use-auth-session"
+import { useEnsureProfile } from "@/auth/use-ensure-profile"
 import LoadingScreen from "@/components/UI/loading-screen"
 import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
   const { rt } = useUnistyles()
   const { status, user } = useAuthSession()
+  useEnsureProfile({ status, user })
   const isLoggedIn = !!user
   const statusBarStyle = rt.themeName === "dark" ? "light" : "dark"
 
