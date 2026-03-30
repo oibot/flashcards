@@ -2,15 +2,15 @@ import "@/locales/i18n"
 
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { ActivityIndicator, View } from "react-native"
 import { KeyboardProvider } from "react-native-keyboard-controller"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { useUnistyles } from "react-native-unistyles"
 
 import { useAuthSession } from "@/auth/use-auth-session"
+import LoadingScreen from "@/components/UI/loading-screen"
 import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
-  const { rt, theme } = useUnistyles()
+  const { rt } = useUnistyles()
   const { status, user } = useAuthSession()
   const isLoggedIn = !!user
   const statusBarStyle = rt.themeName === "dark" ? "light" : "dark"
@@ -20,9 +20,7 @@ export default function Layout() {
       <DbProvider>
         <StatusBar style={statusBarStyle} />
         {status === "loading" ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator color={theme.colors.accent} />
-          </View>
+          <LoadingScreen />
         ) : (
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Protected guard={isLoggedIn}>
@@ -57,12 +55,3 @@ export default function Layout() {
     </KeyboardProvider>
   )
 }
-
-const styles = StyleSheet.create((theme) => ({
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.background,
-  },
-}))
