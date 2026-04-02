@@ -2,7 +2,7 @@ import { useDb } from "@/db/db-context"
 
 export function useCards() {
   const { cardStore } = useDb()
-  const { useCardsQuery, addCard, reviewCard, removeCard } = cardStore
+  const { useCardsQuery, addCard } = cardStore
   const { cards, isLoading, error } = useCardsQuery()
 
   return {
@@ -10,7 +10,5 @@ export function useCards() {
     isLoading,
     error,
     addCard,
-    reviewCard,
-    removeCard,
   }
 }
