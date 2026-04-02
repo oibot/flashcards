@@ -35,19 +35,22 @@ export function useEnsureProfile({ status, user }: EnsureProfileInput) {
 
     isCreatingProfileRef.current = true
 
-    void db
-      .transact(
-        db.tx.profiles[user.id]
-          .update({
-            createdAt: Date.now(),
-          })
-          .link({ $user: user.id }),
-      )
-      .catch((profileError) => {
+    const ensureProfile = async () => {
+      try {
+        await db.transact(
+          db.tx.profiles[user.id]
+            .update({
+              createdAt: Date.now(),
+            })
+            .link({ $user: user.id }),
+        )
+      } catch (profileError) {
         console.error("Failed to ensure profile", profileError)
-      })
-      .finally(() => {
+      } finally {
         isCreatingProfileRef.current = false
-      })
+      }
+    }
+
+    void ensureProfile()
   }, [error, hasProfile, isLoading, status, user])
 }
