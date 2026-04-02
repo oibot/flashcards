@@ -4,15 +4,19 @@
     "emailPlaceholder": "du@example.com",
     "codeLabel": "Code",
     "codePlaceholder": "123456",
+    "emailStepDescription": "Gib deine E-Mail-Adresse ein und wir senden dir einen Bestätigungscode. Falls du noch kein Konto hast, erstellen wir eins für dich.",
+    "emailStepTitle": "Lass uns dich anmelden",
+    "codeStepTitle": "Gib deinen Code ein",
     "requestMagicCode": "Code anfordern",
     "requestMagicCodeAccessibilityLabel": "Einen Code anfordern",
     "requestCodeError": "Code konnte nicht gesendet werden.",
     "requestingCode": "Code wird angefordert...",
-    "requestSent": "Ein Code würde an {{email}} gesendet werden.",
+    "requestSent": "Wir haben eine E-Mail an {{email}} gesendet. Schau in dein Postfach und gib den Code ein.",
     "signInAccessibilityLabel": "Mit Code anmelden",
     "signInButton": "Anmelden",
     "signInError": "Anmeldung fehlgeschlagen.",
-    "title": "Anmelden"
+    "title": "Anmelden",
+    "useDifferentEmail": "Andere E-Mail verwenden"
   },
   "editCard": {
     "backLabel": "Rückseite",

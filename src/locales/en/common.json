@@ -4,15 +4,19 @@
     "emailPlaceholder": "you@example.com",
     "codeLabel": "Code",
     "codePlaceholder": "123456",
+    "emailStepDescription": "Enter your email and we'll send you a verification code. We'll create an account too if you don't already have one.",
+    "emailStepTitle": "Let's log you in",
+    "codeStepTitle": "Enter your code",
     "requestMagicCode": "Request code",
     "requestMagicCodeAccessibilityLabel": "Request a code",
     "requestCodeError": "Could not send code.",
     "requestingCode": "Requesting code...",
-    "requestSent": "A code would be sent to {{email}}.",
+    "requestSent": "We sent an email to {{email}}. Check your inbox and enter the code you see.",
     "signInAccessibilityLabel": "Sign in with code",
     "signInButton": "Sign in",
     "signInError": "Could not sign in.",
-    "title": "Sign in"
+    "title": "Sign in",
+    "useDifferentEmail": "Use a different email"
   },
   "editCard": {
     "backLabel": "Back",
