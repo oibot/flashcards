@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tobio.flashcards",
+      "icon": "./assets/icon/flashcards.icon",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
