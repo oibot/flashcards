@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import { Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -8,6 +8,7 @@ import { useCard } from "@/hooks/use-card"
 
 export default function Page() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { dismiss } = useRouter()
   const { card, isLoading, error } = useCard(id)
 
   if (isLoading) {
@@ -24,7 +25,7 @@ export default function Page() {
     )
   }
 
-  return <EditCard initialCard={card} />
+  return <EditCard initialCard={card} onClose={dismiss} />
 }
 
 const styles = StyleSheet.create((theme) => ({

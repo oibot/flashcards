@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { View } from "react-native"
+import { Alert, View } from "react-native"
 import {
   KeyboardAwareScrollView,
   KeyboardToolbar,
@@ -10,17 +10,21 @@ import { TagInput } from "@/components/UI/tag-input"
 import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
 import type { Card } from "@/domain/card"
+import { useEditCard } from "@/hooks/use-edit-card"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
+import { hasMeaningfulHtmlContent } from "@/utils/html"
 
 import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
 
 type EditCardProps = {
   initialCard?: Card
+  onClose: () => void
 }
 
-export default function EditCard({ initialCard }: EditCardProps) {
+export default function EditCard({ initialCard, onClose }: EditCardProps) {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
+  const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
   const {
     activeStyles,
@@ -28,16 +32,65 @@ export default function EditCard({ initialCard }: EditCardProps) {
     backRef,
     currentStylesState,
     frontRef,
+    getDraft,
     handleAddTag,
-    handleClose,
     handleEditorFocus,
     handleEditorStateChange,
-    handleSave,
     handleToggleStyle,
+    hasUnsavedChanges,
+    resetForm,
     setTags,
     tagInputRef,
     tags,
   } = useEditCardForm({ initialCard })
+
+  const handleClose = async () => {
+    if (!(await hasUnsavedChanges())) {
+      onClose()
+      return
+    }
+
+    Alert.alert(t("discard.title"), t("discard.message"), [
+      {
+        text: t("discard.cancel"),
+        style: "cancel",
+      },
+      {
+        text: t("discard.confirm"),
+        style: "destructive",
+        onPress: onClose,
+      },
+    ])
+  }
+
+  const handleSave = async () => {
+    const { backHtml, frontHtml, tags: nextTags } = await getDraft()
+
+    if (
+      !hasMeaningfulHtmlContent(frontHtml) ||
+      !hasMeaningfulHtmlContent(backHtml)
+    ) {
+      return
+    }
+
+    if (initialCard) {
+      await updateCard({
+        id: initialCard.id,
+        tags: nextTags,
+        frontHtml,
+        backHtml,
+      })
+      onClose()
+      return
+    }
+
+    await addCard({
+      tags: nextTags,
+      frontHtml,
+      backHtml,
+    })
+    resetForm()
+  }
 
   return (
     <>

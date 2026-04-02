@@ -1,7 +1,7 @@
 import { id } from "@instantdb/react-native"
 
 import { useAuthSession } from "@/auth/use-auth-session"
-import type { CardStore } from "@/db/card-store"
+import type { CardStore, TagsQueryState } from "@/db/card-store"
 import { db } from "@/db/instant/db"
 import { normalizeError, toCard } from "@/db/instant/instant-utils"
 import {
@@ -117,6 +117,37 @@ export const createInstantCardStore = (): CardStore => {
     }
   }
 
+  const useTagsQuery = (): TagsQueryState => {
+    const { status, user } = useAuthSession()
+    const query =
+      user !== null
+        ? {
+            $users: {
+              $: {
+                where: {
+                  id: user.id,
+                },
+              },
+              tags: {
+                $: {
+                  order: {
+                    title: "asc" as const,
+                  },
+                },
+              },
+            },
+          }
+        : null
+    const { isLoading, error, data } = db.useQuery(query)
+    const tags = (data?.$users?.[0]?.tags ?? []).map((tag) => tag.title)
+
+    return {
+      tags,
+      isLoading: status === "loading" || isLoading,
+      error: normalizeError(error),
+    }
+  }
+
   const addCard = async (input: NewCardInput) => {
     const currentUser = await requireCurrentUser()
     const tags = parseTags(input.tags)
@@ -217,6 +248,7 @@ export const createInstantCardStore = (): CardStore => {
   return {
     useCardsQuery,
     useDueCardsQuery,
+    useTagsQuery,
     addCard,
     updateCard,
     reviewCard,
