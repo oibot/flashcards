@@ -4,7 +4,7 @@ const rules = {
   $users: {
     allow: {
       view: "auth.id == data.id",
-      create: "false",
+      create: "true",
       delete: "false",
       update: "false",
     },
