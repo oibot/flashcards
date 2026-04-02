@@ -8,6 +8,7 @@ import { useUnistyles } from "react-native-unistyles"
 import { useAuthSession } from "@/auth/use-auth-session"
 import { useEnsureProfile } from "@/auth/use-ensure-profile"
 import LoadingScreen from "@/components/UI/loading-screen"
+import NavigationThemeProvider from "@/components/UI/navigation-theme-provider"
 import { DbProvider } from "@/db/db-context"
 
 export default function Layout() {
@@ -20,39 +21,41 @@ export default function Layout() {
   return (
     <KeyboardProvider>
       <DbProvider>
-        <StatusBar style={statusBarStyle} />
-        {status === "loading" ? (
-          <LoadingScreen />
-        ) : (
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={isLoggedIn}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen
-                name="(modals)/new-card"
-                options={{
-                  headerTitle: "",
-                  headerShown: true,
-                  headerShadowVisible: false,
-                  headerTransparent: true,
-                  presentation: "modal",
-                }}
-              />
-              <Stack.Screen
-                name="(modals)/review-session"
-                options={{
-                  headerTitle: "",
-                  headerShown: true,
-                  headerShadowVisible: false,
-                  headerTransparent: true,
-                  presentation: "fullScreenModal",
-                }}
-              />
-            </Stack.Protected>
-            <Stack.Protected guard={!isLoggedIn}>
-              <Stack.Screen name="(auth)" />
-            </Stack.Protected>
-          </Stack>
-        )}
+        <NavigationThemeProvider>
+          <StatusBar style={statusBarStyle} />
+          {status === "loading" ? (
+            <LoadingScreen />
+          ) : (
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Protected guard={isLoggedIn}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen
+                  name="(modals)/new-card"
+                  options={{
+                    headerTitle: "",
+                    headerShown: true,
+                    headerShadowVisible: false,
+                    headerTransparent: true,
+                    presentation: "modal",
+                  }}
+                />
+                <Stack.Screen
+                  name="(modals)/review-session"
+                  options={{
+                    headerTitle: "",
+                    headerShown: true,
+                    headerShadowVisible: false,
+                    headerTransparent: true,
+                    presentation: "fullScreenModal",
+                  }}
+                />
+              </Stack.Protected>
+              <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Screen name="(auth)" />
+              </Stack.Protected>
+            </Stack>
+          )}
+        </NavigationThemeProvider>
       </DbProvider>
     </KeyboardProvider>
   )
