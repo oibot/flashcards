@@ -6,11 +6,13 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import AndroidHeader from "@/components/UI/android-header"
 
 type EditCardHeaderProps = {
+  isEditing?: boolean
   onClose: () => void
   onSave: () => void
 }
 
 export default function EditCardHeader({
+  isEditing = false,
   onClose,
   onSave,
 }: EditCardHeaderProps) {
@@ -18,11 +20,12 @@ export default function EditCardHeader({
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
+  const title = isEditing ? t("editHeaderTitle") : t("headerTitle")
 
   return (
     <Stack.Screen
       options={{
-        title: isIOS ? "" : t("headerTitle"),
+        title: isIOS ? "" : title,
         headerTransparent: isIOS,
         headerShadowVisible: false,
         ...(isIOS
@@ -51,7 +54,7 @@ export default function EditCardHeader({
               header: () =>
                 isAndroid ? (
                   <AndroidHeader
-                    title={t("headerTitle")}
+                    title={title}
                     closeAccessibilityLabel={t("cancelAccessibilityLabel")}
                     onClose={onClose}
                     rightAction={

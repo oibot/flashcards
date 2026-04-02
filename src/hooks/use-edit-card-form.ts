@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"
-import { type RefObject, useRef, useState } from "react"
+import { type RefObject, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 import type {
@@ -14,7 +14,9 @@ import {
   type ToolbarItem,
   type ToolbarStyleKey,
 } from "@/components/UI/toolbar"
+import type { Card } from "@/domain/card"
 import { parseTags } from "@/domain/card"
+import { useCard } from "@/hooks/use-card"
 import { useCards } from "@/hooks/use-cards"
 
 type EditorSide = "front" | "back"
@@ -86,8 +88,20 @@ const hasMeaningfulHtmlContent = (html: string) => {
   )
 }
 
-export function useEditCardForm() {
+type UseEditCardFormOptions = {
+  initialCard?: Card
+}
+
+const areTagsEqual = (left: string[], right: string[]) => {
+  return (
+    left.length === right.length &&
+    left.every((tag, index) => tag === right[index])
+  )
+}
+
+export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
   const { addCard, cards } = useCards()
+  const { updateCard } = useCard(initialCard?.id)
   const { back, canGoBack, replace } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const tagInputRef = useRef<TagInputHandle>(null)
@@ -97,8 +111,20 @@ export function useEditCardForm() {
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [currentStylesState, setCurrentStylesState] =
     useState<OnChangeStateEvent | null>(null)
+  const hydratedCardIdRef = useRef<string | null>(null)
   const existingTags = [...new Set(cards.flatMap((card) => card.tags))].sort()
   const availableTags = existingTags.filter((tag) => !tags.includes(tag))
+
+  useEffect(() => {
+    if (!initialCard || hydratedCardIdRef.current === initialCard.id) {
+      return
+    }
+
+    setTags(initialCard.tags)
+    frontRef.current?.setValue(initialCard.frontHtml)
+    backRef.current?.setValue(initialCard.backHtml)
+    hydratedCardIdRef.current = initialCard.id
+  }, [initialCard])
 
   const handleEditorFocus = (editor: EditorSide) => {
     setFocusedEditor(editor)
@@ -136,12 +162,15 @@ export function useEditCardForm() {
   const hasUnsavedChanges = async () => {
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
     const backHtml = (await backRef.current?.getHTML()) ?? ""
+    const initialTags = initialCard?.tags ?? []
+    const initialFrontHtml = initialCard?.frontHtml ?? ""
+    const initialBackHtml = initialCard?.backHtml ?? ""
 
     return (
-      tags.length > 0 ||
+      !areTagsEqual(tags, initialTags) ||
       tagInputRef.current?.hasPendingInput() === true ||
-      hasMeaningfulHtmlContent(frontHtml) ||
-      hasMeaningfulHtmlContent(backHtml)
+      frontHtml !== initialFrontHtml ||
+      backHtml !== initialBackHtml
     )
   }
 
@@ -183,6 +212,17 @@ export function useEditCardForm() {
       !hasMeaningfulHtmlContent(frontHtml) ||
       !hasMeaningfulHtmlContent(backHtml)
     ) {
+      return
+    }
+
+    if (initialCard) {
+      await updateCard({
+        id: initialCard.id,
+        tags: nextTags,
+        frontHtml,
+        backHtml,
+      })
+      close()
       return
     }
 

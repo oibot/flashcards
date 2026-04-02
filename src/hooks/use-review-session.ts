@@ -1,5 +1,4 @@
-import { useRouter } from "expo-router"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
@@ -12,10 +11,20 @@ type UseReviewSessionOptions = {
   initialSeed?: ReviewSessionSeed
 }
 
+const areCardsEquivalent = (left: Card, right: Card) => {
+  return (
+    left.id === right.id &&
+    left.frontHtml === right.frontHtml &&
+    left.backHtml === right.backHtml &&
+    left.updatedAt === right.updatedAt &&
+    left.tags.length === right.tags.length &&
+    left.tags.every((tag, index) => tag === right.tags[index])
+  )
+}
+
 export function useReviewSession({
   initialSeed,
 }: UseReviewSessionOptions = {}) {
-  const { dismiss } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const {
     cards: dueCards,
@@ -47,30 +56,46 @@ export function useReviewSession({
       ? currentCard.backHtml
       : currentCard.frontHtml
     : ""
+  const liveDueCardById = useMemo(
+    () => new Map(dueCards.map((card) => [card.id, card])),
+    [dueCards],
+  )
 
   useEffect(() => {
-    if (isSessionComplete || sessionCards.length > 0 || isLoading || error) {
-      return
-    }
-
-    if (initialCards.length === 0) {
-      dismiss()
+    if (
+      isSessionComplete ||
+      sessionCards.length > 0 ||
+      isLoading ||
+      error ||
+      initialCards.length === 0
+    ) {
       return
     }
 
     setSessionCards(initialCards)
-  }, [
-    dismiss,
-    error,
-    initialCards,
-    isLoading,
-    isSessionComplete,
-    sessionCards.length,
-  ])
+  }, [error, initialCards, isLoading, isSessionComplete, sessionCards.length])
 
-  const close = () => {
-    dismiss()
-  }
+  useEffect(() => {
+    if (sessionCards.length === 0) {
+      return
+    }
+
+    setSessionCards((currentSessionCards) => {
+      let didChange = false
+      const nextSessionCards = currentSessionCards.map((card) => {
+        const liveCard = liveDueCardById.get(card.id)
+
+        if (!liveCard || areCardsEquivalent(liveCard, card)) {
+          return card
+        }
+
+        didChange = true
+        return liveCard
+      })
+
+      return didChange ? nextSessionCards : currentSessionCards
+    })
+  }, [liveDueCardById, sessionCards.length])
 
   const reveal = () => {
     setIsBackVisible(true)
@@ -174,9 +199,14 @@ export function useReviewSession({
     mutationError,
     progressLabel,
     reviewedCount,
+    shouldClose:
+      !isLoading &&
+      !error &&
+      !isSessionComplete &&
+      sessionCards.length === 0 &&
+      initialCards.length === 0,
     visibleHtml,
     visibleSide,
-    close,
     deleteCurrent,
     grade,
     reveal,

@@ -5,13 +5,18 @@ import { Platform } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
-import { IconButtonTrash, IconButtonUndo } from "@/components/UI/icon-button"
+import {
+  IconButtonPencil,
+  IconButtonTrash,
+  IconButtonUndo,
+} from "@/components/UI/icon-button"
 
 type Props = {
   isComplete: boolean
   isMutating: boolean
   onClose: () => void
   onDelete: () => void
+  onEdit: () => void
   visibleSide?: "front" | "back"
   onShowFront?: () => void
 }
@@ -22,6 +27,7 @@ export default function ReviewSessionHeader({
   visibleSide,
   onClose,
   onDelete,
+  onEdit,
   onShowFront,
 }: Props) {
   const { theme } = useUnistyles()
@@ -71,6 +77,14 @@ export default function ReviewSessionHeader({
                     : []),
                   {
                     type: "button",
+                    label: t("editAccessibilityLabel"),
+                    icon: { type: "sfSymbol", name: "pencil" },
+                    disabled: isMutating,
+                    tintColor: theme.colors.primary,
+                    onPress: onEdit,
+                  } satisfies NativeStackHeaderItem,
+                  {
+                    type: "button",
                     label: t("delete.accessibilityLabel"),
                     icon: { type: "sfSymbol", name: "trash" },
                     disabled: isMutating,
@@ -107,6 +121,13 @@ export default function ReviewSessionHeader({
                         tintColor={theme.colors.primary}
                       />
                     ) : null}
+                    <IconButtonPencil
+                      accessibilityLabel={t("editAccessibilityLabel")}
+                      disabled={isMutating}
+                      onPress={onEdit}
+                      style={styles.headerButton}
+                      tintColor={theme.colors.primary}
+                    />
                     <IconButtonTrash
                       accessibilityLabel={t("delete.accessibilityLabel")}
                       disabled={isMutating}

@@ -1,4 +1,4 @@
-import type { Card, CardId, NewCardInput } from "@/domain/card"
+import type { Card, CardId, NewCardInput, UpdateCardInput } from "@/domain/card"
 import type { ReviewGrade } from "@/domain/review-scheduler"
 
 export type CardsQueryState = {
@@ -11,6 +11,7 @@ export type CardStore = {
   useCardsQuery: () => CardsQueryState
   useDueCardsQuery: (now?: number) => CardsQueryState
   addCard: (input: NewCardInput) => Promise<void>
+  updateCard: (input: UpdateCardInput) => Promise<void>
   reviewCard: (
     card: Card,
     grade: ReviewGrade,

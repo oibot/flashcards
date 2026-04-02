@@ -9,13 +9,19 @@ import { StyleSheet } from "react-native-unistyles"
 import { TagInput } from "@/components/UI/tag-input"
 import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
+import type { Card } from "@/domain/card"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
 
 import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
 
-export default function EditCard() {
+type EditCardProps = {
+  initialCard?: Card
+}
+
+export default function EditCard({ initialCard }: EditCardProps) {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
+  const isEditing = initialCard != null
   const {
     activeStyles,
     availableTags,
@@ -31,11 +37,15 @@ export default function EditCard() {
     setTags,
     tagInputRef,
     tags,
-  } = useEditCardForm()
+  } = useEditCardForm({ initialCard })
 
   return (
     <>
-      <EditCardHeader onClose={handleClose} onSave={handleSave} />
+      <EditCardHeader
+        isEditing={isEditing}
+        onClose={handleClose}
+        onSave={handleSave}
+      />
       <KeyboardAwareScrollView
         style={styles.container}
         bottomOffset={44}

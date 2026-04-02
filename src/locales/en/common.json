@@ -28,6 +28,7 @@
       "message": "Discard this card draft?",
       "title": "Unsaved changes"
     },
+    "editHeaderTitle": "Edit Card",
     "frontLabel": "Front",
     "headerTitle": "New Card",
     "saveCard": "Save card",
@@ -59,6 +60,7 @@
       "revealAnswer": "Reveal Answer"
     },
     "closeAccessibilityLabel": "Close review",
+    "editAccessibilityLabel": "Edit card",
     "delete": {
       "accessibilityLabel": "Delete card",
       "cancel": "Cancel",

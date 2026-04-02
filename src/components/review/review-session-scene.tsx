@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -7,10 +8,24 @@ import CompletedReviewState from "@/components/review/completed-review-state"
 import ReviewSessionHeader from "@/components/review/review-session-header"
 import { useReviewSession } from "@/hooks/use-review-session"
 
-export default function ReviewSessionScene() {
+type ReviewSessionSceneProps = {
+  onClose: () => void
+  onEditCard: (cardId: string) => void
+}
+
+export default function ReviewSessionScene({
+  onClose,
+  onEditCard,
+}: ReviewSessionSceneProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const session = useReviewSession()
+
+  useEffect(() => {
+    if (session.shouldClose) {
+      onClose()
+    }
+  }, [onClose, session.shouldClose])
 
   if (session.isComplete) {
     return (
@@ -18,13 +33,18 @@ export default function ReviewSessionScene() {
         <ReviewSessionHeader
           isComplete
           isMutating={session.isMutatingCard}
-          onClose={session.close}
+          onClose={onClose}
           onDelete={session.deleteCurrent}
+          onEdit={() => {
+            if (session.currentCard) {
+              onEditCard(session.currentCard.id)
+            }
+          }}
         />
         <View style={styles.container}>
           <CompletedReviewState
             cardCount={session.reviewedCount}
-            onClose={session.close}
+            onClose={onClose}
           />
         </View>
       </>
@@ -59,8 +79,11 @@ export default function ReviewSessionScene() {
         isComplete={false}
         isMutating={session.isMutatingCard}
         visibleSide={session.visibleSide}
-        onClose={session.close}
+        onClose={onClose}
         onDelete={session.deleteCurrent}
+        onEdit={() => {
+          onEditCard(session.currentCard.id)
+        }}
         onShowFront={session.showFront}
       />
       <View style={styles.container}>

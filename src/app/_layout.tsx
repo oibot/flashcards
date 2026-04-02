@@ -49,6 +49,16 @@ export default function Layout() {
                     presentation: "fullScreenModal",
                   }}
                 />
+                <Stack.Screen
+                  name="(modals)/edit-card/[id]"
+                  options={{
+                    headerTitle: "",
+                    headerShown: true,
+                    headerShadowVisible: false,
+                    headerTransparent: true,
+                    presentation: "modal",
+                  }}
+                />
               </Stack.Protected>
               <Stack.Protected guard={!isLoggedIn}>
                 <Stack.Screen name="(auth)" />

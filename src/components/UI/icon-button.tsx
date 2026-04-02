@@ -20,6 +20,7 @@ const closeIconName = { ios: "xmark", android: "close" } as const
 const checkmarkIconName = { ios: "checkmark", android: "done" } as const
 const trashIconName = { ios: "trash", android: "delete" } as const
 const undoIconName = { ios: "arrow.uturn.backward", android: "undo" } as const
+const pencilIconName = { ios: "pencil", android: "edit" } as const
 
 function IconButtonBase({
   iconName,
@@ -64,6 +65,10 @@ export function IconButtonTrash(props: IconButtonInstanceProps) {
 
 export function IconButtonUndo(props: IconButtonInstanceProps) {
   return <IconButtonBase {...props} iconName={undoIconName} />
+}
+
+export function IconButtonPencil(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={pencilIconName} />
 }
 
 const styles = StyleSheet.create({

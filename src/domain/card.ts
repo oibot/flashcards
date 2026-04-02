@@ -24,6 +24,10 @@ export type NewCardInput = {
   backHtml: string
 }
 
+export type UpdateCardInput = NewCardInput & {
+  id: CardId
+}
+
 export function normalizeTagTitle(tag: string) {
   const normalizedWhitespace = tag.trim().replace(/\s+/g, " ")
 
