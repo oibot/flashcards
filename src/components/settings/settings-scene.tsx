@@ -51,6 +51,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     paddingHorizontal: 24,
     gap: 16,
+    backgroundColor: theme.colors.background,
   },
   button: {
     minHeight: 52,
