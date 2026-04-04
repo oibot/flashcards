@@ -10,7 +10,7 @@ module.exports = defineConfig([
   react.configs.flat.recommended,
   react.configs.flat["jsx-runtime"],
   {
-    ignores: ["dist/*", "src/locales/**/*"],
+    ignores: ["assets/**/*", "dist/*", "src/locales/**/*"],
   },
   {
     plugins: {
