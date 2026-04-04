@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from "react-native"
-import { EnrichedTextInput } from "react-native-enriched"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
+import ReviewCardContent from "./review-card-content"
 
 const CARD_HEIGHT_RATIO = 0.65
 
@@ -37,12 +38,9 @@ export default function ReviewCard({
           {headerLabel}
         </Text>
         <View pointerEvents="none" style={styles.cardContainer}>
-          <EnrichedTextInput
+          <ReviewCardContent
             key={`${cardId}-${visibleSide}`}
-            defaultValue={visibleHtml}
-            editable={false}
-            scrollEnabled={false}
-            style={styles.cardContent}
+            html={visibleHtml}
           />
         </View>
       </Pressable>
@@ -63,26 +61,24 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 18,
+    gap: 16,
     borderRadius: 28,
     borderCurve: "continuous",
     backgroundColor: theme.colors.background,
     borderWidth: 1,
     borderColor: theme.colors.chromeMuted,
-    justifyContent: "space-between",
     boxShadow: `0 18px 30px ${theme.colors.shadowSoft}`,
   },
   tagLabel: {
     ...theme.typography.styles.caption,
+    textAlign: "center",
     color: theme.colors.secondary,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   cardContainer: {
     flex: 1,
-  },
-  cardContent: {
-    flex: 1,
-    color: theme.colors.primary,
-    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
 }))
