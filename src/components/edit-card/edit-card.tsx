@@ -44,6 +44,19 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     tags,
   } = useEditCardForm({ initialCard })
 
+  const getValidatedDraft = async () => {
+    const draft = await getDraft()
+
+    if (
+      !hasMeaningfulHtmlContent(draft.frontHtml) ||
+      !hasMeaningfulHtmlContent(draft.backHtml)
+    ) {
+      return null
+    }
+
+    return draft
+  }
+
   const handleClose = async () => {
     if (!(await hasUnsavedChanges())) {
       onClose()
@@ -64,14 +77,9 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
   }
 
   const handleSave = async () => {
-    const { backHtml, frontHtml, tags: nextTags } = await getDraft()
-
-    if (
-      !hasMeaningfulHtmlContent(frontHtml) ||
-      !hasMeaningfulHtmlContent(backHtml)
-    ) {
-      return
-    }
+    const draft = await getValidatedDraft()
+    if (!draft) return
+    const { backHtml, frontHtml, tags: nextTags } = draft
 
     if (initialCard) {
       await updateCard({
@@ -89,6 +97,14 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       frontHtml,
       backHtml,
     })
+    onClose()
+  }
+
+  const handleAddAnother = async () => {
+    const draft = await getValidatedDraft()
+    if (!draft) return
+
+    await addCard(draft)
     resetForm()
   }
 
@@ -96,6 +112,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     <>
       <EditCardHeader
         isEditing={isEditing}
+        onAddAnother={isEditing ? undefined : handleAddAnother}
         onClose={handleClose}
         onSave={handleSave}
       />

@@ -4,16 +4,19 @@ import { Platform, Pressable, Text } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
+import { IconButtonPlus } from "@/components/UI/icon-button"
 
 type EditCardHeaderProps = {
   isEditing?: boolean
   onClose: () => void
+  onAddAnother?: () => void
   onSave: () => void
 }
 
 export default function EditCardHeader({
   isEditing = false,
   onClose,
+  onAddAnother,
   onSave,
 }: EditCardHeaderProps) {
   const { theme } = useUnistyles()
@@ -21,6 +24,10 @@ export default function EditCardHeader({
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
   const title = isEditing ? t("editHeaderTitle") : t("headerTitle")
+  const canAddAnother = !isEditing && onAddAnother != null
+  const handleAddAnother = () => {
+    onAddAnother?.()
+  }
 
   return (
     <Stack.Screen
@@ -32,18 +39,35 @@ export default function EditCardHeader({
           ? {
               unstable_headerLeftItems: () => [
                 {
-                  type: "button",
+                  type: "button" as const,
                   label: t("cancel"),
-                  icon: { type: "sfSymbol", name: "xmark" },
+                  icon: { type: "sfSymbol" as const, name: "xmark" as const },
                   tintColor: theme.colors.primary,
                   onPress: onClose,
                 },
               ],
               unstable_headerRightItems: () => [
+                ...(canAddAnother
+                  ? [
+                      {
+                        type: "button" as const,
+                        label: t("addAnotherCard"),
+                        icon: {
+                          type: "sfSymbol" as const,
+                          name: "plus" as const,
+                        },
+                        tintColor: theme.colors.primary,
+                        onPress: handleAddAnother,
+                      },
+                    ]
+                  : []),
                 {
-                  type: "button",
+                  type: "button" as const,
                   label: t("saveCard"),
-                  icon: { type: "sfSymbol", name: "checkmark" },
+                  icon: {
+                    type: "sfSymbol" as const,
+                    name: "checkmark" as const,
+                  },
                   tintColor: theme.colors.accent,
                   variant: "prominent",
                   onPress: onSave,
@@ -57,6 +81,17 @@ export default function EditCardHeader({
                     title={title}
                     closeAccessibilityLabel={t("cancelAccessibilityLabel")}
                     onClose={onClose}
+                    leftAction={
+                      canAddAnother ? (
+                        <IconButtonPlus
+                          accessibilityLabel={t(
+                            "addAnotherCardAccessibilityLabel",
+                          )}
+                          onPress={onAddAnother}
+                          tintColor={theme.colors.primary}
+                        />
+                      ) : null
+                    }
                     rightAction={
                       <Pressable
                         accessibilityLabel={t("saveCardAccessibilityLabel")}

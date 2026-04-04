@@ -19,6 +19,8 @@
     "useDifferentEmail": "Andere E-Mail verwenden"
   },
   "editCard": {
+    "addAnotherCard": "Weitere Karte",
+    "addAnotherCardAccessibilityLabel": "Weitere Karte hinzufügen",
     "backLabel": "Rückseite",
     "cancel": "Abbrechen",
     "cancelAccessibilityLabel": "Abbrechen",

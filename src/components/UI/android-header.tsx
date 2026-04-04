@@ -8,6 +8,7 @@ type AndroidHeaderProps = {
   title?: string
   closeAccessibilityLabel: string
   onClose: () => void
+  leftAction?: ReactNode
   rightAction?: ReactNode
 }
 
@@ -15,10 +16,12 @@ export default function AndroidHeader({
   title,
   closeAccessibilityLabel,
   onClose,
+  leftAction,
   rightAction,
 }: AndroidHeaderProps) {
   const { theme } = useUnistyles()
   const hasTitle = Boolean(title)
+  const hasLeftAction = leftAction != null
   const hasRightAction = rightAction != null
 
   return (
@@ -37,6 +40,7 @@ export default function AndroidHeader({
           </Text>
         ) : null}
       </View>
+      {hasLeftAction ? <View style={styles.actions}>{leftAction}</View> : null}
       {hasRightAction ? (
         <View style={styles.actions}>{rightAction}</View>
       ) : null}
