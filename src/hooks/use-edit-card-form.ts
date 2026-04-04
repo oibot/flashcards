@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react"
 import type { Card } from "@/domain/card"
 import { useEditCardEditors } from "@/hooks/use-edit-card-editors"
 import { useEditCardTags } from "@/hooks/use-edit-card-tags"
+import { normalizeHtmlForComparison } from "@/utils/html"
 
 type UseEditCardFormOptions = {
   initialCard?: Card
@@ -42,11 +43,15 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
   }, [backRef, frontRef, initialCard, setTags])
 
   const hasUnsavedChanges = async () => {
-    const frontHtml = (await frontRef.current?.getHTML()) ?? ""
-    const backHtml = (await backRef.current?.getHTML()) ?? ""
+    const frontHtml = normalizeHtmlForComparison(
+      await frontRef.current?.getHTML(),
+    )
+    const backHtml = normalizeHtmlForComparison(
+      await backRef.current?.getHTML(),
+    )
     const initialTags = initialCard?.tags ?? []
-    const initialFrontHtml = initialCard?.frontHtml ?? ""
-    const initialBackHtml = initialCard?.backHtml ?? ""
+    const initialFrontHtml = normalizeHtmlForComparison(initialCard?.frontHtml)
+    const initialBackHtml = normalizeHtmlForComparison(initialCard?.backHtml)
 
     return (
       !areTagsEqual(tags, initialTags) ||
@@ -54,11 +59,6 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
       frontHtml !== initialFrontHtml ||
       backHtml !== initialBackHtml
     )
-  }
-
-  const resetForm = () => {
-    resetTags()
-    resetEditors()
   }
 
   const getDraft = async () => {
@@ -70,6 +70,11 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
       frontHtml,
       tags: nextTags,
     }
+  }
+
+  const resetForm = () => {
+    resetTags()
+    resetEditors()
   }
 
   return {

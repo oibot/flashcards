@@ -49,6 +49,16 @@ export function hasMeaningfulHtmlContent(html: string) {
   )
 }
 
+export function normalizeHtmlForComparison(html?: string | null) {
+  const normalizedHtml = html?.trim() ?? ""
+
+  if (!hasMeaningfulHtmlContent(normalizedHtml)) {
+    return ""
+  }
+
+  return normalizedHtml
+}
+
 export function parseHtmlFragment(html: string): HtmlNode[] {
   const root: HtmlElementNode = {
     type: "element",
