@@ -4,22 +4,25 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 type SettingsSceneProps = {
-  errorMessage: string | null
   isExporting: boolean
+  isImporting: boolean
   isSigningOut: boolean
   onExport: () => void
+  onImport: () => void
   onSignOut: () => void
 }
 
 export default function SettingsScene({
-  errorMessage,
   isExporting,
+  isImporting,
   isSigningOut,
   onExport,
+  onImport,
   onSignOut,
 }: SettingsSceneProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "settings" })
+  const isBusy = isExporting || isImporting || isSigningOut
 
   return (
     <>
@@ -28,12 +31,12 @@ export default function SettingsScene({
         <Pressable
           accessibilityLabel={t("exportAccessibilityLabel")}
           accessibilityRole="button"
-          disabled={isExporting || isSigningOut}
+          disabled={isBusy}
           onPress={onExport}
           style={[
             styles.button,
-            styles.exportButton,
-            isExporting || isSigningOut ? styles.buttonDisabled : null,
+            styles.primaryButton,
+            isBusy ? styles.buttonDisabled : null,
           ]}
         >
           {isExporting ? (
@@ -43,14 +46,31 @@ export default function SettingsScene({
           )}
         </Pressable>
         <Pressable
+          accessibilityLabel={t("importAccessibilityLabel")}
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onImport}
+          style={[
+            styles.button,
+            styles.primaryButton,
+            isBusy ? styles.buttonDisabled : null,
+          ]}
+        >
+          {isImporting ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.buttonLabel}>{t("import")}</Text>
+          )}
+        </Pressable>
+        <Pressable
           accessibilityLabel={t("signOutAccessibilityLabel")}
           accessibilityRole="button"
-          disabled={isSigningOut || isExporting}
+          disabled={isBusy}
           onPress={onSignOut}
           style={[
             styles.button,
             styles.signOutButton,
-            isSigningOut || isExporting ? styles.buttonDisabled : null,
+            isBusy ? styles.buttonDisabled : null,
           ]}
         >
           {isSigningOut ? (
@@ -59,11 +79,6 @@ export default function SettingsScene({
             <Text style={styles.buttonLabel}>{t("signOut")}</Text>
           )}
         </Pressable>
-        {errorMessage ? (
-          <Text selectable style={styles.error}>
-            {errorMessage}
-          </Text>
-        ) : null}
       </View>
     </>
   )
@@ -87,7 +102,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 20,
     minWidth: 220,
   },
-  exportButton: {
+  primaryButton: {
     backgroundColor: theme.colors.accent,
   },
   signOutButton: {
@@ -99,10 +114,5 @@ const styles = StyleSheet.create((theme) => ({
   buttonLabel: {
     ...theme.typography.styles.headline,
     color: theme.colors.background,
-  },
-  error: {
-    ...theme.typography.styles.footnote,
-    color: theme.colors.destructive,
-    textAlign: "center",
   },
 }))

@@ -85,11 +85,22 @@
     "saveErrorTitle": "Bewertung konnte nicht gespeichert werden"
   },
   "settings": {
+    "errorTitle": "Etwas ist schiefgelaufen",
     "export": "Daten exportieren",
     "exportAccessibilityLabel": "Daten exportieren",
     "exportDialogTitle": "Flashcards exportieren",
     "exportError": "Daten konnten nicht exportiert werden.",
     "exportUnavailableError": "Export ist auf diesem Gerät nicht verfügbar.",
+    "import": "Daten importieren",
+    "importAccessibilityLabel": "Daten importieren",
+    "importError": "Daten konnten nicht importiert werden.",
+    "importConfirm": {
+      "cancel": "Abbrechen",
+      "confirm": "Importieren",
+      "message_one": "{{count}} Karte aus diesem Backup importieren?",
+      "message_other": "{{count}} Karten aus diesem Backup importieren?",
+      "title": "Backup importieren?"
+    },
     "signOut": "Abmelden",
     "signOutAccessibilityLabel": "Abmelden",
     "signOutError": "Abmeldung fehlgeschlagen.",
