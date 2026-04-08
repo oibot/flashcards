@@ -5,13 +5,17 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 type SettingsSceneProps = {
   errorMessage: string | null
+  isExporting: boolean
   isSigningOut: boolean
+  onExport: () => void
   onSignOut: () => void
 }
 
 export default function SettingsScene({
   errorMessage,
+  isExporting,
   isSigningOut,
+  onExport,
   onSignOut,
 }: SettingsSceneProps) {
   const { theme } = useUnistyles()
@@ -22,11 +26,32 @@ export default function SettingsScene({
       <Stack.Screen options={{ title: t("title") }} />
       <View style={styles.content}>
         <Pressable
+          accessibilityLabel={t("exportAccessibilityLabel")}
+          accessibilityRole="button"
+          disabled={isExporting || isSigningOut}
+          onPress={onExport}
+          style={[
+            styles.button,
+            styles.exportButton,
+            isExporting || isSigningOut ? styles.buttonDisabled : null,
+          ]}
+        >
+          {isExporting ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.buttonLabel}>{t("export")}</Text>
+          )}
+        </Pressable>
+        <Pressable
           accessibilityLabel={t("signOutAccessibilityLabel")}
           accessibilityRole="button"
-          disabled={isSigningOut}
+          disabled={isSigningOut || isExporting}
           onPress={onSignOut}
-          style={[styles.button, isSigningOut ? styles.buttonDisabled : null]}
+          style={[
+            styles.button,
+            styles.signOutButton,
+            isSigningOut || isExporting ? styles.buttonDisabled : null,
+          ]}
         >
           {isSigningOut ? (
             <ActivityIndicator color={theme.colors.background} />
@@ -60,6 +85,12 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    minWidth: 220,
+  },
+  exportButton: {
+    backgroundColor: theme.colors.accent,
+  },
+  signOutButton: {
     backgroundColor: theme.colors.destructive,
   },
   buttonDisabled: {

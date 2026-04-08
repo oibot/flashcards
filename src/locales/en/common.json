@@ -85,6 +85,11 @@
     "saveErrorTitle": "Could not save review"
   },
   "settings": {
+    "export": "Export Data",
+    "exportAccessibilityLabel": "Export data",
+    "exportDialogTitle": "Export flashcards",
+    "exportError": "Could not export your data.",
+    "exportUnavailableError": "Export is not available on this device.",
     "signOut": "Log out",
     "signOutAccessibilityLabel": "Log out",
     "signOutError": "Could not log out.",

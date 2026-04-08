@@ -85,6 +85,11 @@
     "saveErrorTitle": "Bewertung konnte nicht gespeichert werden"
   },
   "settings": {
+    "export": "Daten exportieren",
+    "exportAccessibilityLabel": "Daten exportieren",
+    "exportDialogTitle": "Flashcards exportieren",
+    "exportError": "Daten konnten nicht exportiert werden.",
+    "exportUnavailableError": "Export ist auf diesem Gerät nicht verfügbar.",
     "signOut": "Abmelden",
     "signOutAccessibilityLabel": "Abmelden",
     "signOutError": "Abmeldung fehlgeschlagen.",
