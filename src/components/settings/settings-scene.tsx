@@ -3,25 +3,19 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-type SettingsSceneProps = {
-  isExporting: boolean
-  isImporting: boolean
-  isSigningOut: boolean
-  onExport: () => void
-  onImport: () => void
-  onSignOut: () => void
-}
+import { useSettingsActions } from "@/hooks/use-settings-actions"
 
-export default function SettingsScene({
-  isExporting,
-  isImporting,
-  isSigningOut,
-  onExport,
-  onImport,
-  onSignOut,
-}: SettingsSceneProps) {
+export default function SettingsScene() {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "settings" })
+  const {
+    isExporting,
+    isImporting,
+    isSigningOut,
+    onExport,
+    onImport,
+    onSignOut,
+  } = useSettingsActions()
   const isBusy = isExporting || isImporting || isSigningOut
 
   return (

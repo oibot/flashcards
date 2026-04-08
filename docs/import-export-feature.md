@@ -84,7 +84,8 @@ Settings screen keeps its current simplicity and adds:
 User feedback:
 
 - Loading state while exporting or importing
-- Clear error message for invalid files or failed operations
+- Native alerts for invalid files or failed operations
+- Success alert after a completed import
 - Confirmation before applying an import
 
 ## Technical Notes
@@ -95,130 +96,47 @@ User feedback:
 - Native file flows should use Expo packages for file writing, file picking, and sharing.
 - Web can be treated as unsupported or limited in the first pass if native support is the priority.
 
-## Sequential Implementation Plan
+## Implementation Status
 
-### Step 1: Define backup types
+Completed:
 
-Add explicit TypeScript types for:
+- Step 1: Define backup types
+- Step 2: Extend the card store contract
+- Step 3: Implement export serialization
+- Step 4: Implement import validation
+- Step 5: Implement import upsert logic
+- Step 6: Add file export flow
+- Step 7: Add file import flow
+- Step 8: Update settings UI
+- Step 9: Add copy and localization
+- Step 11: Run project checks during implementation
 
-- exported backup envelope
-- exported card payload
-- runtime validation result
+Implemented details:
 
-This should live close to the domain or storage layer so the format is defined once and used by both export and import.
+- The backup format is a versioned JSON envelope around the existing `Card` domain model.
+- The `CardStore` supports both `exportCards()` and `importCards(...)`.
+- Export serializes the signed-in user's cards into a stable JSON backup shape.
+- Import validates the selected backup before any write happens.
+- Import is non-destructive and idempotent by card ID.
+- Tags are recreated or linked during import using the existing InstantDB tag model.
+- The settings route remains thin; screen-side orchestration lives in a dedicated hook.
+- Settings now exposes `Export Data`, `Import Data`, and `Log out`.
+- Export writes a JSON file into the Expo cache and opens the native share sheet.
+- Import uses the native file picker, parses JSON, validates the backup, confirms with the user, and then imports it.
+- Invalid backup files show a friendly error alert.
+- Successful imports show a success alert with the imported card count.
 
-### Step 2: Extend the card store contract
+## Remaining Verification
 
-Add store methods for:
+Still pending:
 
-- exporting all cards for the current user
-- importing a parsed backup file
+- Step 10: manual device or simulator verification
 
-These methods should be part of the shared `CardStore` interface so the UI can stay thin.
+Recommended verification checklist:
 
-### Step 3: Implement export serialization
-
-In the InstantDB-backed store:
-
-- fetch all current user cards
-- serialize them into the backup envelope
-- include `app`, `formatVersion`, and `exportedAt`
-
-The result of this step should be a JSON string or typed object ready to write to disk.
-
-### Step 4: Implement import validation
-
-Create validation logic that checks:
-
-- `app === "flashcards"`
-- `formatVersion === 1`
-- `cards` is an array
-- each card has the required fields and valid primitive types
-- `state` is one of the supported card states
-
-Validation should fail early with user-friendly error messages.
-
-### Step 5: Implement import upsert logic
-
-In the InstantDB-backed store:
-
-- load the current user
-- inspect existing cards by imported IDs
-- update cards that already exist
-- create cards that do not exist
-- recreate or link tags for every imported card
-
-This step must preserve imported timestamps and scheduling values exactly.
-
-### Step 6: Add file export flow
-
-In settings:
-
-- trigger export
-- write the JSON to a temporary file
-- open the native share sheet so the user can save or send the file
-
-Suggested filename pattern:
-
-- `flashcards-export-YYYY-MM-DD.json`
-
-### Step 7: Add file import flow
-
-In settings:
-
-- open the document picker
-- copy the file into cache if needed
-- read the file contents
-- parse JSON
-- validate the backup
-- show a confirmation with the number of cards
-- run the import
-
-### Step 8: Update settings UI
-
-Adjust the settings screen to support:
-
-- `Export Data` button
-- `Import Data` button
-- independent loading/disabled states
-- inline error message
-
-The layout should remain simple and consistent with the current screen.
-
-### Step 9: Add copy and localization
-
-Add settings strings for:
-
-- export button label
-- import button label
-- import confirmation title and message
-- invalid file error
-- generic import/export error states
-- success messages if needed
-
-### Step 10: Verify behavior
-
-Manually verify:
-
-- export produces a readable JSON file
-- importing a fresh export recreates the same cards
-- importing the same file twice does not duplicate cards
-- malformed JSON is rejected
-- wrong `formatVersion` is rejected
-- review schedule data is preserved after import
-
-### Step 11: Run project checks
-
-Before finishing:
-
-- `bunx tsc --noEmit`
-- `bunx expo lint`
-- `bun format`
-
-Fix any errors or warnings before considering the feature complete.
-
-## Open Questions
-
-- Should web be unsupported in v1, or should export fall back to a downloaded file and import to an HTML file input?
-- Should import show a success toast or just return silently on success?
-- Should we include a future option for destructive restore, where local cards not present in the backup are removed?
+- Export produces a readable JSON file.
+- Importing a fresh export recreates the same cards.
+- Importing the same file twice does not duplicate cards.
+- Malformed JSON is rejected with a friendly error.
+- Wrong `formatVersion` is rejected.
+- Review schedule data is preserved after import.

@@ -94,6 +94,7 @@
     "import": "Daten importieren",
     "importAccessibilityLabel": "Daten importieren",
     "importError": "Daten konnten nicht importiert werden.",
+    "invalidBackupError": "Diese Datei ist kein gültiges Flashcards-Backup.",
     "importConfirm": {
       "cancel": "Abbrechen",
       "confirm": "Importieren",
@@ -101,9 +102,12 @@
       "message_other": "{{count}} Karten aus diesem Backup importieren?",
       "title": "Backup importieren?"
     },
+    "importSuccess_one": "{{count}} Karte importiert.",
+    "importSuccess_other": "{{count}} Karten importiert.",
     "signOut": "Abmelden",
     "signOutAccessibilityLabel": "Abmelden",
     "signOutError": "Abmeldung fehlgeschlagen.",
+    "successTitle": "Fertig",
     "title": "Einstellungen"
   },
   "tabs": {

@@ -94,6 +94,7 @@
     "import": "Import Data",
     "importAccessibilityLabel": "Import data",
     "importError": "Could not import your data.",
+    "invalidBackupError": "This file is not a valid flashcards backup.",
     "importConfirm": {
       "cancel": "Cancel",
       "confirm": "Import",
@@ -101,9 +102,12 @@
       "message_other": "Import {{count}} cards from this backup?",
       "title": "Import backup?"
     },
+    "importSuccess_one": "Imported {{count}} card.",
+    "importSuccess_other": "Imported {{count}} cards.",
     "signOut": "Log out",
     "signOutAccessibilityLabel": "Log out",
     "signOutError": "Could not log out.",
+    "successTitle": "Done",
     "title": "Settings"
   },
   "tabs": {
