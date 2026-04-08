@@ -11,7 +11,11 @@ import {
   parseTags,
   type UpdateCardInput,
 } from "@/domain/card"
-import type { CardBackupEnvelope } from "@/domain/card-backup"
+import {
+  CARD_BACKUP_APP,
+  CARD_BACKUP_FORMAT_VERSION,
+  type CardBackupEnvelope,
+} from "@/domain/card-backup"
 import {
   createInitialSchedule,
   type ReviewGrade,
@@ -75,6 +79,48 @@ async function resolveTagMutation(userId: string, tags: string[]) {
     ),
     tagIds,
   }
+}
+
+function createImportedCardTransaction(
+  userId: string,
+  card: Card,
+  existingTagIds: string[],
+  nextTagIds: string[],
+) {
+  let cardTransaction = db.tx.cards[card.id]
+    .update({
+      frontHtml: card.frontHtml,
+      backHtml: card.backHtml,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      dueAt: card.dueAt,
+      lastReviewedAt: card.lastReviewedAt,
+      intervalDays: card.intervalDays,
+      easeFactor: card.easeFactor,
+      repetition: card.repetition,
+      lapses: card.lapses,
+      state: card.state,
+    })
+    .link({ owner: userId })
+
+  const nextTagIdSet = new Set(nextTagIds)
+  const tagIdsToUnlink = existingTagIds.filter(
+    (tagId) => !nextTagIdSet.has(tagId),
+  )
+  const existingTagIdSet = new Set(existingTagIds)
+  const tagIdsToLink = nextTagIds.filter(
+    (tagId) => !existingTagIdSet.has(tagId),
+  )
+
+  if (tagIdsToUnlink.length > 0) {
+    cardTransaction = cardTransaction.unlink({ tags: tagIdsToUnlink })
+  }
+
+  if (tagIdsToLink.length > 0) {
+    cardTransaction = cardTransaction.link({ tags: tagIdsToLink })
+  }
+
+  return cardTransaction
 }
 
 export const createInstantCardStore = (): CardStore => {
@@ -150,13 +196,91 @@ export const createInstantCardStore = (): CardStore => {
   }
 
   const exportCards = async (): Promise<CardBackupEnvelope> => {
-    throw new Error("Card export is not implemented yet")
+    const currentUser = await requireCurrentUser()
+    const { data } = await db.queryOnce({
+      $users: {
+        $: {
+          where: {
+            id: currentUser.id,
+          },
+        },
+        cards: {
+          tags: {},
+        },
+      },
+    })
+    const cards = (data.$users[0]?.cards ?? [])
+      .map(toCard)
+      .sort(
+        (left, right) =>
+          left.createdAt - right.createdAt || left.id.localeCompare(right.id),
+      )
+
+    return {
+      app: CARD_BACKUP_APP,
+      formatVersion: CARD_BACKUP_FORMAT_VERSION,
+      exportedAt: new Date().toISOString(),
+      cards,
+    }
   }
 
   const importCards = async (backup: CardBackupEnvelope) => {
-    void backup
+    const currentUser = await requireCurrentUser()
 
-    throw new Error("Card import is not implemented yet")
+    if (backup.cards.length === 0) {
+      return
+    }
+
+    const importedCards = backup.cards.map((card) => ({
+      ...card,
+      tags: parseTags(card.tags),
+    }))
+    const importedCardIds = importedCards.map((card) => card.id)
+    const importedTags = [
+      ...new Set(importedCards.flatMap((card) => card.tags)),
+    ]
+    const { createTagTransactions, tagIds } = await resolveTagMutation(
+      currentUser.id,
+      importedTags,
+    )
+    const tagIdByTitle = new Map(
+      importedTags.map((tag, index) => [tag, tagIds[index]]),
+    )
+    const existingCardsQuery = {
+      $users: {
+        $: {
+          where: {
+            id: currentUser.id,
+          },
+        },
+        cards: {
+          $: {
+            where: {
+              id: { $in: importedCardIds },
+            },
+          },
+          tags: {},
+        },
+      },
+    }
+    const existingCards =
+      (await db.queryOnce(existingCardsQuery)).data.$users[0]?.cards ?? []
+    const existingTagIdsByCardId = new Map(
+      existingCards.map((card) => [card.id, card.tags.map((tag) => tag.id)]),
+    )
+    const cardTransactions = importedCards.map((card) =>
+      createImportedCardTransaction(
+        currentUser.id,
+        card,
+        existingTagIdsByCardId.get(card.id) ?? [],
+        card.tags.flatMap((tag) => {
+          const tagId = tagIdByTitle.get(tag)
+          return tagId ? [tagId] : []
+        }),
+      ),
+    )
+
+    await db.transact([...createTagTransactions, ...cardTransactions])
   }
 
   const addCard = async (input: NewCardInput) => {
