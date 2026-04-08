@@ -11,6 +11,7 @@ import {
   parseTags,
   type UpdateCardInput,
 } from "@/domain/card"
+import type { CardBackupEnvelope } from "@/domain/card-backup"
 import {
   createInitialSchedule,
   type ReviewGrade,
@@ -148,6 +149,16 @@ export const createInstantCardStore = (): CardStore => {
     }
   }
 
+  const exportCards = async (): Promise<CardBackupEnvelope> => {
+    throw new Error("Card export is not implemented yet")
+  }
+
+  const importCards = async (backup: CardBackupEnvelope) => {
+    void backup
+
+    throw new Error("Card import is not implemented yet")
+  }
+
   const addCard = async (input: NewCardInput) => {
     const currentUser = await requireCurrentUser()
     const tags = parseTags(input.tags)
@@ -249,6 +260,8 @@ export const createInstantCardStore = (): CardStore => {
     useCardsQuery,
     useDueCardsQuery,
     useTagsQuery,
+    exportCards,
+    importCards,
     addCard,
     updateCard,
     reviewCard,
