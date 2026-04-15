@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, View } from "react-native"
 import {
@@ -22,10 +23,13 @@ type EditCardProps = {
   onClose: () => void
 }
 
+type FocusedField = "tags" | "front" | "back"
+
 export default function EditCard({ initialCard, onClose }: EditCardProps) {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
+  const [focusedField, setFocusedField] = useState<FocusedField | null>(null)
   const {
     activeStyles,
     availableTags,
@@ -43,6 +47,14 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     tagInputRef,
     tags,
   } = useEditCardForm({ initialCard })
+  const isEditorToolbarEnabled =
+    focusedField === "front" || focusedField === "back"
+
+  const createBlurHandler = (field: FocusedField) => () => {
+    setFocusedField((currentField) =>
+      currentField === field ? null : currentField,
+    )
+  }
 
   const getValidatedDraft = async () => {
     const draft = await getDraft()
@@ -118,7 +130,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       />
       <KeyboardAwareScrollView
         style={styles.container}
-        bottomOffset={44}
+        bottomOffset={isEditorToolbarEnabled ? 44 : 0}
         contentContainerStyle={styles.contentContainer}
         contentInsetAdjustmentBehavior="automatic"
       >
@@ -131,13 +143,21 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
               />
             }
             onChange={setTags}
+            onBlur={createBlurHandler("tags")}
+            onFocus={() => {
+              setFocusedField("tags")
+            }}
             ref={tagInputRef}
             tags={tags}
           />
           <CardSideField
             editorRef={frontRef}
             label={t("frontLabel")}
-            onFocus={() => handleEditorFocus("front")}
+            onBlur={createBlurHandler("front")}
+            onFocus={() => {
+              setFocusedField("front")
+              handleEditorFocus("front")
+            }}
             onStateChange={(nextState) =>
               handleEditorStateChange("front", nextState)
             }
@@ -145,7 +165,11 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
           <CardSideField
             editorRef={backRef}
             label={t("backLabel")}
-            onFocus={() => handleEditorFocus("back")}
+            onBlur={createBlurHandler("back")}
+            onFocus={() => {
+              setFocusedField("back")
+              handleEditorFocus("back")
+            }}
             onStateChange={(nextState) =>
               handleEditorStateChange("back", nextState)
             }
@@ -153,7 +177,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
         </View>
       </KeyboardAwareScrollView>
 
-      <KeyboardToolbar>
+      <KeyboardToolbar enabled={isEditorToolbarEnabled}>
         <KeyboardToolbar.Content>
           <Toolbar
             activeStyles={activeStyles}

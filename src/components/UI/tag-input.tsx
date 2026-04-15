@@ -19,6 +19,8 @@ type TagInputProps = {
   error?: string
   maxTags?: number
   accessory?: React.ReactNode
+  onBlur?: () => void
+  onFocus?: () => void
   ref?: Ref<TagInputHandle>
 }
 
@@ -28,6 +30,8 @@ export function TagInput({
   error,
   maxTags,
   accessory,
+  onBlur,
+  onFocus,
   ref,
 }: TagInputProps) {
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
@@ -143,9 +147,13 @@ export function TagInput({
             autoCapitalize="words"
             autoCorrect={false}
             editable={!hasReachedMaxTags}
-            onBlur={commitInput}
+            onBlur={() => {
+              commitInput()
+              onBlur?.()
+            }}
             onChangeText={handleInputChange}
             onKeyPress={handleKeyPress}
+            onFocus={onFocus}
             onSubmitEditing={commitInput}
             ref={inputRef}
             returnKeyType="done"

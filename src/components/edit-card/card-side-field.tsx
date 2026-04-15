@@ -10,6 +10,7 @@ import { StyleSheet } from "react-native-unistyles"
 type CardSideFieldProps = {
   label: string
   editorRef: RefObject<EnrichedTextInputInstance | null>
+  onBlur: () => void
   onFocus: () => void
   onStateChange: (nextState: OnChangeStateEvent) => void
 }
@@ -17,6 +18,7 @@ type CardSideFieldProps = {
 export default function CardSideField({
   label,
   editorRef,
+  onBlur,
   onFocus,
   onStateChange,
 }: CardSideFieldProps) {
@@ -25,6 +27,7 @@ export default function CardSideField({
       <Text style={styles.label}>{label}</Text>
       <EnrichedTextInput
         ref={editorRef}
+        onBlur={onBlur}
         onChangeState={(event) => onStateChange(event.nativeEvent)}
         onFocus={onFocus}
         style={styles.input}
