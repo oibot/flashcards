@@ -90,12 +90,16 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
 
   const handleSave = async () => {
     const draft = await getValidatedDraft()
-    if (!draft) return
+    if (!draft) {
+      return
+    }
+
     const { backHtml, frontHtml, tags: nextTags } = draft
 
     if (initialCard) {
       await updateCard({
         id: initialCard.id,
+        previousTags: initialCard.tags,
         tags: nextTags,
         frontHtml,
         backHtml,
