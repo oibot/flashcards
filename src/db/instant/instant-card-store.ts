@@ -168,15 +168,30 @@ export const createInstantCardStore = (): CardStore => {
   }
 
   const useDueCardsQuery = (now = Date.now()) => {
-    const { cards, isLoading, error } = useCardsQuery()
-    const dueCards = cards
-      .filter((card) => card.dueAt <= now)
-      .sort((left, right) => left.dueAt - right.dueAt)
+    const { status, user } = useAuthSession()
+    const query =
+      user !== null
+        ? {
+            cards: {
+              $: {
+                where: {
+                  dueAt: { $lte: new Date(now) },
+                },
+                order: {
+                  dueAt: "asc" as const,
+                },
+              },
+              tags: {},
+            },
+          }
+        : null
+    const { isLoading, error, data } = db.useQuery(query)
+    const cards = data?.cards?.map(toCard) ?? []
 
     return {
-      cards: dueCards,
-      isLoading,
-      error,
+      cards,
+      isLoading: status === "loading" || isLoading,
+      error: normalizeError(error),
     }
   }
 
