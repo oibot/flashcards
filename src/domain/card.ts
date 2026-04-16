@@ -1,12 +1,23 @@
 import type { CardState } from "@/domain/card-state"
 
 export type CardId = string
+export type CardVariant = "forward" | "reverse"
 
-export type Card = {
-  id: CardId
-  tags: string[]
+export type CanonicalCardContent = {
+  sideAHtml: string
+  sideBHtml: string
+}
+
+export type VisibleCardContent = {
   frontHtml: string
   backHtml: string
+}
+
+export type Card = VisibleCardContent & {
+  id: CardId
+  cardSetId: string
+  variant: CardVariant
+  tags: string[]
   createdAt: number
   updatedAt: number
   dueAt: number
@@ -18,15 +29,51 @@ export type Card = {
   state: CardState
 }
 
-export type NewCardInput = {
+export type NewCardInput = VisibleCardContent & {
   tags: string[]
-  frontHtml: string
-  backHtml: string
 }
 
 export type UpdateCardInput = NewCardInput & {
   id: CardId
   previousTags: string[]
+}
+
+export function isCardVariant(value: unknown): value is CardVariant {
+  return value === "forward" || value === "reverse"
+}
+
+export function resolveCardContent(
+  cardContent: CanonicalCardContent,
+  variant: CardVariant,
+): VisibleCardContent {
+  if (variant === "forward") {
+    return {
+      frontHtml: cardContent.sideAHtml,
+      backHtml: cardContent.sideBHtml,
+    }
+  }
+
+  return {
+    frontHtml: cardContent.sideBHtml,
+    backHtml: cardContent.sideAHtml,
+  }
+}
+
+export function toCanonicalCardContent(
+  cardContent: VisibleCardContent,
+  variant: CardVariant,
+): CanonicalCardContent {
+  if (variant === "forward") {
+    return {
+      sideAHtml: cardContent.frontHtml,
+      sideBHtml: cardContent.backHtml,
+    }
+  }
+
+  return {
+    sideAHtml: cardContent.backHtml,
+    sideBHtml: cardContent.frontHtml,
+  }
 }
 
 export function normalizeTagTitle(tag: string) {

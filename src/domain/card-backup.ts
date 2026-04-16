@@ -1,20 +1,15 @@
-import type { Card, CardId } from "@/domain/card"
-import { type CardState, isCardState } from "@/domain/card-state"
+import {
+  type Card,
+  type CardId,
+  type CardVariant,
+  isCardVariant,
+} from "@/domain/card"
+import { isCardState } from "@/domain/card-state"
 
 export const CARD_BACKUP_APP = "flashcards"
-export const CARD_BACKUP_FORMAT_VERSION = 1 as const
 const LEGACY_CARD_SET_ID_PREFIX = "legacy-card-set:"
 
-export type CardBackupEnvelope = {
-  app: typeof CARD_BACKUP_APP
-  formatVersion: typeof CARD_BACKUP_FORMAT_VERSION
-  exportedAt: string
-  cards: Card[]
-}
-
-export type CardVariant = "forward" | "reverse"
-
-export type CardSetBackupCard = {
+export type CardBackupCard = {
   id: CardId
   variant: CardVariant
   createdAt: number
@@ -25,72 +20,30 @@ export type CardSetBackupCard = {
   easeFactor: number
   repetition: number
   lapses: number
-  state: CardState
+  state: Card["state"]
 }
 
-export type CardSetBackup = {
+export type CardBackupCardSet = {
   id: string
+  tags: string[]
   sideAHtml: string
   sideBHtml: string
-  tags: string[]
   createdAt: number
   updatedAt: number
-  cards: CardSetBackupCard[]
+  cards: CardBackupCard[]
 }
 
-export type CardSetBackupEnvelope = {
+export type CardBackupEnvelope = {
   app: typeof CARD_BACKUP_APP
   exportedAt: string
-  cardSets: CardSetBackup[]
-}
-
-export function toLegacyCardSetId(cardId: CardId) {
-  return `${LEGACY_CARD_SET_ID_PREFIX}${cardId}`
-}
-
-export function createCardSetBackupFromLegacyCards(
-  cards: Card[],
-  exportedAt = new Date().toISOString(),
-): CardSetBackupEnvelope {
-  const sortedCards = [...cards].sort(
-    (left, right) =>
-      left.createdAt - right.createdAt || left.id.localeCompare(right.id),
-  )
-
-  return {
-    app: CARD_BACKUP_APP,
-    exportedAt,
-    cardSets: sortedCards.map((card) => ({
-      id: toLegacyCardSetId(card.id),
-      sideAHtml: card.frontHtml,
-      sideBHtml: card.backHtml,
-      tags: card.tags,
-      createdAt: card.createdAt,
-      updatedAt: card.updatedAt,
-      cards: [
-        {
-          id: card.id,
-          variant: "forward",
-          createdAt: card.createdAt,
-          updatedAt: card.updatedAt,
-          dueAt: card.dueAt,
-          lastReviewedAt: card.lastReviewedAt,
-          intervalDays: card.intervalDays,
-          easeFactor: card.easeFactor,
-          repetition: card.repetition,
-          lapses: card.lapses,
-          state: card.state,
-        },
-      ],
-    })),
-  }
+  cardSets: CardBackupCardSet[]
 }
 
 export type CardBackupValidationIssueCode =
   | "invalid_app"
-  | "invalid_format_version"
   | "invalid_exported_at"
-  | "invalid_cards"
+  | "invalid_card_sets"
+  | "invalid_card_set"
   | "invalid_card"
 
 export type CardBackupValidationSuccess = {
@@ -133,16 +86,15 @@ function isStringArray(value: unknown): value is string[] {
   )
 }
 
-function isValidCard(value: unknown): value is Card {
+function isValidCardBackupCard(value: unknown): value is CardBackupCard {
   if (!isRecord(value)) {
     return false
   }
 
   return (
     typeof value.id === "string" &&
-    isStringArray(value.tags) &&
-    typeof value.frontHtml === "string" &&
-    typeof value.backHtml === "string" &&
+    typeof value.variant === "string" &&
+    isCardVariant(value.variant) &&
     typeof value.createdAt === "number" &&
     typeof value.updatedAt === "number" &&
     typeof value.dueAt === "number" &&
@@ -154,6 +106,74 @@ function isValidCard(value: unknown): value is Card {
     typeof value.state === "string" &&
     isCardState(value.state)
   )
+}
+
+function isValidCardBackupCardSet(value: unknown): value is CardBackupCardSet {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    typeof value.id === "string" &&
+    isStringArray(value.tags) &&
+    typeof value.sideAHtml === "string" &&
+    typeof value.sideBHtml === "string" &&
+    typeof value.createdAt === "number" &&
+    typeof value.updatedAt === "number" &&
+    Array.isArray(value.cards) &&
+    value.cards.every((card) => isValidCardBackupCard(card))
+  )
+}
+
+function toLegacyCardBackupCard(card: Card): CardBackupCard {
+  return {
+    id: card.id,
+    variant: "forward",
+    createdAt: card.createdAt,
+    updatedAt: card.updatedAt,
+    dueAt: card.dueAt,
+    lastReviewedAt: card.lastReviewedAt,
+    intervalDays: card.intervalDays,
+    easeFactor: card.easeFactor,
+    repetition: card.repetition,
+    lapses: card.lapses,
+    state: card.state,
+  }
+}
+
+export function getCardBackupCardCount(backup: CardBackupEnvelope) {
+  return backup.cardSets.reduce(
+    (count, cardSet) => count + cardSet.cards.length,
+    0,
+  )
+}
+
+export function toLegacyCardSetId(cardId: CardId) {
+  return `${LEGACY_CARD_SET_ID_PREFIX}${cardId}`
+}
+
+export function createCardBackupFromLegacyCards(
+  cards: Card[],
+  exportedAt = new Date().toISOString(),
+): CardBackupEnvelope {
+  const sortedCards = [...cards].sort(
+    (left, right) =>
+      left.createdAt - right.createdAt || left.id.localeCompare(right.id),
+  )
+
+  return {
+    app: CARD_BACKUP_APP,
+    exportedAt,
+    cardSets: sortedCards.map((card) => ({
+      id: toLegacyCardSetId(card.id),
+      sideAHtml: card.frontHtml,
+      sideBHtml: card.backHtml,
+      tags: card.tags,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      cards: [toLegacyCardBackupCard(card)],
+    })),
+  }
 }
 
 export function validateCardBackup(value: unknown): CardBackupValidationResult {
@@ -171,13 +191,6 @@ export function validateCardBackup(value: unknown): CardBackupValidationResult {
     )
   }
 
-  if (value.formatVersion !== CARD_BACKUP_FORMAT_VERSION) {
-    return createValidationFailure(
-      "invalid_format_version",
-      "Backup file format version is not supported.",
-    )
-  }
-
   if (!isValidDateString(value.exportedAt)) {
     return createValidationFailure(
       "invalid_exported_at",
@@ -185,19 +198,21 @@ export function validateCardBackup(value: unknown): CardBackupValidationResult {
     )
   }
 
-  if (!Array.isArray(value.cards)) {
+  if (!Array.isArray(value.cardSets)) {
     return createValidationFailure(
-      "invalid_cards",
-      "Backup file must contain a cards array.",
+      "invalid_card_sets",
+      "Backup file must contain a cardSets array.",
     )
   }
 
-  const invalidCardIndex = value.cards.findIndex((card) => !isValidCard(card))
+  const invalidCardSetIndex = value.cardSets.findIndex(
+    (cardSet) => !isValidCardBackupCardSet(cardSet),
+  )
 
-  if (invalidCardIndex >= 0) {
+  if (invalidCardSetIndex >= 0) {
     return createValidationFailure(
-      "invalid_card",
-      `Backup file contains an invalid card at index ${invalidCardIndex}.`,
+      "invalid_card_set",
+      `Backup file contains an invalid card set at index ${invalidCardSetIndex}.`,
     )
   }
 
@@ -205,9 +220,8 @@ export function validateCardBackup(value: unknown): CardBackupValidationResult {
     isValid: true,
     backup: {
       app: CARD_BACKUP_APP,
-      formatVersion: CARD_BACKUP_FORMAT_VERSION,
       exportedAt: value.exportedAt,
-      cards: value.cards,
+      cardSets: value.cardSets,
     },
   }
 }

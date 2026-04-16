@@ -6,7 +6,10 @@ import { Alert } from "react-native"
 
 import { useAuthActions } from "@/auth/use-auth-actions"
 import { useDb } from "@/db/db-context"
-import { validateCardBackup } from "@/domain/card-backup"
+import {
+  getCardBackupCardCount,
+  validateCardBackup,
+} from "@/domain/card-backup"
 
 function isFilePickerCancellationError(error: unknown) {
   return (
@@ -141,18 +144,16 @@ export function useSettingsActions() {
         throw new Error(validationResult.message)
       }
 
-      const shouldImport = await confirmImport(
-        validationResult.backup.cards.length,
-      )
+      const cardCount = getCardBackupCardCount(validationResult.backup)
+
+      const shouldImport = await confirmImport(cardCount)
 
       if (!shouldImport) {
         return
       }
 
       await cardStore.importCards(validationResult.backup)
-      showSuccessAlert(
-        t("importSuccess", { count: validationResult.backup.cards.length }),
-      )
+      showSuccessAlert(t("importSuccess", { count: cardCount }))
     } catch (error) {
       if (isFilePickerCancellationError(error)) {
         return

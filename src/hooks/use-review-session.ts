@@ -14,6 +14,8 @@ type UseReviewSessionOptions = {
 const areCardsEquivalent = (left: Card, right: Card) => {
   return (
     left.id === right.id &&
+    left.cardSetId === right.cardSetId &&
+    left.variant === right.variant &&
     left.frontHtml === right.frontHtml &&
     left.backHtml === right.backHtml &&
     left.updatedAt === right.updatedAt &&
@@ -146,7 +148,7 @@ export function useReviewSession({
       await removeCard(currentCard.id)
 
       const nextSessionCards = sessionCards.filter(
-        (card) => card.id !== currentCard.id,
+        (card) => card.cardSetId !== currentCard.cardSetId,
       )
 
       setSessionCards(nextSessionCards)

@@ -68,7 +68,7 @@
       "cancel": "Abbrechen",
       "confirm": "Löschen",
       "error": "Karte konnte nicht gelöscht werden",
-      "message": "Diese Karte dauerhaft löschen?",
+      "message": "Diese Karte dauerhaft löschen? Andere Richtungsvarianten werden ebenfalls gelöscht.",
       "title": "Karte löschen?"
     },
     "completed": {

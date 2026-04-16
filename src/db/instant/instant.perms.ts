@@ -23,6 +23,20 @@ const rules = {
       delete: "isOwner",
     },
   },
+  cardSets: {
+    bind: [
+      "isOwner",
+      "data.id in auth.ref('$user.cardSets.id')",
+      "isCreatingAsOwner",
+      "auth.id in data.ref('owner.id')",
+    ],
+    allow: {
+      view: "isOwner",
+      create: "isCreatingAsOwner",
+      update: "isOwner",
+      delete: "isOwner",
+    },
+  },
   cards: {
     bind: [
       "isOwner",

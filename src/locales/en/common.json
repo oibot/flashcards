@@ -68,7 +68,7 @@
       "cancel": "Cancel",
       "confirm": "Delete",
       "error": "Could not delete card",
-      "message": "Delete this card permanently?",
+      "message": "Delete this card permanently? Any other direction variants will also be deleted.",
       "title": "Delete card?"
     },
     "completed": {

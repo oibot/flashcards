@@ -8,9 +8,14 @@ const schema = i.schema({
     profiles: i.entity({
       createdAt: i.date().indexed(),
     }),
+    cardSets: i.entity({
+      sideAHtml: i.string(),
+      sideBHtml: i.string(),
+      createdAt: i.date(),
+      updatedAt: i.date().indexed(),
+    }),
     cards: i.entity({
-      frontHtml: i.string(),
-      backHtml: i.string(),
+      variant: i.string(),
       createdAt: i.date(),
       updatedAt: i.date().indexed(),
       dueAt: i.date().indexed(),
@@ -40,9 +45,27 @@ const schema = i.schema({
       forward: { on: "cards", has: "one", label: "owner", onDelete: "cascade" },
       reverse: { on: "$users", has: "many", label: "cards" },
     },
-    cardsTags: {
-      forward: { on: "cards", has: "many", label: "tags" },
-      reverse: { on: "tags", has: "many", label: "cards" },
+    cardSetOwner: {
+      forward: {
+        on: "cardSets",
+        has: "one",
+        label: "owner",
+        onDelete: "cascade",
+      },
+      reverse: { on: "$users", has: "many", label: "cardSets" },
+    },
+    cardSetCards: {
+      forward: {
+        on: "cards",
+        has: "one",
+        label: "cardSet",
+        onDelete: "cascade",
+      },
+      reverse: { on: "cardSets", has: "many", label: "cards" },
+    },
+    cardSetTags: {
+      forward: { on: "cardSets", has: "many", label: "tags" },
+      reverse: { on: "tags", has: "many", label: "cardSets" },
     },
     tagOwner: {
       forward: { on: "tags", has: "one", label: "owner", onDelete: "cascade" },
