@@ -1,5 +1,8 @@
 import type { Card, CardId, NewCardInput, UpdateCardInput } from "@/domain/card"
-import type { CardBackupEnvelope } from "@/domain/card-backup"
+import type {
+  CardBackupEnvelope,
+  CardSetBackupEnvelope,
+} from "@/domain/card-backup"
 import type { ReviewGrade } from "@/domain/review-scheduler"
 
 export type CardsQueryState = {
@@ -19,6 +22,7 @@ export type CardStore = {
   useDueCardsQuery: (now?: number) => CardsQueryState
   useTagsQuery: () => TagsQueryState
   exportCards: () => Promise<CardBackupEnvelope>
+  exportLegacyCards: () => Promise<CardSetBackupEnvelope>
   importCards: (backup: CardBackupEnvelope) => Promise<void>
   addCard: (input: NewCardInput) => Promise<void>
   updateCard: (input: UpdateCardInput) => Promise<void>

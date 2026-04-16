@@ -9,19 +9,38 @@ export default function SettingsScene() {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "settings" })
   const {
+    isLegacyExporting,
     isExporting,
     isImporting,
     isSigningOut,
+    onLegacyExport,
     onExport,
     onImport,
     onSignOut,
   } = useSettingsActions()
-  const isBusy = isExporting || isImporting || isSigningOut
+  const isBusy = isLegacyExporting || isExporting || isImporting || isSigningOut
 
   return (
     <>
       <Stack.Screen options={{ title: t("title") }} />
       <View style={styles.content}>
+        <Pressable
+          accessibilityLabel={t("legacyExportAccessibilityLabel")}
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onLegacyExport}
+          style={[
+            styles.button,
+            styles.primaryButton,
+            isBusy ? styles.buttonDisabled : null,
+          ]}
+        >
+          {isLegacyExporting ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.buttonLabel}>{t("legacyExport")}</Text>
+          )}
+        </Pressable>
         <Pressable
           accessibilityLabel={t("exportAccessibilityLabel")}
           accessibilityRole="button"

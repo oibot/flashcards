@@ -15,6 +15,8 @@ import {
   CARD_BACKUP_APP,
   CARD_BACKUP_FORMAT_VERSION,
   type CardBackupEnvelope,
+  type CardSetBackupEnvelope,
+  createCardSetBackupFromLegacyCards,
 } from "@/domain/card-backup"
 import {
   createInitialSchedule,
@@ -215,6 +217,12 @@ export const createInstantCardStore = (): CardStore => {
     }
   }
 
+  const exportLegacyCards = async (): Promise<CardSetBackupEnvelope> => {
+    const backup = await exportCards()
+
+    return createCardSetBackupFromLegacyCards(backup.cards, backup.exportedAt)
+  }
+
   const importCards = async (backup: CardBackupEnvelope) => {
     const currentUser = await requireCurrentUser()
 
@@ -356,6 +364,7 @@ export const createInstantCardStore = (): CardStore => {
     useDueCardsQuery,
     useTagsQuery,
     exportCards,
+    exportLegacyCards,
     importCards,
     addCard,
     updateCard,

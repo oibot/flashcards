@@ -1,14 +1,89 @@
-import type { Card } from "@/domain/card"
-import { isCardState } from "@/domain/card-state"
+import type { Card, CardId } from "@/domain/card"
+import { type CardState, isCardState } from "@/domain/card-state"
 
 export const CARD_BACKUP_APP = "flashcards"
 export const CARD_BACKUP_FORMAT_VERSION = 1 as const
+const LEGACY_CARD_SET_ID_PREFIX = "legacy-card-set:"
 
 export type CardBackupEnvelope = {
   app: typeof CARD_BACKUP_APP
   formatVersion: typeof CARD_BACKUP_FORMAT_VERSION
   exportedAt: string
   cards: Card[]
+}
+
+export type CardVariant = "forward" | "reverse"
+
+export type CardSetBackupCard = {
+  id: CardId
+  variant: CardVariant
+  createdAt: number
+  updatedAt: number
+  dueAt: number
+  lastReviewedAt: number
+  intervalDays: number
+  easeFactor: number
+  repetition: number
+  lapses: number
+  state: CardState
+}
+
+export type CardSetBackup = {
+  id: string
+  sideAHtml: string
+  sideBHtml: string
+  tags: string[]
+  createdAt: number
+  updatedAt: number
+  cards: CardSetBackupCard[]
+}
+
+export type CardSetBackupEnvelope = {
+  app: typeof CARD_BACKUP_APP
+  exportedAt: string
+  cardSets: CardSetBackup[]
+}
+
+export function toLegacyCardSetId(cardId: CardId) {
+  return `${LEGACY_CARD_SET_ID_PREFIX}${cardId}`
+}
+
+export function createCardSetBackupFromLegacyCards(
+  cards: Card[],
+  exportedAt = new Date().toISOString(),
+): CardSetBackupEnvelope {
+  const sortedCards = [...cards].sort(
+    (left, right) =>
+      left.createdAt - right.createdAt || left.id.localeCompare(right.id),
+  )
+
+  return {
+    app: CARD_BACKUP_APP,
+    exportedAt,
+    cardSets: sortedCards.map((card) => ({
+      id: toLegacyCardSetId(card.id),
+      sideAHtml: card.frontHtml,
+      sideBHtml: card.backHtml,
+      tags: card.tags,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+      cards: [
+        {
+          id: card.id,
+          variant: "forward",
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+          dueAt: card.dueAt,
+          lastReviewedAt: card.lastReviewedAt,
+          intervalDays: card.intervalDays,
+          easeFactor: card.easeFactor,
+          repetition: card.repetition,
+          lapses: card.lapses,
+          state: card.state,
+        },
+      ],
+    })),
+  }
 }
 
 export type CardBackupValidationIssueCode =

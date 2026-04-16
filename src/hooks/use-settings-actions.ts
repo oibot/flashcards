@@ -19,6 +19,7 @@ export function useSettingsActions() {
   const { t } = useTranslation("common", { keyPrefix: "settings" })
   const { cardStore } = useDb()
   const { signOut } = useAuthActions()
+  const [isLegacyExporting, setIsLegacyExporting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
@@ -55,30 +56,58 @@ export function useSettingsActions() {
       )
     })
 
+  const shareJsonFile = async (
+    fileName: string,
+    dialogTitle: string,
+    payload: unknown,
+  ) => {
+    const isSharingAvailable = await Sharing.isAvailableAsync()
+
+    if (!isSharingAvailable) {
+      throw new Error(t("exportUnavailableError"))
+    }
+
+    const file = new File(Paths.cache, fileName)
+
+    file.create({ overwrite: true })
+    file.write(JSON.stringify(payload, null, 2))
+
+    await Sharing.shareAsync(file.uri, {
+      dialogTitle,
+      mimeType: "application/json",
+      UTI: "public.json",
+    })
+  }
+
+  const onLegacyExport = async () => {
+    if (isLegacyExporting || isExporting || isImporting || isSigningOut) return
+
+    setIsLegacyExporting(true)
+
+    try {
+      const backup = await cardStore.exportLegacyCards()
+      const fileName = `flashcards-legacy-export-${backup.exportedAt.slice(0, 10)}.json`
+
+      await shareJsonFile(fileName, t("legacyExportDialogTitle"), backup)
+    } catch (error) {
+      showErrorAlert(
+        error instanceof Error ? error.message : t("legacyExportError"),
+      )
+    } finally {
+      setIsLegacyExporting(false)
+    }
+  }
+
   const onExport = async () => {
-    if (isExporting || isImporting || isSigningOut) return
+    if (isLegacyExporting || isExporting || isImporting || isSigningOut) return
 
     setIsExporting(true)
 
     try {
-      const isSharingAvailable = await Sharing.isAvailableAsync()
-
-      if (!isSharingAvailable) {
-        throw new Error(t("exportUnavailableError"))
-      }
-
       const backup = await cardStore.exportCards()
       const fileName = `flashcards-export-${backup.exportedAt.slice(0, 10)}.json`
-      const file = new File(Paths.cache, fileName)
 
-      file.create({ overwrite: true })
-      file.write(JSON.stringify(backup, null, 2))
-
-      await Sharing.shareAsync(file.uri, {
-        dialogTitle: t("exportDialogTitle"),
-        mimeType: "application/json",
-        UTI: "public.json",
-      })
+      await shareJsonFile(fileName, t("exportDialogTitle"), backup)
     } catch (error) {
       showErrorAlert(error instanceof Error ? error.message : t("exportError"))
     } finally {
@@ -87,7 +116,7 @@ export function useSettingsActions() {
   }
 
   const onImport = async () => {
-    if (isImporting || isExporting || isSigningOut) return
+    if (isLegacyExporting || isImporting || isExporting || isSigningOut) return
 
     setIsImporting(true)
 
@@ -136,7 +165,7 @@ export function useSettingsActions() {
   }
 
   const onSignOut = async () => {
-    if (isSigningOut || isExporting || isImporting) return
+    if (isSigningOut || isLegacyExporting || isExporting || isImporting) return
 
     setIsSigningOut(true)
 
@@ -150,9 +179,11 @@ export function useSettingsActions() {
   }
 
   return {
+    isLegacyExporting,
     isExporting,
     isImporting,
     isSigningOut,
+    onLegacyExport,
     onExport,
     onImport,
     onSignOut,
