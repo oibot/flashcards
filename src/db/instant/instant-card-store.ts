@@ -1,4 +1,4 @@
-import { id } from "@instantdb/react-native"
+import { id, lookup } from "@instantdb/react-native"
 
 import { useAuthSession } from "@/auth/use-auth-session"
 import type { CardStore, TagsQueryState } from "@/db/card-store"
@@ -36,72 +36,35 @@ function toOwnerTitle(userId: string, title: string) {
   return `${userId}:${normalizeTagTitle(title)}`
 }
 
-function areTagsEqual(left: string[], right: string[]) {
-  return (
-    left.length === right.length &&
-    left.every((tag, index) => tag === right[index])
+function toTagLookups(userId: string, tags: string[]) {
+  return tags.map((tag) => lookup("ownerTitle", toOwnerTitle(userId, tag)))
+}
+
+function createEnsureTagTransactions(userId: string, tags: string[]) {
+  return tags.map((tag) =>
+    db.tx.tags[lookup("ownerTitle", toOwnerTitle(userId, tag))]
+      .update({
+        ownerTitle: toOwnerTitle(userId, tag),
+        title: tag,
+      })
+      .link({ owner: userId }),
   )
 }
 
-async function resolveTagMutation(
-  userId: string,
-  tags: string[],
-  linkedTags: string[] = [],
-) {
-  const relevantTags = [...new Set([...tags, ...linkedTags])]
-  const existingTagsQuery = {
-    $users: {
-      $: {
-        where: {
-          id: userId,
-        },
-      },
-      tags: {
-        $: {
-          where: {
-            title: { $in: relevantTags },
-          },
-        },
-      },
-    },
-  }
-  const existingTags =
-    relevantTags.length > 0
-      ? ((await db.queryOnce(existingTagsQuery)).data.$users[0]?.tags ?? [])
-      : []
-
-  const existingTagIdByTitle = new Map(
-    existingTags.map((tag) => [tag.title, tag.id]),
-  )
-  const missingTags = tags.filter((tag) => !existingTagIdByTitle.has(tag))
-  const newTagIdByTitle = new Map(missingTags.map((tag) => [tag, id()]))
-  const tagIds = tags.flatMap((tag) => {
-    const tagId = existingTagIdByTitle.get(tag) ?? newTagIdByTitle.get(tag)
-    return tagId ? [tagId] : []
-  })
+function diffTags(previousTags: string[], nextTags: string[]) {
+  const previousTagSet = new Set(previousTags)
+  const nextTagSet = new Set(nextTags)
 
   return {
-    createTagTransactions: missingTags.map((tag) =>
-      db.tx.tags[newTagIdByTitle.get(tag)!]
-        .create({
-          ownerTitle: toOwnerTitle(userId, tag),
-          title: tag,
-        })
-        .link({ owner: userId }),
-    ),
-    linkedTagIds: linkedTags.flatMap((tag) => {
-      const tagId = existingTagIdByTitle.get(tag)
-      return tagId ? [tagId] : []
-    }),
-    tagIds,
+    tagsToLink: nextTags.filter((tag) => !previousTagSet.has(tag)),
+    tagsToUnlink: previousTags.filter((tag) => !nextTagSet.has(tag)),
   }
 }
 
 function createImportedCardTransaction(
   userId: string,
   card: Card,
-  existingTagIds: string[],
-  nextTagIds: string[],
+  previousTags: string[],
 ) {
   let cardTransaction = db.tx.cards[card.id]
     .update({
@@ -119,21 +82,18 @@ function createImportedCardTransaction(
     })
     .link({ owner: userId })
 
-  const nextTagIdSet = new Set(nextTagIds)
-  const tagIdsToUnlink = existingTagIds.filter(
-    (tagId) => !nextTagIdSet.has(tagId),
-  )
-  const existingTagIdSet = new Set(existingTagIds)
-  const tagIdsToLink = nextTagIds.filter(
-    (tagId) => !existingTagIdSet.has(tagId),
-  )
+  const { tagsToLink, tagsToUnlink } = diffTags(previousTags, card.tags)
 
-  if (tagIdsToUnlink.length > 0) {
-    cardTransaction = cardTransaction.unlink({ tags: tagIdsToUnlink })
+  if (tagsToUnlink.length > 0) {
+    cardTransaction = cardTransaction.unlink({
+      tags: toTagLookups(userId, tagsToUnlink),
+    })
   }
 
-  if (tagIdsToLink.length > 0) {
-    cardTransaction = cardTransaction.link({ tags: tagIdsToLink })
+  if (tagsToLink.length > 0) {
+    cardTransaction = cardTransaction.link({
+      tags: toTagLookups(userId, tagsToLink),
+    })
   }
 
   return cardTransaction
@@ -270,12 +230,9 @@ export const createInstantCardStore = (): CardStore => {
     const importedTags = [
       ...new Set(importedCards.flatMap((card) => card.tags)),
     ]
-    const { createTagTransactions, tagIds } = await resolveTagMutation(
+    const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
       importedTags,
-    )
-    const tagIdByTitle = new Map(
-      importedTags.map((tag, index) => [tag, tagIds[index]]),
     )
     const existingCardsQuery = {
       $users: {
@@ -294,20 +251,17 @@ export const createInstantCardStore = (): CardStore => {
         },
       },
     }
-    const existingCards =
+    const existingCards = (
       (await db.queryOnce(existingCardsQuery)).data.$users[0]?.cards ?? []
-    const existingTagIdsByCardId = new Map(
-      existingCards.map((card) => [card.id, card.tags.map((tag) => tag.id)]),
+    ).map(toCard)
+    const existingTagsByCardId = new Map(
+      existingCards.map((card) => [card.id, card.tags]),
     )
     const cardTransactions = importedCards.map((card) =>
       createImportedCardTransaction(
         currentUser.id,
         card,
-        existingTagIdsByCardId.get(card.id) ?? [],
-        card.tags.flatMap((tag) => {
-          const tagId = tagIdByTitle.get(tag)
-          return tagId ? [tagId] : []
-        }),
+        existingTagsByCardId.get(card.id) ?? [],
       ),
     )
 
@@ -319,7 +273,7 @@ export const createInstantCardStore = (): CardStore => {
     const tags = parseTags(input.tags)
     const cardId = id()
     const now = Date.now()
-    const { createTagTransactions, tagIds } = await resolveTagMutation(
+    const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
       tags,
     )
@@ -336,8 +290,8 @@ export const createInstantCardStore = (): CardStore => {
 
     await db.transact([
       ...createTagTransactions,
-      tagIds.length > 0
-        ? cardTransaction.link({ tags: tagIds })
+      tags.length > 0
+        ? cardTransaction.link({ tags: toTagLookups(currentUser.id, tags) })
         : cardTransaction,
     ])
   }
@@ -346,6 +300,7 @@ export const createInstantCardStore = (): CardStore => {
     const tags = parseTags(input.tags)
     const previousTags = parseTags(input.previousTags)
     const now = Date.now()
+    const { tagsToLink, tagsToUnlink } = diffTags(previousTags, tags)
 
     let cardTransaction = db.tx.cards[input.id].update({
       frontHtml: input.frontHtml,
@@ -353,27 +308,27 @@ export const createInstantCardStore = (): CardStore => {
       updatedAt: now,
     })
 
-    if (areTagsEqual(tags, previousTags)) {
+    if (tagsToLink.length === 0 && tagsToUnlink.length === 0) {
       await db.transact(cardTransaction)
       return
     }
 
     const currentUser = await requireCurrentUser()
-    const { createTagTransactions, linkedTagIds, tagIds } =
-      await resolveTagMutation(currentUser.id, tags, previousTags)
-    const nextTagIdSet = new Set(tagIds)
-    const tagIdsToUnlink = linkedTagIds.filter(
-      (tagId) => !nextTagIdSet.has(tagId),
+    const createTagTransactions = createEnsureTagTransactions(
+      currentUser.id,
+      tagsToLink,
     )
-    const linkedTagIdSet = new Set(linkedTagIds)
-    const tagIdsToLink = tagIds.filter((tagId) => !linkedTagIdSet.has(tagId))
 
-    if (tagIdsToUnlink.length > 0) {
-      cardTransaction = cardTransaction.unlink({ tags: tagIdsToUnlink })
+    if (tagsToUnlink.length > 0) {
+      cardTransaction = cardTransaction.unlink({
+        tags: toTagLookups(currentUser.id, tagsToUnlink),
+      })
     }
 
-    if (tagIdsToLink.length > 0) {
-      cardTransaction = cardTransaction.link({ tags: tagIdsToLink })
+    if (tagsToLink.length > 0) {
+      cardTransaction = cardTransaction.link({
+        tags: toTagLookups(currentUser.id, tagsToLink),
+      })
     }
 
     await db.transact([...createTagTransactions, cardTransaction])
