@@ -26,7 +26,7 @@ export type NewCardInput = {
 
 export type UpdateCardInput = NewCardInput & {
   id: CardId
-  previousTags?: string[]
+  previousTags: string[]
 }
 
 export function normalizeTagTitle(tag: string) {

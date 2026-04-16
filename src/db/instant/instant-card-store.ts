@@ -344,7 +344,7 @@ export const createInstantCardStore = (): CardStore => {
 
   const updateCard = async (input: UpdateCardInput) => {
     const tags = parseTags(input.tags)
-    const previousTags = parseTags(input.previousTags ?? [])
+    const previousTags = parseTags(input.previousTags)
     const now = Date.now()
 
     let cardTransaction = db.tx.cards[input.id].update({
