@@ -1,12 +1,24 @@
-import { useState } from "react"
+import { useFocusEffect } from "expo-router"
+import { useCallback, useState } from "react"
 
 import { useDb } from "@/db/db-context"
 
 export function useDueCards(now?: number) {
   const { cardStore } = useDb()
   const { useDueCardsQuery, removeCard, reviewCard } = cardStore
-  const [initialNow] = useState(() => Date.now())
-  const { cards, isLoading, error } = useDueCardsQuery(now ?? initialNow)
+  const [queryNow, setQueryNow] = useState(() => Date.now())
+
+  useFocusEffect(
+    useCallback(() => {
+      if (now !== undefined) {
+        return
+      }
+
+      setQueryNow(Date.now())
+    }, [now]),
+  )
+
+  const { cards, isLoading, error } = useDueCardsQuery(now ?? queryNow)
 
   return {
     cards,
