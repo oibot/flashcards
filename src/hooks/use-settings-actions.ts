@@ -22,7 +22,6 @@ export function useSettingsActions() {
   const { t } = useTranslation("common", { keyPrefix: "settings" })
   const { cardStore } = useDb()
   const { signOut } = useAuthActions()
-  const [isLegacyExporting, setIsLegacyExporting] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
@@ -82,27 +81,8 @@ export function useSettingsActions() {
     })
   }
 
-  const onLegacyExport = async () => {
-    if (isLegacyExporting || isExporting || isImporting || isSigningOut) return
-
-    setIsLegacyExporting(true)
-
-    try {
-      const backup = await cardStore.exportLegacyCards()
-      const fileName = `flashcards-legacy-export-${backup.exportedAt.slice(0, 10)}.json`
-
-      await shareJsonFile(fileName, t("legacyExportDialogTitle"), backup)
-    } catch (error) {
-      showErrorAlert(
-        error instanceof Error ? error.message : t("legacyExportError"),
-      )
-    } finally {
-      setIsLegacyExporting(false)
-    }
-  }
-
   const onExport = async () => {
-    if (isLegacyExporting || isExporting || isImporting || isSigningOut) return
+    if (isExporting || isImporting || isSigningOut) return
 
     setIsExporting(true)
 
@@ -119,7 +99,7 @@ export function useSettingsActions() {
   }
 
   const onImport = async () => {
-    if (isLegacyExporting || isImporting || isExporting || isSigningOut) return
+    if (isImporting || isExporting || isSigningOut) return
 
     setIsImporting(true)
 
@@ -166,7 +146,7 @@ export function useSettingsActions() {
   }
 
   const onSignOut = async () => {
-    if (isSigningOut || isLegacyExporting || isExporting || isImporting) return
+    if (isSigningOut || isExporting || isImporting) return
 
     setIsSigningOut(true)
 
@@ -180,11 +160,9 @@ export function useSettingsActions() {
   }
 
   return {
-    isLegacyExporting,
     isExporting,
     isImporting,
     isSigningOut,
-    onLegacyExport,
     onExport,
     onImport,
     onSignOut,

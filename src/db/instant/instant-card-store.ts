@@ -244,10 +244,6 @@ export const createInstantCardStore = (): CardStore => {
     }
   }
 
-  const exportLegacyCards = async (): Promise<CardBackupEnvelope> => {
-    return exportCards()
-  }
-
   const importCards = async (backup: CardBackupEnvelope) => {
     const currentUser = await requireCurrentUser()
 
@@ -476,7 +472,6 @@ export const createInstantCardStore = (): CardStore => {
     useDueCardsQuery,
     useTagsQuery,
     exportCards,
-    exportLegacyCards,
     importCards,
     addCard,
     updateCard,

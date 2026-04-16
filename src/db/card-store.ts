@@ -19,7 +19,6 @@ export type CardStore = {
   useDueCardsQuery: (now?: number) => CardsQueryState
   useTagsQuery: () => TagsQueryState
   exportCards: () => Promise<CardBackupEnvelope>
-  exportLegacyCards: () => Promise<CardBackupEnvelope>
   importCards: (backup: CardBackupEnvelope) => Promise<void>
   addCard: (input: NewCardInput) => Promise<void>
   updateCard: (input: UpdateCardInput) => Promise<void>

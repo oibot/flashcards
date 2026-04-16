@@ -7,7 +7,6 @@ import {
 import { isCardState } from "@/domain/card-state"
 
 export const CARD_BACKUP_APP = "flashcards"
-const LEGACY_CARD_SET_ID_PREFIX = "legacy-card-set:"
 
 export type CardBackupCard = {
   id: CardId
@@ -125,55 +124,11 @@ function isValidCardBackupCardSet(value: unknown): value is CardBackupCardSet {
   )
 }
 
-function toLegacyCardBackupCard(card: Card): CardBackupCard {
-  return {
-    id: card.id,
-    variant: "forward",
-    createdAt: card.createdAt,
-    updatedAt: card.updatedAt,
-    dueAt: card.dueAt,
-    lastReviewedAt: card.lastReviewedAt,
-    intervalDays: card.intervalDays,
-    easeFactor: card.easeFactor,
-    repetition: card.repetition,
-    lapses: card.lapses,
-    state: card.state,
-  }
-}
-
 export function getCardBackupCardCount(backup: CardBackupEnvelope) {
   return backup.cardSets.reduce(
     (count, cardSet) => count + cardSet.cards.length,
     0,
   )
-}
-
-export function toLegacyCardSetId(cardId: CardId) {
-  return `${LEGACY_CARD_SET_ID_PREFIX}${cardId}`
-}
-
-export function createCardBackupFromLegacyCards(
-  cards: Card[],
-  exportedAt = new Date().toISOString(),
-): CardBackupEnvelope {
-  const sortedCards = [...cards].sort(
-    (left, right) =>
-      left.createdAt - right.createdAt || left.id.localeCompare(right.id),
-  )
-
-  return {
-    app: CARD_BACKUP_APP,
-    exportedAt,
-    cardSets: sortedCards.map((card) => ({
-      id: toLegacyCardSetId(card.id),
-      sideAHtml: card.frontHtml,
-      sideBHtml: card.backHtml,
-      tags: card.tags,
-      createdAt: card.createdAt,
-      updatedAt: card.updatedAt,
-      cards: [toLegacyCardBackupCard(card)],
-    })),
-  }
 }
 
 export function validateCardBackup(value: unknown): CardBackupValidationResult {
