@@ -29,11 +29,17 @@ export type Card = VisibleCardContent & {
   state: CardState
 }
 
-export type NewCardInput = VisibleCardContent & {
+export type EditableCardInput = VisibleCardContent & {
   tags: string[]
 }
 
-export type UpdateCardInput = NewCardInput & {
+export type CardVariants = readonly [CardVariant, ...CardVariant[]]
+
+export type NewCardInput = EditableCardInput & {
+  variants: CardVariants
+}
+
+export type UpdateCardInput = EditableCardInput & {
   id: CardId
   previousTags: string[]
 }

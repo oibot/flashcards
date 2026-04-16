@@ -33,6 +33,10 @@
     "editHeaderTitle": "Edit Card",
     "frontLabel": "Front",
     "headerTitle": "New Card",
+    "oppositeDirection": {
+      "description": "Also create a second card with front and back swapped.",
+      "label": "Practice opposite direction too"
+    },
     "saveCard": "Save card",
     "saveCardAccessibilityLabel": "Save card",
     "tagsMenu": {

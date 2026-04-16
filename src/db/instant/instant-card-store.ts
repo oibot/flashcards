@@ -315,7 +315,6 @@ export const createInstantCardStore = (): CardStore => {
     const currentUser = await requireCurrentUser()
     const tags = parseTags(input.tags)
     const cardSetId = id()
-    const cardId = id()
     const now = Date.now()
     const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
@@ -337,22 +336,24 @@ export const createInstantCardStore = (): CardStore => {
       })
     }
 
-    const cardTransaction = db.tx.cards[cardId]
-      .update({
-        variant: "forward",
-        createdAt: now,
-        updatedAt: now,
-        ...createInitialSchedule(now),
-      })
-      .link({
-        owner: currentUser.id,
-        cardSet: cardSetId,
-      })
+    const cardTransactions = input.variants.map((variant) =>
+      db.tx.cards[id()]
+        .update({
+          variant,
+          createdAt: now,
+          updatedAt: now,
+          ...createInitialSchedule(now),
+        })
+        .link({
+          owner: currentUser.id,
+          cardSet: cardSetId,
+        }),
+    )
 
     await db.transact([
       ...createTagTransactions,
       cardSetTransaction,
-      cardTransaction,
+      ...cardTransactions,
     ])
   }
 

@@ -10,13 +10,14 @@ import { StyleSheet } from "react-native-unistyles"
 import { TagInput } from "@/components/UI/tag-input"
 import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
-import type { Card } from "@/domain/card"
+import type { Card, CardVariants } from "@/domain/card"
 import { useEditCard } from "@/hooks/use-edit-card"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
 import { hasMeaningfulHtmlContent } from "@/utils/html"
 
 import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
+import OppositeDirectionToggle from "./opposite-direction-toggle"
 
 type EditCardProps = {
   initialCard?: Card
@@ -42,7 +43,9 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     handleEditorStateChange,
     handleToggleStyle,
     hasUnsavedChanges,
+    hasOppositeDirection,
     resetForm,
+    setHasOppositeDirection,
     setTags,
     tagInputRef,
     tags,
@@ -67,6 +70,10 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     }
 
     return draft
+  }
+
+  const getVariants = (hasOppositeDirection: boolean): CardVariants => {
+    return hasOppositeDirection ? ["forward", "reverse"] : ["forward"]
   }
 
   const handleClose = async () => {
@@ -112,6 +119,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       tags: nextTags,
       frontHtml,
       backHtml,
+      variants: getVariants(draft.hasOppositeDirection),
     })
     onClose()
   }
@@ -120,7 +128,12 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     const draft = await getValidatedDraft()
     if (!draft) return
 
-    await addCard(draft)
+    await addCard({
+      tags: draft.tags,
+      frontHtml: draft.frontHtml,
+      backHtml: draft.backHtml,
+      variants: getVariants(draft.hasOppositeDirection),
+    })
     resetForm()
   }
 
@@ -178,6 +191,14 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
               handleEditorStateChange("back", nextState)
             }
           />
+          {!isEditing ? (
+            <OppositeDirectionToggle
+              description={t("oppositeDirection.description")}
+              label={t("oppositeDirection.label")}
+              onValueChange={setHasOppositeDirection}
+              value={hasOppositeDirection}
+            />
+          ) : null}
         </View>
       </KeyboardAwareScrollView>
 

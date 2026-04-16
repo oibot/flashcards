@@ -310,13 +310,11 @@ cases in the first implementation.
 Temporary migration support should be added to the settings screen:
 
 - `Export Legacy Cards`
-- `Delete All Cards`
 
 Notes:
 
-- These are temporary migration/testing actions, not permanent product features.
-- `Delete All Cards` should remove all study data for the signed-in user:
-  `cards`, `cardSets`, and tags.
+- This is a temporary migration/testing action, not a permanent product
+  feature.
 
 ## Wiring
 
@@ -367,7 +365,6 @@ Recommended store/domain operations:
 - `createCardSet(input)`
 - `updateCardContent(cardId, input)`
 - `removeCard(cardId)`
-- `deleteAllStudyData()`
 
 Responsibilities:
 
@@ -376,7 +373,6 @@ Responsibilities:
   `sideAHtml` and `sideBHtml`, and updates tags on the set
 - `removeCard(cardId)` resolves the selected card, deletes the entire
   `cardSet`, and therefore deletes all cards in that set
-- `deleteAllStudyData()` removes all user study data for migration/testing
 
 ### Read models
 

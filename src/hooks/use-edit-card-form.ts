@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import type { Card } from "@/domain/card"
 import { useEditCardEditors } from "@/hooks/use-edit-card-editors"
@@ -30,6 +30,7 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
   const { availableTags, handleAddTag, resetTags, setTags, tagInputRef, tags } =
     useEditCardTags()
   const hydratedCardIdRef = useRef<string | null>(null)
+  const [hasOppositeDirection, setHasOppositeDirection] = useState(false)
 
   useEffect(() => {
     if (!initialCard || hydratedCardIdRef.current === initialCard.id) {
@@ -55,6 +56,7 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
 
     return (
       !areTagsEqual(tags, initialTags) ||
+      (!initialCard && hasOppositeDirection) ||
       tagInputRef.current?.hasPendingInput() === true ||
       frontHtml !== initialFrontHtml ||
       backHtml !== initialBackHtml
@@ -67,12 +69,14 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     const nextTags = tagInputRef.current?.commitInput() ?? tags
     return {
       backHtml,
+      hasOppositeDirection,
       frontHtml,
       tags: nextTags,
     }
   }
 
   const resetForm = () => {
+    setHasOppositeDirection(false)
     resetTags()
     resetEditors()
   }
@@ -88,7 +92,9 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     handleEditorStateChange,
     handleToggleStyle,
     hasUnsavedChanges,
+    hasOppositeDirection,
     resetForm,
+    setHasOppositeDirection,
     setTags,
     tagInputRef,
     availableTags,

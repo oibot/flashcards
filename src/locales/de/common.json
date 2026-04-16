@@ -33,6 +33,10 @@
     "editHeaderTitle": "Karte bearbeiten",
     "frontLabel": "Vorderseite",
     "headerTitle": "Neue Karte",
+    "oppositeDirection": {
+      "description": "Erstellt zusätzlich eine zweite Karte mit vertauschter Vorder- und Rückseite.",
+      "label": "Gegenrichtung auch üben"
+    },
     "saveCard": "Karte speichern",
     "saveCardAccessibilityLabel": "Karte speichern",
     "tagsMenu": {
