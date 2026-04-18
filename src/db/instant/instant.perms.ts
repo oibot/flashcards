@@ -1,6 +1,14 @@
 import type { InstantRules } from "@instantdb/react-native"
 
 const rules = {
+  $files: {
+    allow: {
+      view: "false",
+      create: "false",
+      update: "false",
+      delete: "false",
+    },
+  },
   $users: {
     allow: {
       view: "auth.id == data.id",
@@ -66,6 +74,14 @@ const rules = {
       update:
         "isOwner && newData.ownerTitle == (auth.id + ':' + newData.title)",
       delete: "isOwner",
+    },
+  },
+  ttsAssets: {
+    allow: {
+      view: "false",
+      create: "false",
+      update: "false",
+      delete: "false",
     },
   },
 } satisfies InstantRules

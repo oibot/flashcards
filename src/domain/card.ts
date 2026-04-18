@@ -2,6 +2,8 @@ import type { CardState } from "@/domain/card-state"
 
 export type CardId = string
 export type CardVariant = "forward" | "reverse"
+export type CardContentSide = "sideA" | "sideB"
+export type VisibleCardSide = "front" | "back"
 
 export type CanonicalCardContent = {
   sideAHtml: string
