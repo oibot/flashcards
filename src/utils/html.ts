@@ -13,6 +13,22 @@ export type HtmlTextNode = {
 }
 
 const VOID_TAGS = new Set(["br", "img"])
+const BLOCK_BREAK_TAGS = new Set([
+  "blockquote",
+  "br",
+  "codeblock",
+  "div",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "li",
+  "ol",
+  "p",
+  "ul",
+])
 
 const decodeHtmlEntities = (value: string) => {
   return value
@@ -47,6 +63,10 @@ export function hasMeaningfulHtmlContent(html: string) {
       .replace(/&nbsp;/g, " ")
       .trim().length > 0
   )
+}
+
+export function normalizeWhitespace(text: string) {
+  return text.trim().replace(/\s+/g, " ")
 }
 
 export function normalizeHtmlForComparison(html?: string | null) {
@@ -124,4 +144,30 @@ export function parseHtmlFragment(html: string): HtmlNode[] {
   }
 
   return root.children
+}
+
+function collectHtmlText(nodes: HtmlNode[], segments: string[] = []) {
+  for (const node of nodes) {
+    if (node.type === "text") {
+      segments.push(node.value)
+      continue
+    }
+
+    if (node.tag === "br") {
+      segments.push("\n")
+      continue
+    }
+
+    collectHtmlText(node.children, segments)
+
+    if (BLOCK_BREAK_TAGS.has(node.tag)) {
+      segments.push("\n")
+    }
+  }
+
+  return segments
+}
+
+export function extractPlainTextFromHtml(html: string) {
+  return collectHtmlText(parseHtmlFragment(html)).join(" ")
 }

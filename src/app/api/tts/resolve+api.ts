@@ -1,18 +1,56 @@
+import type { InstaQLEntity } from "@instantdb/react-native"
+
 import { adminDb } from "@/db/instant/admin"
+import type { AppSchema } from "@/db/instant/instant.schema"
 import {
   isCardVariant,
   resolveCardContent,
   type VisibleCardSide,
 } from "@/domain/card"
-import { resolveCardContentSide } from "@/domain/card-audio"
+import {
+  type CardContentSide,
+  createTtsCacheKey,
+  normalizeTtsSourceText,
+  resolveCardContentSide,
+  type TtsConfig,
+} from "@/domain/card-audio"
+import { extractPlainTextFromHtml } from "@/utils/html"
 
 type ResolveTtsRequestBody = {
   cardId: string
   visibleSide: VisibleCardSide
 }
 
+type EmptyRelations = Record<never, never>
+type RouteTtsAssetRecord = InstaQLEntity<
+  AppSchema,
+  "ttsAssets",
+  { file: EmptyRelations }
+>
+type RouteCardRecord = InstaQLEntity<
+  AppSchema,
+  "cards",
+  {
+    cardSet: {
+      sideATtsAsset: { file: EmptyRelations }
+      sideBTtsAsset: { file: EmptyRelations }
+    }
+  }
+>
+type RouteCardSetRecord = NonNullable<RouteCardRecord["cardSet"]>
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status })
+}
+
+function getTtsConfig(): TtsConfig {
+  return {
+    provider: "elevenlabs",
+    locale: process.env.ELEVENLABS_TTS_LOCALE ?? "en-US",
+    voiceId: process.env.ELEVENLABS_VOICE_ID ?? "pending-config",
+    modelId: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
+    outputFormat: "mp3",
+  }
 }
 
 function getBearerToken(request: Request) {
@@ -42,6 +80,46 @@ function isResolveTtsRequestBody(
   )
 }
 
+function getSelectedTtsAsset(
+  cardSet: RouteCardSetRecord,
+  contentSide: CardContentSide,
+): RouteTtsAssetRecord | null {
+  if (contentSide === "sideA") {
+    return cardSet.sideATtsAsset ?? null
+  }
+
+  return cardSet.sideBTtsAsset ?? null
+}
+
+function getReadyFileUrl(asset: RouteTtsAssetRecord | null | undefined) {
+  if (!asset || asset.status !== "ready" || !asset.file) {
+    return null
+  }
+
+  if (typeof asset.file.url !== "string") {
+    return null
+  }
+
+  return asset.file.url
+}
+
+async function updateCardSetTtsReference(
+  cardSetId: string,
+  contentSide: CardContentSide,
+  assetId: string,
+) {
+  if (contentSide === "sideA") {
+    await adminDb.transact(
+      adminDb.tx.cardSets[cardSetId].link({ sideATtsAsset: assetId }),
+    )
+    return
+  }
+
+  await adminDb.transact(
+    adminDb.tx.cardSets[cardSetId].link({ sideBTtsAsset: assetId }),
+  )
+}
+
 export async function POST(request: Request) {
   const token = getBearerToken(request)
 
@@ -49,7 +127,9 @@ export async function POST(request: Request) {
     return jsonError("Unauthorized", 401)
   }
 
-  if (!(await adminDb.auth.verifyToken(token))) {
+  const authenticatedUser = await adminDb.auth.verifyToken(token)
+
+  if (!authenticatedUser) {
     return jsonError("Unauthorized", 401)
   }
 
@@ -65,38 +145,53 @@ export async function POST(request: Request) {
     return jsonError("Request body must include cardId and visibleSide.", 400)
   }
 
-  const userDb = adminDb.asUser({ token })
-  const data = await userDb.query({
-    cards: {
+  const data = await adminDb.query({
+    $users: {
       $: {
         where: {
-          id: body.cardId,
+          id: authenticatedUser.id,
         },
       },
-      cardSet: {},
+      cards: {
+        $: {
+          where: {
+            id: body.cardId,
+          },
+        },
+        cardSet: {
+          sideATtsAsset: {
+            file: {},
+          },
+          sideBTtsAsset: {
+            file: {},
+          },
+        },
+      },
     },
   })
-  const card = data.cards[0]
+  const card = data.$users[0]?.cards[0] as RouteCardRecord | undefined
 
   if (!card?.cardSet) {
     return jsonError("Card not found.", 404)
   }
+
+  const cardSet = card.cardSet
 
   if (!isCardVariant(card.variant)) {
     return jsonError("Card variant is invalid.", 500)
   }
 
   if (
-    typeof card.cardSet.sideAHtml !== "string" ||
-    typeof card.cardSet.sideBHtml !== "string"
+    typeof cardSet.sideAHtml !== "string" ||
+    typeof cardSet.sideBHtml !== "string"
   ) {
     return jsonError("Card content is invalid.", 500)
   }
 
   const visibleContent = resolveCardContent(
     {
-      sideAHtml: card.cardSet.sideAHtml,
-      sideBHtml: card.cardSet.sideBHtml,
+      sideAHtml: cardSet.sideAHtml,
+      sideBHtml: cardSet.sideBHtml,
     },
     card.variant,
   )
@@ -105,13 +200,60 @@ export async function POST(request: Request) {
     body.visibleSide === "front"
       ? visibleContent.frontHtml
       : visibleContent.backHtml
+  const sourceText = normalizeTtsSourceText(extractPlainTextFromHtml(html))
+
+  if (sourceText.length === 0) {
+    return jsonError("Card side does not contain speakable text.", 422)
+  }
+
+  const ttsConfig = getTtsConfig()
+  const cacheKey = await createTtsCacheKey(sourceText, ttsConfig)
+  const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
+
+  if (selectedTtsAsset?.cacheKey === cacheKey) {
+    const fileUrl = getReadyFileUrl(selectedTtsAsset)
+
+    if (fileUrl) {
+      return Response.json({
+        status: "ready",
+        assetId: selectedTtsAsset.id,
+        fileUrl,
+        contentSide,
+        cacheHit: true,
+      })
+    }
+  }
+
+  const sharedAssetData = await adminDb.query({
+    ttsAssets: {
+      $: {
+        where: {
+          cacheKey,
+        },
+      },
+      file: {},
+    },
+  })
+  const sharedAsset = sharedAssetData.ttsAssets[0] as
+    | RouteTtsAssetRecord
+    | undefined
+  const sharedAssetFileUrl = getReadyFileUrl(sharedAsset)
+
+  if (sharedAsset && sharedAssetFileUrl) {
+    await updateCardSetTtsReference(cardSet.id, contentSide, sharedAsset.id)
+
+    return Response.json({
+      status: "ready",
+      assetId: sharedAsset.id,
+      fileUrl: sharedAssetFileUrl,
+      contentSide,
+      cacheHit: true,
+    })
+  }
 
   return Response.json({
-    status: "authenticated",
-    cardId: card.id,
-    cardSetId: card.cardSet.id,
-    visibleSide: body.visibleSide,
+    status: "missing",
     contentSide,
-    html,
+    cacheKey,
   })
 }

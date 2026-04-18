@@ -1,4 +1,5 @@
 import type { CardState } from "@/domain/card-state"
+import { normalizeWhitespace } from "@/utils/html"
 
 export type CardId = string
 export type CardVariant = "forward" | "reverse"
@@ -85,7 +86,7 @@ export function toCanonicalCardContent(
 }
 
 export function normalizeTagTitle(tag: string) {
-  const normalizedWhitespace = tag.trim().replace(/\s+/g, " ")
+  const normalizedWhitespace = normalizeWhitespace(tag)
 
   if (normalizedWhitespace.length === 0) {
     return ""
