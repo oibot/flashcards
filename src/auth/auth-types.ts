@@ -3,6 +3,7 @@ export type AuthStatus = "loading" | "signed-in" | "signed-out"
 export type AuthUser = {
   id: string
   email: string | null
+  refreshToken: string
 }
 
 export type AuthSession = {

@@ -1,4 +1,8 @@
-import type { CardContentSide, VisibleCardSide } from "@/domain/card"
+import type {
+  CardContentSide,
+  CardVariant,
+  VisibleCardSide,
+} from "@/domain/card"
 
 export type TtsProvider = "elevenlabs"
 export type TtsOutputFormat = "mp3"
@@ -25,6 +29,17 @@ export type TtsAsset = {
   error?: string
   createdAt: number
   updatedAt: number
+}
+
+export function resolveCardContentSide(
+  variant: CardVariant,
+  visibleSide: VisibleCardSide,
+): CardContentSide {
+  if (variant === "forward") {
+    return visibleSide === "front" ? "sideA" : "sideB"
+  }
+
+  return visibleSide === "front" ? "sideB" : "sideA"
 }
 
 export type { CardContentSide, VisibleCardSide }

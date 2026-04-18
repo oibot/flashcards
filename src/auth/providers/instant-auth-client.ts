@@ -35,6 +35,7 @@ function toAuthUser(
   return {
     id: user.id,
     email: user.email ?? null,
+    refreshToken: user.refresh_token,
   }
 }
 
