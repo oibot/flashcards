@@ -36,7 +36,8 @@
       "expo-localization",
       "expo-router",
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-audio"
     ],
     "extra": {
       "router": {},

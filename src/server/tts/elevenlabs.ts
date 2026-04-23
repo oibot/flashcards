@@ -1,5 +1,6 @@
 import type { TtsConfig, TtsOutputFormat } from "@/domain/card-audio"
 import { TtsResolveError } from "@/server/tts/errors"
+import { logTtsError, logTtsInfo, summarizeText } from "@/server/tts/log"
 
 const ELEVENLABS_OUTPUT_FORMAT = "mp3_44100_128"
 const AUDIO_CONTENT_TYPES: Record<TtsOutputFormat, string> = {
@@ -44,6 +45,14 @@ export async function generateElevenLabsAudio(text: string, config: TtsConfig) {
   )
   url.searchParams.set("output_format", ELEVENLABS_OUTPUT_FORMAT)
 
+  logTtsInfo("Sending ElevenLabs request", {
+    locale: config.locale,
+    voiceId: config.voiceId,
+    modelId: config.modelId,
+    textLength: text.length,
+    textPreview: summarizeText(text),
+  })
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -57,13 +66,39 @@ export async function generateElevenLabsAudio(text: string, config: TtsConfig) {
     }),
   })
 
+  logTtsInfo("Received ElevenLabs response", {
+    status: response.status,
+    ok: response.ok,
+    locale: config.locale,
+    voiceId: config.voiceId,
+    modelId: config.modelId,
+  })
+
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "")
     const errorMessage =
       errorBody.trim().length > 0 ? errorBody : "ElevenLabs request failed."
 
+    logTtsError("ElevenLabs request failed", {
+      status: response.status,
+      locale: config.locale,
+      voiceId: config.voiceId,
+      modelId: config.modelId,
+      errorMessage,
+    })
+
     throw new TtsResolveError(errorMessage, 502)
   }
 
-  return new Uint8Array(await response.arrayBuffer())
+  const audioBytes = new Uint8Array(await response.arrayBuffer())
+
+  logTtsInfo("Decoded ElevenLabs audio payload", {
+    status: response.status,
+    byteLength: audioBytes.byteLength,
+    locale: config.locale,
+    voiceId: config.voiceId,
+    modelId: config.modelId,
+  })
+
+  return audioBytes
 }

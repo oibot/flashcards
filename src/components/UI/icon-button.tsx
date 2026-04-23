@@ -21,6 +21,10 @@ const checkmarkIconName = { ios: "checkmark", android: "done" } as const
 const trashIconName = { ios: "trash", android: "delete" } as const
 const undoIconName = { ios: "arrow.uturn.backward", android: "undo" } as const
 const pencilIconName = { ios: "pencil", android: "edit" } as const
+const audioIconName = {
+  ios: "speaker.wave.2.fill",
+  android: "volume_up",
+} as const
 
 function IconButtonBase({
   iconName,
@@ -69,6 +73,10 @@ export function IconButtonUndo(props: IconButtonInstanceProps) {
 
 export function IconButtonPencil(props: IconButtonInstanceProps) {
   return <IconButtonBase {...props} iconName={pencilIconName} />
+}
+
+export function IconButtonAudio(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={audioIconName} />
 }
 
 const styles = StyleSheet.create({

@@ -25,6 +25,12 @@ import {
   updateCardSetTtsReference,
   uploadGeneratedAudio,
 } from "@/server/tts/instant-tts-assets"
+import {
+  logTtsError,
+  logTtsInfo,
+  logTtsWarn,
+  summarizeCacheKey,
+} from "@/server/tts/log"
 import { extractPlainTextFromHtml } from "@/utils/html"
 
 type ResolveTtsInput = {
@@ -58,6 +64,12 @@ export async function resolveTts({
   cardId,
   visibleSide,
 }: ResolveTtsInput): Promise<TtsResolveReadyResponse> {
+  logTtsInfo("Resolving review card audio", {
+    userId,
+    cardId,
+    visibleSide,
+  })
+
   const card = await loadCardForTts(userId, cardId)
 
   if (!card?.cardSet) {
@@ -91,6 +103,12 @@ export async function resolveTts({
   const normalizedText = normalizeTtsSourceText(sourceText)
 
   if (normalizedText.length === 0) {
+    logTtsWarn("Review card side has no speakable text", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+    })
     throw new TtsResolveError("Card side does not contain speakable text.", 422)
   }
 
@@ -98,10 +116,28 @@ export async function resolveTts({
   const cacheKey = await createTtsCacheKey(normalizedText, ttsConfig)
   const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
 
+  logTtsInfo("Computed TTS cache key", {
+    userId,
+    cardId,
+    visibleSide,
+    contentSide,
+    cacheKey: summarizeCacheKey(cacheKey),
+    normalizedTextLength: normalizedText.length,
+    selectedAssetId: selectedTtsAsset?.id,
+  })
+
   if (selectedTtsAsset?.cacheKey === cacheKey) {
     const fileUrl = getReadyFileUrl(selectedTtsAsset)
 
     if (fileUrl) {
+      logTtsInfo("Resolved audio from cardSet cache reference", {
+        userId,
+        cardId,
+        visibleSide,
+        contentSide,
+        assetId: selectedTtsAsset.id,
+        cacheKey: summarizeCacheKey(cacheKey),
+      })
       return {
         status: "ready",
         assetId: selectedTtsAsset.id,
@@ -116,17 +152,42 @@ export async function resolveTts({
   const sharedAssetFileUrl = getReadyFileUrl(sharedAsset)
 
   if (sharedAsset && sharedAssetFileUrl) {
+    logTtsInfo("Resolved audio from shared TTS cache", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      assetId: sharedAsset.id,
+      cacheKey: summarizeCacheKey(cacheKey),
+    })
     await updateCardSetTtsReference(cardSet.id, contentSide, sharedAsset.id)
 
     return toReadyResponse(sharedAsset, contentSide, true)
   }
 
+  logTtsInfo("Cache miss, generating audio with ElevenLabs", {
+    userId,
+    cardId,
+    visibleSide,
+    contentSide,
+    cacheKey: summarizeCacheKey(cacheKey),
+  })
   const audioBytes = await generateElevenLabsAudio(normalizedText, ttsConfig)
   const uploadedFile = await uploadGeneratedAudio(
     cacheKey,
     audioBytes,
     getTtsAudioContentType(ttsConfig.outputFormat),
   )
+
+  logTtsInfo("Uploaded generated TTS audio to Instant storage", {
+    userId,
+    cardId,
+    visibleSide,
+    contentSide,
+    cacheKey: summarizeCacheKey(cacheKey),
+    fileId: uploadedFile.data.id,
+    byteLength: audioBytes.byteLength,
+  })
 
   try {
     await persistGeneratedTtsAsset({
@@ -138,10 +199,27 @@ export async function resolveTts({
       fileId: uploadedFile.data.id,
     })
   } catch (error) {
+    logTtsWarn("Persisting generated TTS asset raced with another request", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      cacheKey: summarizeCacheKey(cacheKey),
+      error:
+        error instanceof Error ? error.message : "Unknown persistence error",
+    })
     const racedSharedAsset = await querySharedTtsAsset(cacheKey)
     const racedSharedAssetFileUrl = getReadyFileUrl(racedSharedAsset)
 
     if (racedSharedAsset && racedSharedAssetFileUrl) {
+      logTtsInfo("Resolved audio from raced shared asset", {
+        userId,
+        cardId,
+        visibleSide,
+        contentSide,
+        assetId: racedSharedAsset.id,
+        cacheKey: summarizeCacheKey(cacheKey),
+      })
       await updateCardSetTtsReference(
         cardSet.id,
         contentSide,
@@ -157,10 +235,26 @@ export async function resolveTts({
   const generatedAsset = await querySharedTtsAsset(cacheKey)
 
   if (!generatedAsset) {
+    logTtsError("Generated audio could not be reloaded from shared cache", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      cacheKey: summarizeCacheKey(cacheKey),
+    })
     throw new TtsResolveError("Failed to resolve generated audio.", 500)
   }
 
   await updateCardSetTtsReference(cardSet.id, contentSide, generatedAsset.id)
+
+  logTtsInfo("Resolved audio from newly generated asset", {
+    userId,
+    cardId,
+    visibleSide,
+    contentSide,
+    assetId: generatedAsset.id,
+    cacheKey: summarizeCacheKey(cacheKey),
+  })
 
   return toReadyResponse(generatedAsset, contentSide, false)
 }

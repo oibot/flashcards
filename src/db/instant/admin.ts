@@ -10,6 +10,7 @@ if (!appId) {
 }
 
 if (!adminToken) {
+  console.log(adminToken)
   throw new Error("Missing INSTANT_APP_ADMIN_TOKEN")
 }
 

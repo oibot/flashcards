@@ -59,10 +59,13 @@
   "reviewSession": {
     "active": {
       "again": "Again",
+      "audioLoading": "Loading audio...",
+      "audioUnavailable": "Audio unavailable",
       "back": "Back",
       "front": "Front",
       "good": "Good",
       "hard": "Hard",
+      "playAudioAccessibilityLabel": "Play audio",
       "revealAnswer": "Reveal Answer"
     },
     "closeAccessibilityLabel": "Close review",
