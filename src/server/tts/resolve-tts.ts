@@ -5,14 +5,18 @@ import {
 } from "@/domain/card"
 import {
   createTtsCacheKey,
+  getCardSetTtsLocale,
+  isSupportedTtsLocale,
   normalizeTtsSourceText,
   resolveCardContentSide,
   type TtsResolveReadyResponse,
+  type TtsResolveResponse,
 } from "@/domain/card-audio"
 import {
   generateElevenLabsAudio,
+  getConfiguredTtsLocales,
   getTtsAudioContentType,
-  getTtsConfig,
+  resolveTtsConfig,
 } from "@/server/tts/elevenlabs"
 import { TtsResolveError } from "@/server/tts/errors"
 import {
@@ -63,7 +67,7 @@ export async function resolveTts({
   userId,
   cardId,
   visibleSide,
-}: ResolveTtsInput): Promise<TtsResolveReadyResponse> {
+}: ResolveTtsInput): Promise<TtsResolveResponse> {
   logTtsInfo("Resolving review card audio", {
     userId,
     cardId,
@@ -112,7 +116,41 @@ export async function resolveTts({
     throw new TtsResolveError("Card side does not contain speakable text.", 422)
   }
 
-  const ttsConfig = getTtsConfig()
+  const configuredLocales = getConfiguredTtsLocales()
+
+  if (configuredLocales.length === 0) {
+    throw new TtsResolveError("No TTS voice profiles configured.", 500)
+  }
+
+  const selectedLocale = getCardSetTtsLocale(
+    {
+      sideATtsLocale: isSupportedTtsLocale(cardSet.sideATtsLocale)
+        ? cardSet.sideATtsLocale
+        : undefined,
+      sideBTtsLocale: isSupportedTtsLocale(cardSet.sideBTtsLocale)
+        ? cardSet.sideBTtsLocale
+        : undefined,
+    },
+    contentSide,
+  )
+
+  if (!selectedLocale) {
+    logTtsInfo("TTS locale missing for review card side", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      supportedLocaleCount: configuredLocales.length,
+    })
+
+    return {
+      status: "needs-locale",
+      contentSide,
+      supportedLocales: configuredLocales,
+    }
+  }
+
+  const ttsConfig = resolveTtsConfig(selectedLocale)
   const cacheKey = await createTtsCacheKey(normalizedText, ttsConfig)
   const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
 
@@ -121,6 +159,7 @@ export async function resolveTts({
     cardId,
     visibleSide,
     contentSide,
+    locale: selectedLocale,
     cacheKey: summarizeCacheKey(cacheKey),
     normalizedTextLength: normalizedText.length,
     selectedAssetId: selectedTtsAsset?.id,
