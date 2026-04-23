@@ -4,6 +4,10 @@ import {
   type CardVariant,
   isCardVariant,
 } from "@/domain/card"
+import {
+  isSupportedTtsLocale,
+  type SupportedTtsLocale,
+} from "@/domain/card-audio"
 import { isCardState } from "@/domain/card-state"
 
 export const CARD_BACKUP_APP = "flashcards"
@@ -27,6 +31,8 @@ export type CardBackupCardSet = {
   tags: string[]
   sideAHtml: string
   sideBHtml: string
+  sideATtsLocale?: SupportedTtsLocale
+  sideBTtsLocale?: SupportedTtsLocale
   createdAt: number
   updatedAt: number
   cards: CardBackupCard[]
@@ -85,6 +91,12 @@ function isStringArray(value: unknown): value is string[] {
   )
 }
 
+function isOptionalSupportedTtsLocale(
+  value: unknown,
+): value is SupportedTtsLocale | undefined {
+  return typeof value === "undefined" || isSupportedTtsLocale(value)
+}
+
 function isValidCardBackupCard(value: unknown): value is CardBackupCard {
   if (!isRecord(value)) {
     return false
@@ -117,6 +129,8 @@ function isValidCardBackupCardSet(value: unknown): value is CardBackupCardSet {
     isStringArray(value.tags) &&
     typeof value.sideAHtml === "string" &&
     typeof value.sideBHtml === "string" &&
+    isOptionalSupportedTtsLocale(value.sideATtsLocale) &&
+    isOptionalSupportedTtsLocale(value.sideBTtsLocale) &&
     typeof value.createdAt === "number" &&
     typeof value.updatedAt === "number" &&
     Array.isArray(value.cards) &&

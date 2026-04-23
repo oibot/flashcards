@@ -15,6 +15,8 @@ const schema = i.schema({
     cardSets: i.entity({
       sideAHtml: i.string(),
       sideBHtml: i.string(),
+      sideATtsLocale: i.string().optional(),
+      sideBTtsLocale: i.string().optional(),
       createdAt: i.date(),
       updatedAt: i.date().indexed(),
     }),

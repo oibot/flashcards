@@ -1,4 +1,8 @@
-import type { TtsConfig, TtsOutputFormat } from "@/domain/card-audio"
+import {
+  isSupportedTtsLocale,
+  type TtsConfig,
+  type TtsOutputFormat,
+} from "@/domain/card-audio"
 import { TtsResolveError } from "@/server/tts/errors"
 import { logTtsError, logTtsInfo, summarizeText } from "@/server/tts/log"
 
@@ -19,14 +23,19 @@ export function getTtsAudioContentType(outputFormat: TtsOutputFormat) {
 
 export function getTtsConfig(): TtsConfig {
   const voiceId = process.env.ELEVENLABS_VOICE_ID
+  const locale = process.env.ELEVENLABS_TTS_LOCALE ?? "en-US"
 
   if (!voiceId) {
     throw new TtsResolveError("Missing ELEVENLABS_VOICE_ID.", 500)
   }
 
+  if (!isSupportedTtsLocale(locale)) {
+    throw new TtsResolveError("Unsupported ELEVENLABS_TTS_LOCALE.", 500)
+  }
+
   return {
     provider: "elevenlabs",
-    locale: process.env.ELEVENLABS_TTS_LOCALE ?? "en-US",
+    locale,
     voiceId,
     modelId: process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2",
     outputFormat: "mp3",

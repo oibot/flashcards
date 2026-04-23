@@ -8,9 +8,41 @@ import { normalizeWhitespace } from "@/utils/html"
 export type TtsProvider = "elevenlabs"
 export type TtsOutputFormat = "mp3"
 export type TtsAssetStatus = "ready" | "failed"
+export const SUPPORTED_TTS_LOCALES = [
+  "en-US",
+  "ja-JP",
+  "zh-CN",
+  "de-DE",
+  "hi-IN",
+  "fr-FR",
+  "ko-KR",
+  "pt-BR",
+  "it-IT",
+  "es-ES",
+  "id-ID",
+  "nl-NL",
+  "tr-TR",
+  "fil-PH",
+  "pl-PL",
+  "sv-SE",
+  "bg-BG",
+  "ro-RO",
+  "ar-SA",
+  "cs-CZ",
+  "el-GR",
+  "fi-FI",
+  "hr-HR",
+  "ms-MY",
+  "sk-SK",
+  "da-DK",
+  "ta-IN",
+  "uk-UA",
+  "ru-RU",
+] as const
+export type SupportedTtsLocale = (typeof SUPPORTED_TTS_LOCALES)[number]
 export type TtsConfig = {
   provider: TtsProvider
-  locale: string
+  locale: SupportedTtsLocale
   voiceId: string
   modelId: string
   outputFormat: TtsOutputFormat
@@ -22,18 +54,23 @@ export type TtsResolveReadyResponse = {
   contentSide: CardContentSide
   cacheHit: boolean
 }
-export type TtsResolveMissingResponse = {
-  status: "missing"
+export type TtsResolveNeedsLocaleResponse = {
+  status: "needs-locale"
   contentSide: CardContentSide
-  cacheKey: string
+  supportedLocales: SupportedTtsLocale[]
 }
 export type TtsResolveResponse =
   | TtsResolveReadyResponse
-  | TtsResolveMissingResponse
+  | TtsResolveNeedsLocaleResponse
 
 export type CardSetTtsSelection = {
   sideATtsAssetId?: string
   sideBTtsAssetId?: string
+}
+
+export type CardSetTtsLocaleSelection = {
+  sideATtsLocale?: SupportedTtsLocale
+  sideBTtsLocale?: SupportedTtsLocale
 }
 
 export type TtsAsset = {
@@ -41,7 +78,7 @@ export type TtsAsset = {
   cacheKey: string
   sourceText: string
   normalizedText: string
-  locale: string
+  locale: SupportedTtsLocale
   provider: TtsProvider
   voiceId: string
   modelId: string
@@ -67,6 +104,26 @@ export function resolveCardContentSide(
 
 export function normalizeTtsSourceText(text: string) {
   return normalizeWhitespace(text)
+}
+
+export function isSupportedTtsLocale(
+  value: unknown,
+): value is SupportedTtsLocale {
+  return (
+    typeof value === "string" &&
+    SUPPORTED_TTS_LOCALES.includes(value as SupportedTtsLocale)
+  )
+}
+
+export function getCardSetTtsLocale(
+  selection: CardSetTtsLocaleSelection,
+  contentSide: CardContentSide,
+) {
+  if (contentSide === "sideA") {
+    return selection.sideATtsLocale
+  }
+
+  return selection.sideBTtsLocale
 }
 
 export async function createTtsCacheKey(

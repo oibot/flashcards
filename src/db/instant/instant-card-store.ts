@@ -73,10 +73,15 @@ function createImportedCardSetTransaction(
   cardSet: CardBackupCardSet,
   previousTags: string[],
 ) {
+  const localeSelection = {
+    sideATtsLocale: cardSet.sideATtsLocale ?? null,
+    sideBTtsLocale: cardSet.sideBTtsLocale ?? null,
+  }
   let cardSetTransaction = db.tx.cardSets[cardSet.id]
     .update({
       sideAHtml: cardSet.sideAHtml,
       sideBHtml: cardSet.sideBHtml,
+      ...localeSelection,
       createdAt: cardSet.createdAt,
       updatedAt: cardSet.updatedAt,
     })

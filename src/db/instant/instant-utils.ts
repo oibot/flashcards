@@ -7,6 +7,10 @@ import {
   isCardVariant,
   resolveCardContent,
 } from "@/domain/card"
+import {
+  type CardSetTtsLocaleSelection,
+  isSupportedTtsLocale,
+} from "@/domain/card-audio"
 import type { CardBackupCard, CardBackupCardSet } from "@/domain/card-backup"
 import { parseCardState } from "@/domain/card-state"
 
@@ -28,11 +32,16 @@ type InstantCardSetRecord = InstaQLEntity<
 >
 type InstantBackupCardRecord = InstaQLEntity<AppSchema, "cards", EmptyRelations>
 
-export type StoredCardSet = CanonicalCardContent & {
-  id: string
-  tags: string[]
-  createdAt: number
-  updatedAt: number
+export type StoredCardSet = CanonicalCardContent &
+  CardSetTtsLocaleSelection & {
+    id: string
+    tags: string[]
+    createdAt: number
+    updatedAt: number
+  }
+
+function toOptionalTtsLocale(value: unknown) {
+  return isSupportedTtsLocale(value) ? value : undefined
 }
 
 export function toTimestamp(value: number | string) {
@@ -52,6 +61,8 @@ export function toStoredCardSet(
     tags: cardSet.tags.map((tag) => tag.title),
     sideAHtml: cardSet.sideAHtml,
     sideBHtml: cardSet.sideBHtml,
+    sideATtsLocale: toOptionalTtsLocale(cardSet.sideATtsLocale),
+    sideBTtsLocale: toOptionalTtsLocale(cardSet.sideBTtsLocale),
     createdAt: toTimestamp(cardSet.createdAt),
     updatedAt: toTimestamp(cardSet.updatedAt),
   }
