@@ -476,8 +476,16 @@ Compile-safe sequencing note:
 - Step 2 should be additive. Introduce the locale map and a new
   `resolveTtsConfig(locale)` helper without deleting the current global
   `getTtsConfig()` path yet.
+- During this additive step, it is acceptable to keep a temporary legacy
+  compatibility path that translates the old global environment variables
+  (`ELEVENLABS_VOICE_ID` and `ELEVENLABS_TTS_LOCALE`) into the new
+  locale-based voice-profile shape. This shim exists only to keep the
+  intermediate implementation compiling and non-breaking while the resolve flow
+  still uses the old entry point.
 - Step 3 can then switch `resolve-tts` to the new locale-based config and
   return `needs-locale`.
+- After the switch-over is complete, remove the temporary legacy shim and rely
+  only on the locale-based voice mapping.
 - Step 4 should compile on its own after Step 1.
 - Step 5 depends on Steps 3 and 4 being present.
 - Steps 6 and 7 do not introduce new type coupling.
