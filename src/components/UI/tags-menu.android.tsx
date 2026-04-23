@@ -1,9 +1,9 @@
 import {
-  Button,
   Column,
   Host,
   ModalBottomSheet,
   Text,
+  TextButton,
 } from "@expo/ui/jetpack-compose"
 import { fillMaxWidth, paddingAll } from "@expo/ui/jetpack-compose/modifiers"
 import { useState } from "react"
@@ -61,22 +61,28 @@ export default function TagsMenu({
                 {t("title")}
               </Text>
               {availableTags.map((tag) => (
-                <Button
+                <TextButton
                   key={tag}
-                  color={theme.colors.secondaryBackground}
+                  colors={{
+                    contentColor: theme.colors.primary,
+                  }}
                   modifiers={[fillMaxWidth()]}
-                  onPress={() => {
+                  onClick={() => {
                     onSelectTag(tag)
                     closeMenu()
                   }}
-                  variant="borderless"
                 >
                   {tag}
-                </Button>
+                </TextButton>
               ))}
-              <Button onPress={closeMenu} variant="borderless">
+              <TextButton
+                colors={{
+                  contentColor: theme.colors.secondary,
+                }}
+                onClick={closeMenu}
+              >
                 {t("cancel")}
-              </Button>
+              </TextButton>
             </Column>
           </ModalBottomSheet>
         </Host>
