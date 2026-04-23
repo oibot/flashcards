@@ -3,7 +3,11 @@ import type { InstaQLEntity } from "@instantdb/react-native"
 
 import { adminDb } from "@/db/instant/admin"
 import type { AppSchema } from "@/db/instant/instant.schema"
-import type { CardContentSide, TtsConfig } from "@/domain/card-audio"
+import type {
+  CardContentSide,
+  SupportedTtsLocale,
+  TtsConfig,
+} from "@/domain/card-audio"
 
 type EmptyRelations = Record<never, never>
 
@@ -92,6 +96,23 @@ export async function updateCardSetTtsReference(
 
   await adminDb.transact(
     adminDb.tx.cardSets[cardSetId].link({ sideBTtsAsset: assetId }),
+  )
+}
+
+export async function updateCardSetTtsLocale(
+  cardSetId: string,
+  contentSide: CardContentSide,
+  locale: SupportedTtsLocale,
+) {
+  if (contentSide === "sideA") {
+    await adminDb.transact(
+      adminDb.tx.cardSets[cardSetId].update({ sideATtsLocale: locale }),
+    )
+    return
+  }
+
+  await adminDb.transact(
+    adminDb.tx.cardSets[cardSetId].update({ sideBTtsLocale: locale }),
   )
 }
 

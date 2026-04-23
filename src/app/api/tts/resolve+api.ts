@@ -1,5 +1,6 @@
 import { adminDb } from "@/db/instant/admin"
 import type { VisibleCardSide } from "@/domain/card"
+import { getBearerToken, jsonError } from "@/server/api-utils"
 import { TtsResolveError } from "@/server/tts/errors"
 import { logTtsError, logTtsWarn } from "@/server/tts/log"
 import { resolveTts } from "@/server/tts/resolve-tts"
@@ -7,20 +8,6 @@ import { resolveTts } from "@/server/tts/resolve-tts"
 type ResolveTtsRequestBody = {
   cardId: string
   visibleSide: VisibleCardSide
-}
-
-function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status })
-}
-
-function getBearerToken(request: Request) {
-  const authorization = request.headers.get("authorization")
-
-  if (!authorization?.startsWith("Bearer ")) {
-    return null
-  }
-
-  return authorization.slice("Bearer ".length).trim() || null
 }
 
 function isVisibleCardSide(value: unknown): value is VisibleCardSide {
