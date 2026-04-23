@@ -15,6 +15,8 @@ type UseReviewCardAudioOptions = {
   visibleSide: VisibleCardSide
 }
 
+type PlayAudioResult = { ok: true } | { message: string; ok: false }
+
 type ResolveTtsErrorResponse = {
   error: string
 }
@@ -66,7 +68,6 @@ export function useReviewCardAudio({
     timeControlStatus: string
   } | null>(null)
   const [isResolving, setIsResolving] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [shouldPlayWhenLoaded, setShouldPlayWhenLoaded] = useState(false)
 
   useEffect(() => {
@@ -87,7 +88,6 @@ export function useReviewCardAudio({
     player.pause()
     currentSourceUrlRef.current = null
     setIsResolving(false)
-    setErrorMessage(null)
     setShouldPlayWhenLoaded(false)
   }, [cardId, player, visibleSide])
 
@@ -157,7 +157,6 @@ export function useReviewCardAudio({
         currentSourceUrlRef.current = null
         player.pause()
         console.error("Failed to start review card audio playback.", error)
-        setErrorMessage(t("audioUnavailable"))
       } finally {
         setShouldPlayWhenLoaded(false)
       }
@@ -174,25 +173,22 @@ export function useReviewCardAudio({
     visibleSide,
   ])
 
-  const playAudio = async () => {
+  const playAudio = async (): Promise<PlayAudioResult> => {
     if (isResolving || shouldPlayWhenLoaded) {
-      return
+      return { ok: true }
     }
 
     if (currentSourceUrlRef.current && playerStatus.isLoaded) {
-      setErrorMessage(null)
       await player.seekTo(0)
       player.play()
-      return
+      return { ok: true }
     }
 
     if (status !== "signed-in" || !user?.refreshToken) {
-      setErrorMessage(t("audioUnavailable"))
-      return
+      return { message: t("audioUnavailable"), ok: false }
     }
 
     setIsResolving(true)
-    setErrorMessage(null)
 
     try {
       console.log("Requesting review card audio.", {
@@ -236,19 +232,19 @@ export function useReviewCardAudio({
       currentSourceUrlRef.current = payload.fileUrl
       setShouldPlayWhenLoaded(true)
       player.replace(payload.fileUrl)
+      return { ok: true }
     } catch (error) {
       currentSourceUrlRef.current = null
       player.pause()
       setShouldPlayWhenLoaded(false)
       console.error("Review card audio playback failed.", error)
-      setErrorMessage(t("audioUnavailable"))
+      return { message: t("audioUnavailable"), ok: false }
     } finally {
       setIsResolving(false)
     }
   }
 
   return {
-    errorMessage,
     isLoading: isResolving,
     isPlaying: playerStatus.playing,
     playAudio,

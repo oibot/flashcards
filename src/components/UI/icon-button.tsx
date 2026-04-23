@@ -1,7 +1,7 @@
 import { SymbolView } from "expo-symbols"
 import type { ComponentProps } from "react"
 import type { StyleProp, ViewStyle } from "react-native"
-import { Pressable, StyleSheet } from "react-native"
+import { ActivityIndicator, Pressable, StyleSheet } from "react-native"
 
 type SymbolName = ComponentProps<typeof SymbolView>["name"]
 
@@ -11,6 +11,7 @@ type IconButtonProps = {
   onPress: () => void
   tintColor: string
   disabled?: boolean
+  loading?: boolean
   size?: number
   style?: StyleProp<ViewStyle>
 }
@@ -32,6 +33,7 @@ function IconButtonBase({
   onPress,
   tintColor,
   disabled = false,
+  loading = false,
   size = 16,
   style,
 }: IconButtonProps) {
@@ -44,7 +46,11 @@ function IconButtonBase({
       onPress={onPress}
       style={[styles.button, disabled ? styles.buttonDisabled : null, style]}
     >
-      <SymbolView name={iconName} size={size} tintColor={tintColor} />
+      {loading ? (
+        <ActivityIndicator color={tintColor} size="small" />
+      ) : (
+        <SymbolView name={iconName} size={size} tintColor={tintColor} />
+      )}
     </Pressable>
   )
 }

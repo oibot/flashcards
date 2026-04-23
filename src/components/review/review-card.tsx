@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Pressable, Text, View } from "react-native"
+import { Alert, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconButtonAudio } from "@/components/UI/icon-button"
@@ -34,11 +34,9 @@ export default function ReviewCard({
     cardId,
     visibleSide,
   })
-  const audioTintColor = audio.errorMessage
-    ? theme.colors.warning
-    : audio.isPlaying
-      ? theme.colors.accent
-      : theme.colors.primary
+  const audioTintColor = audio.isPlaying
+    ? theme.colors.accent
+    : theme.colors.primary
 
   return (
     <View style={styles.cardStage}>
@@ -46,14 +44,6 @@ export default function ReviewCard({
         <Text numberOfLines={1} style={styles.tagLabel}>
           {headerLabel}
         </Text>
-        {audio.errorMessage ? (
-          <Text
-            numberOfLines={2}
-            style={[styles.audioStatus, styles.audioStatusError]}
-          >
-            {audio.errorMessage}
-          </Text>
-        ) : null}
         <Pressable
           accessibilityRole={!isAnswerVisible ? "button" : undefined}
           disabled={isSubmitting || isAnswerVisible}
@@ -70,10 +60,15 @@ export default function ReviewCard({
         <IconButtonAudio
           accessibilityLabel={t("playAudioAccessibilityLabel")}
           disabled={audio.isLoading}
-          onPress={() => {
-            void audio.playAudio()
+          loading={audio.isLoading}
+          onPress={async () => {
+            const result = await audio.playAudio()
+
+            if (!result.ok) {
+              Alert.alert(result.message)
+            }
           }}
-          size={20}
+          size={28}
           style={styles.audioButton}
           tintColor={audioTintColor}
         />
@@ -115,17 +110,9 @@ const styles = StyleSheet.create((theme) => ({
     position: "absolute",
     right: 18,
     bottom: 18,
-    width: 44,
-    height: 44,
+    width: 60,
+    height: 60,
     backgroundColor: theme.colors.chromeMuted,
-  },
-  audioStatus: {
-    ...theme.typography.styles.caption,
-    color: theme.colors.secondary,
-    textAlign: "right",
-  },
-  audioStatusError: {
-    color: theme.colors.warning,
   },
   cardBody: {
     flex: 1,
