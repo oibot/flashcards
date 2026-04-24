@@ -1,5 +1,5 @@
 import type { RefObject } from "react"
-import { Text, View } from "react-native"
+import { Pressable, Text, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
   OnChangeStateEvent,
@@ -13,6 +13,8 @@ type CardSideFieldProps = {
   onBlur: () => void
   onFocus: () => void
   onStateChange: (nextState: OnChangeStateEvent) => void
+  soundActionLabel?: string
+  onPressSoundAction?: () => void
 }
 
 export default function CardSideField({
@@ -21,6 +23,8 @@ export default function CardSideField({
   onBlur,
   onFocus,
   onStateChange,
+  soundActionLabel,
+  onPressSoundAction,
 }: CardSideFieldProps) {
   return (
     <View style={styles.field}>
@@ -32,6 +36,18 @@ export default function CardSideField({
         onFocus={onFocus}
         style={styles.input}
       />
+      {soundActionLabel && onPressSoundAction ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onPressSoundAction}
+          style={({ pressed }) => [
+            styles.soundButton,
+            pressed ? styles.soundButtonPressed : null,
+          ]}
+        >
+          <Text style={styles.soundButtonLabel}>{soundActionLabel}</Text>
+        </Pressable>
+      ) : null}
     </View>
   )
 }
@@ -56,5 +72,24 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 14,
     borderCurve: "continuous",
     textAlignVertical: "top",
+  },
+  soundButton: {
+    minHeight: 42,
+    borderRadius: 14,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    backgroundColor: theme.colors.secondaryBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.chromeMuted,
+  },
+  soundButtonPressed: {
+    opacity: 0.85,
+  },
+  soundButtonLabel: {
+    ...theme.typography.styles.subheadline,
+    color: theme.colors.primary,
+    fontWeight: "600",
   },
 }))

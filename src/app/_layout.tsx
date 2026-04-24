@@ -59,6 +59,15 @@ export default function Layout() {
                     presentation: "modal",
                   }}
                 />
+                <Stack.Screen
+                  name="(modals)/edit-card-sound"
+                  options={{
+                    headerShown: true,
+                    presentation: "formSheet",
+                    sheetAllowedDetents: [0.45, 0.8],
+                    sheetGrabberVisible: true,
+                  }}
+                />
               </Stack.Protected>
               <Stack.Protected guard={!isLoggedIn}>
                 <Stack.Screen name="(auth)" />

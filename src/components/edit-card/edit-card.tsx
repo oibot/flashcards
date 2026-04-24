@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, View } from "react-native"
@@ -27,6 +28,7 @@ type EditCardProps = {
 type FocusedField = "tags" | "front" | "back"
 
 export default function EditCard({ initialCard, onClose }: EditCardProps) {
+  const { push } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
@@ -137,6 +139,13 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     resetForm()
   }
 
+  const openSoundSheet = (side: "front" | "back") => {
+    push({
+      pathname: "/edit-card-sound",
+      params: { side },
+    })
+  }
+
   return (
     <>
       <EditCardHeader
@@ -178,6 +187,10 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             onStateChange={(nextState) =>
               handleEditorStateChange("front", nextState)
             }
+            onPressSoundAction={() => {
+              openSoundSheet("front")
+            }}
+            soundActionLabel={t("soundAction")}
           />
           <CardSideField
             editorRef={backRef}
@@ -190,6 +203,10 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             onStateChange={(nextState) =>
               handleEditorStateChange("back", nextState)
             }
+            onPressSoundAction={() => {
+              openSoundSheet("back")
+            }}
+            soundActionLabel={t("soundAction")}
           />
           {!isEditing ? (
             <OppositeDirectionToggle

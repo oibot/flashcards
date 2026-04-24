@@ -37,6 +37,14 @@
       "description": "Also create a second card with front and back swapped.",
       "label": "Practice opposite direction too"
     },
+    "soundAction": "Set sound",
+    "soundSheet": {
+      "back": "Back",
+      "description": "This sheet will hold the sound controls for this side.",
+      "front": "Front",
+      "headline": "{{side}} sound",
+      "title": "{{side}} Sound"
+    },
     "saveCard": "Save card",
     "saveCardAccessibilityLabel": "Save card",
     "tagsMenu": {

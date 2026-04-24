@@ -37,6 +37,14 @@
       "description": "Erstellt zusätzlich eine zweite Karte mit vertauschter Vorder- und Rückseite.",
       "label": "Gegenrichtung auch üben"
     },
+    "soundAction": "Sound festlegen",
+    "soundSheet": {
+      "back": "Rückseite",
+      "description": "Dieses Sheet enthält später die Sound-Einstellungen für diese Seite.",
+      "front": "Vorderseite",
+      "headline": "Sound für {{side}}",
+      "title": "Sound für {{side}}"
+    },
     "saveCard": "Karte speichern",
     "saveCardAccessibilityLabel": "Karte speichern",
     "tagsMenu": {
