@@ -18,6 +18,8 @@ const areCardsEquivalent = (left: Card, right: Card) => {
     left.variant === right.variant &&
     left.frontHtml === right.frontHtml &&
     left.backHtml === right.backHtml &&
+    left.frontHasSound === right.frontHasSound &&
+    left.backHasSound === right.backHasSound &&
     left.updatedAt === right.updatedAt &&
     left.tags.length === right.tags.length &&
     left.tags.every((tag, index) => tag === right.tags[index])

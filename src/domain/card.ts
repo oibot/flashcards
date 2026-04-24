@@ -21,6 +21,8 @@ export type Card = VisibleCardContent & {
   cardSetId: string
   variant: CardVariant
   tags: string[]
+  frontHasSound: boolean
+  backHasSound: boolean
   createdAt: number
   updatedAt: number
   dueAt: number

@@ -85,6 +85,8 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
 
   const cardSet = toStoredCardSet(card.cardSet)
   const resolvedContent = resolveCardContent(cardSet, card.variant)
+  const sideAHasSound = cardSet.sideATtsLocale !== undefined
+  const sideBHasSound = cardSet.sideBTtsLocale !== undefined
 
   return {
     id: card.id,
@@ -93,6 +95,8 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
     tags: cardSet.tags,
     frontHtml: resolvedContent.frontHtml,
     backHtml: resolvedContent.backHtml,
+    frontHasSound: card.variant === "forward" ? sideAHasSound : sideBHasSound,
+    backHasSound: card.variant === "forward" ? sideBHasSound : sideAHasSound,
     createdAt: toTimestamp(card.createdAt),
     updatedAt: Math.max(
       toTimestamp(card.updatedAt),

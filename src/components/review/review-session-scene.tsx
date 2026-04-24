@@ -93,6 +93,11 @@ export default function ReviewSessionScene({
           progressLabel={session.progressLabel}
           visibleSide={session.visibleSide}
           visibleHtml={session.visibleHtml}
+          visibleSideHasSound={
+            session.visibleSide === "front"
+              ? session.currentCard.frontHasSound
+              : session.currentCard.backHasSound
+          }
           isSubmitting={session.isMutatingCard}
           errorMessage={session.mutationError}
           onReveal={session.reveal}

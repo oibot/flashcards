@@ -13,6 +13,7 @@ type Props = {
   progressLabel: string
   visibleSide: "front" | "back"
   visibleHtml: string
+  visibleSideHasSound: boolean
   isSubmitting: boolean
   errorMessage: string | null
   onReveal: () => void
@@ -29,6 +30,7 @@ export default function ActiveReviewState({
   progressLabel,
   visibleSide,
   visibleHtml,
+  visibleSideHasSound,
   isSubmitting,
   errorMessage,
   onReveal,
@@ -47,6 +49,7 @@ export default function ActiveReviewState({
       <ReviewCard
         cardId={cardId}
         headerLabel={formatCardTags(tags)}
+        hasSound={visibleSideHasSound}
         isSubmitting={isSubmitting}
         onReveal={onReveal}
         visibleHtml={visibleHtml}

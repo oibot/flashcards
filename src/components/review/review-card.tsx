@@ -12,6 +12,7 @@ const CARD_HEIGHT_RATIO = 0.65
 type Props = {
   cardId: string
   headerLabel: string
+  hasSound: boolean
   visibleSide: "front" | "back"
   visibleHtml: string
   isSubmitting: boolean
@@ -21,6 +22,7 @@ type Props = {
 export default function ReviewCard({
   cardId,
   headerLabel,
+  hasSound,
   visibleSide,
   visibleHtml,
   isSubmitting,
@@ -40,7 +42,12 @@ export default function ReviewCard({
 
   return (
     <View style={styles.cardStage}>
-      <View style={[styles.cardSurface, { minHeight: cardHeight }]}>
+      <View
+        style={[
+          styles.cardSurface,
+          { minHeight: cardHeight, paddingBottom: hasSound ? 72 : 24 },
+        ]}
+      >
         <Text numberOfLines={1} style={styles.tagLabel}>
           {headerLabel}
         </Text>
@@ -57,21 +64,23 @@ export default function ReviewCard({
             />
           </View>
         </Pressable>
-        <IconButtonAudio
-          accessibilityLabel={t("playAudioAccessibilityLabel")}
-          disabled={audio.isLoading}
-          loading={audio.isLoading}
-          onPress={async () => {
-            const result = await audio.playAudio()
+        {hasSound ? (
+          <IconButtonAudio
+            accessibilityLabel={t("playAudioAccessibilityLabel")}
+            disabled={audio.isLoading}
+            loading={audio.isLoading}
+            onPress={async () => {
+              const result = await audio.playAudio()
 
-            if (!result.ok) {
-              Alert.alert(result.message)
-            }
-          }}
-          size={28}
-          style={styles.audioButton}
-          tintColor={audioTintColor}
-        />
+              if (!result.ok) {
+                Alert.alert(result.message)
+              }
+            }}
+            size={28}
+            style={styles.audioButton}
+            tintColor={audioTintColor}
+          />
+        ) : null}
       </View>
     </View>
   )
