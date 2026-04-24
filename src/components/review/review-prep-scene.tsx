@@ -10,32 +10,46 @@ import {
 } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { setPendingReviewSessionSeed } from "@/components/review/review-session-seed-store"
 import { IconButtonPlus } from "@/components/UI/icon-button"
-import { useDueCards } from "@/hooks/use-due-cards"
+import { useReviewPrepCards } from "@/hooks/use-review-prep-cards"
 
 type Props = {
   onNewCard: () => void
+  onReviewAllStart: () => void
   onReviewStart: () => void
 }
 
-export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
+export default function ReviewPrepScene({
+  onNewCard,
+  onReviewAllStart,
+  onReviewStart,
+}: Props) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "reviewPrep" })
-  const { cards: dueCards, isLoading, error } = useDueCards()
+  const { allCardCount, dueCardCount, error, isLoading, prepareCards } =
+    useReviewPrepCards()
   const isAndroid = Platform.OS === "android"
-  const dueCount = dueCards.length
-  const isReviewDisabled = isLoading || !!error || dueCount === 0
+  const isReviewDisabled = isLoading || !!error || dueCardCount === 0
+  const isReviewAllDisabled = isLoading || !!error || allCardCount === 0
 
   const handleReviewStart = () => {
     if (isReviewDisabled) return
+    setPendingReviewSessionSeed({ cards: prepareCards("due") })
     onReviewStart()
+  }
+
+  const handleReviewAllStart = () => {
+    if (isReviewAllDisabled) return
+    setPendingReviewSessionSeed({ cards: prepareCards("all") })
+    onReviewAllStart()
   }
 
   const statusLabel = isLoading
     ? t("loading")
     : error
       ? t("loadError")
-      : t("dueCount", { count: dueCount })
+      : t("dueCount", { count: dueCardCount })
 
   return (
     <>
@@ -69,28 +83,50 @@ export default function ReviewPrepScene({ onNewCard, onReviewStart }: Props) {
               <ActivityIndicator color={theme.colors.accent} />
             ) : null}
             <Text style={styles.statusLabel}>{statusLabel}</Text>
-            {!isLoading && !error && dueCount === 0 ? (
+            {!isLoading && !error && dueCardCount === 0 ? (
               <Text style={styles.emptyState}>{t("emptyState")}</Text>
             ) : null}
           </View>
-          <Pressable
-            accessibilityRole="button"
-            disabled={isReviewDisabled}
-            onPress={handleReviewStart}
-            style={[
-              styles.button,
-              isReviewDisabled ? styles.buttonDisabled : null,
-            ]}
-          >
-            <Text
+          <View style={styles.buttonGroup}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isReviewDisabled}
+              onPress={handleReviewStart}
               style={[
-                styles.buttonLabel,
-                isReviewDisabled ? styles.buttonLabelDisabled : null,
+                styles.button,
+                isReviewDisabled ? styles.buttonDisabled : null,
               ]}
             >
-              {t("startReview")}
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  styles.buttonLabel,
+                  isReviewDisabled ? styles.buttonLabelDisabled : null,
+                ]}
+              >
+                {t("startReview")}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isReviewAllDisabled}
+              onPress={handleReviewAllStart}
+              style={[
+                styles.secondaryButton,
+                isReviewAllDisabled ? styles.secondaryButtonDisabled : null,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.secondaryButtonLabel,
+                  isReviewAllDisabled
+                    ? styles.secondaryButtonLabelDisabled
+                    : null,
+                ]}
+              >
+                {t("startAllReviews")}
+              </Text>
+            </Pressable>
+          </View>
         </View>
         {isAndroid ? (
           <Pressable
@@ -143,9 +179,13 @@ const styles = StyleSheet.create((theme, rt) => ({
     color: theme.colors.secondary,
     textAlign: "center",
   },
+  buttonGroup: {
+    width: "100%",
+    maxWidth: 260,
+    gap: 12,
+  },
   button: {
     minHeight: 52,
-    minWidth: 180,
     borderRadius: 16,
     borderCurve: "continuous",
     alignItems: "center",
@@ -162,6 +202,28 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   buttonLabelDisabled: {
     color: theme.colors.primary,
+  },
+  secondaryButton: {
+    minHeight: 52,
+    borderRadius: 16,
+    borderCurve: "continuous",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.chromeMuted,
+  },
+  secondaryButtonDisabled: {
+    backgroundColor: theme.colors.secondaryBackground,
+    borderColor: theme.colors.chromeMuted,
+  },
+  secondaryButtonLabel: {
+    ...theme.typography.styles.headline,
+    color: theme.colors.primary,
+  },
+  secondaryButtonLabelDisabled: {
+    color: theme.colors.secondary,
   },
   fab: {
     position: "absolute",

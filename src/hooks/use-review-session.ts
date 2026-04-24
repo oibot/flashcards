@@ -5,7 +5,7 @@ import { Alert } from "react-native"
 import type { Card } from "@/domain/card"
 import type { ReviewGrade } from "@/domain/review-scheduler"
 import type { ReviewSessionSeed } from "@/domain/review-session"
-import { useDueCards } from "@/hooks/use-due-cards"
+import { useCards } from "@/hooks/use-cards"
 
 type UseReviewSessionOptions = {
   initialSeed?: ReviewSessionSeed
@@ -31,12 +31,12 @@ export function useReviewSession({
 }: UseReviewSessionOptions = {}) {
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const {
-    cards: dueCards,
-    isLoading,
-    error,
+    cards: liveCards,
+    isLoading: areCardsLoading,
+    error: cardsError,
     removeCard,
     reviewCard,
-  } = useDueCards()
+  } = useCards()
   const [sessionCards, setSessionCards] = useState<Card[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isBackVisible, setIsBackVisible] = useState(false)
@@ -46,7 +46,8 @@ export function useReviewSession({
   const [isDeletingCard, setIsDeletingCard] = useState(false)
   const [mutationError, setMutationError] = useState<string | null>(null)
 
-  const initialCards = initialSeed?.cards ?? dueCards
+  const hasInitialSeed = initialSeed !== undefined
+  const initialCards = initialSeed?.cards ?? liveCards
   const currentCard = sessionCards[currentIndex] ?? null
   const isLastCard = currentIndex === sessionCards.length - 1
   const isMutatingCard = isSubmittingReview || isDeletingCard
@@ -60,24 +61,31 @@ export function useReviewSession({
       ? currentCard.backHtml
       : currentCard.frontHtml
     : ""
-  const liveDueCardById = useMemo(
-    () => new Map(dueCards.map((card) => [card.id, card])),
-    [dueCards],
+  const liveCardById = useMemo(
+    () => new Map(liveCards.map((card) => [card.id, card])),
+    [liveCards],
   )
 
   useEffect(() => {
     if (
       isSessionComplete ||
       sessionCards.length > 0 ||
-      isLoading ||
-      error ||
+      (!hasInitialSeed && areCardsLoading) ||
+      (!hasInitialSeed && cardsError) ||
       initialCards.length === 0
     ) {
       return
     }
 
     setSessionCards(initialCards)
-  }, [error, initialCards, isLoading, isSessionComplete, sessionCards.length])
+  }, [
+    areCardsLoading,
+    cardsError,
+    hasInitialSeed,
+    initialCards,
+    isSessionComplete,
+    sessionCards.length,
+  ])
 
   useEffect(() => {
     if (sessionCards.length === 0) {
@@ -87,7 +95,7 @@ export function useReviewSession({
     setSessionCards((currentSessionCards) => {
       let didChange = false
       const nextSessionCards = currentSessionCards.map((card) => {
-        const liveCard = liveDueCardById.get(card.id)
+        const liveCard = liveCardById.get(card.id)
 
         if (!liveCard || areCardsEquivalent(liveCard, card)) {
           return card
@@ -99,7 +107,7 @@ export function useReviewSession({
 
       return didChange ? nextSessionCards : currentSessionCards
     })
-  }, [liveDueCardById, sessionCards.length])
+  }, [liveCardById, sessionCards.length])
 
   const reveal = () => {
     setIsBackVisible(true)
@@ -195,17 +203,20 @@ export function useReviewSession({
 
   return {
     currentCard,
-    error,
+    error: hasInitialSeed ? null : cardsError,
     isComplete: isSessionComplete,
     isLoading:
-      isLoading || (!error && !isSessionComplete && sessionCards.length === 0),
+      (!hasInitialSeed && areCardsLoading) ||
+      (!hasInitialSeed &&
+        !cardsError &&
+        !isSessionComplete &&
+        sessionCards.length === 0),
     isMutatingCard,
     mutationError,
     progressLabel,
     reviewedCount,
     shouldClose:
-      !isLoading &&
-      !error &&
+      (!hasInitialSeed ? !areCardsLoading && !cardsError : true) &&
       !isSessionComplete &&
       sessionCards.length === 0 &&
       initialCards.length === 0,

@@ -53,6 +53,7 @@
     "loadError": "Could not load due cards.",
     "loading": "Checking due cards...",
     "newCardAccessibilityLabel": "Create new card",
+    "startAllReviews": "Review All Cards",
     "startReview": "Start Review",
     "title": "Ready to review"
   },

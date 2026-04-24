@@ -18,7 +18,13 @@ type EmptyRelations = Record<never, never>
 type InstantCardWithCardSetRecord = InstaQLEntity<
   AppSchema,
   "cards",
-  { cardSet: { tags: EmptyRelations } }
+  {
+    cardSet: {
+      tags: EmptyRelations
+      sideATtsAsset: EmptyRelations
+      sideBTtsAsset: EmptyRelations
+    }
+  }
 >
 type InstantCardSetSummaryRecord = InstaQLEntity<
   AppSchema,
@@ -85,8 +91,10 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
 
   const cardSet = toStoredCardSet(card.cardSet)
   const resolvedContent = resolveCardContent(cardSet, card.variant)
-  const sideAHasSound = cardSet.sideATtsLocale !== undefined
-  const sideBHasSound = cardSet.sideBTtsLocale !== undefined
+  const sideAHasSound =
+    cardSet.sideATtsLocale !== undefined || card.cardSet.sideATtsAsset !== null
+  const sideBHasSound =
+    cardSet.sideBTtsLocale !== undefined || card.cardSet.sideBTtsAsset !== null
 
   return {
     id: card.id,

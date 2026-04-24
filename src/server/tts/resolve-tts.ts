@@ -101,6 +101,21 @@ export async function resolveTts({
     card.variant,
   )
   const contentSide = resolveCardContentSide(card.variant, visibleSide)
+  const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
+  const selectedTtsAssetFileUrl = getReadyFileUrl(selectedTtsAsset)
+
+  if (selectedTtsAsset && selectedTtsAssetFileUrl) {
+    logTtsInfo("Resolved audio from cardSet sound association", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      assetId: selectedTtsAsset.id,
+    })
+
+    return toReadyResponse(selectedTtsAsset, contentSide, true)
+  }
+
   const html =
     visibleSide === "front" ? visibleContent.frontHtml : visibleContent.backHtml
   const sourceText = extractPlainTextFromHtml(html)
@@ -152,7 +167,6 @@ export async function resolveTts({
 
   const ttsConfig = resolveTtsConfig(selectedLocale)
   const cacheKey = await createTtsCacheKey(normalizedText, ttsConfig)
-  const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
 
   logTtsInfo("Computed TTS cache key", {
     userId,

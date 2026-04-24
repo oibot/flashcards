@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -6,6 +6,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import ActiveReviewState from "@/components/review/active-review-state"
 import CompletedReviewState from "@/components/review/completed-review-state"
 import ReviewSessionHeader from "@/components/review/review-session-header"
+import { consumePendingReviewSessionSeed } from "@/components/review/review-session-seed-store"
 import { useReviewSession } from "@/hooks/use-review-session"
 
 type ReviewSessionSceneProps = {
@@ -19,7 +20,8 @@ export default function ReviewSessionScene({
 }: ReviewSessionSceneProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
-  const session = useReviewSession()
+  const [initialSeed] = useState(() => consumePendingReviewSessionSeed())
+  const session = useReviewSession({ initialSeed: initialSeed ?? undefined })
 
   useEffect(() => {
     if (session.shouldClose) {

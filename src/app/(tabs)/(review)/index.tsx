@@ -13,9 +13,14 @@ export default function Page() {
     push("/review-session")
   }
 
+  const handleOnReviewAllStart = () => {
+    push("/review-session")
+  }
+
   return (
     <ReviewPrepScene
       onNewCard={handleNewCard}
+      onReviewAllStart={handleOnReviewAllStart}
       onReviewStart={handleOnReviewStart}
     />
   )

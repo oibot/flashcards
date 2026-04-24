@@ -142,6 +142,8 @@ export const createInstantCardStore = (): CardStore => {
               },
               cards: {
                 cardSet: {
+                  sideATtsAsset: {},
+                  sideBTtsAsset: {},
                   tags: {},
                 },
               },
@@ -173,6 +175,8 @@ export const createInstantCardStore = (): CardStore => {
                 },
               },
               cardSet: {
+                sideATtsAsset: {},
+                sideBTtsAsset: {},
                 tags: {},
               },
             },
@@ -374,6 +378,8 @@ export const createInstantCardStore = (): CardStore => {
             },
           },
           cardSet: {
+            sideATtsAsset: {},
+            sideBTtsAsset: {},
             tags: {},
           },
         },
