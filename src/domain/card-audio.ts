@@ -177,6 +177,24 @@ export function toCanonicalCardTtsPatch(
   return patch
 }
 
+export function toCanonicalCardTtsSelectionPatch(
+  selection: VisibleCardTtsSelectionPatch,
+  variant: CardVariant,
+): CardSetTtsSelectionPatch {
+  const patch = toCanonicalCardTtsPatch(selection, variant)
+  const selectionPatch: CardSetTtsSelectionPatch = {}
+
+  if ("sideATtsAssetId" in patch) {
+    selectionPatch.sideATtsAssetId = patch.sideATtsAssetId ?? null
+  }
+
+  if ("sideBTtsAssetId" in patch) {
+    selectionPatch.sideBTtsAssetId = patch.sideBTtsAssetId ?? null
+  }
+
+  return selectionPatch
+}
+
 export async function createTtsCacheKey(
   text: string,
   config: TtsConfig,

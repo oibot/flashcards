@@ -15,6 +15,10 @@ export type AudioSelectionDraftSide = {
 }
 
 type AudioSelectionDraft = Record<VisibleCardSide, AudioSelectionDraftSide>
+type AudioSelectionDraftSideHydration = Pick<
+  AudioSelectionDraftSide,
+  "locale" | "assetId" | "fileUrl"
+>
 
 function createEmptySideDraft(): AudioSelectionDraftSide {
   return {
@@ -83,15 +87,15 @@ export function setAudioSelectionDraftHtml(
 
 export function hydrateAudioSelectionDraftSide(
   side: VisibleCardSide,
-  locale: SupportedTtsLocale | null,
+  value: AudioSelectionDraftSideHydration,
 ) {
   updateSide(side, (currentSide) => ({
     ...currentSide,
-    locale,
-    assetId: null,
-    fileUrl: null,
+    locale: value.locale,
+    assetId: value.assetId,
+    fileUrl: value.fileUrl,
     isDirty: false,
-    status: "idle",
+    status: value.fileUrl ? "ready" : "idle",
   }))
 }
 

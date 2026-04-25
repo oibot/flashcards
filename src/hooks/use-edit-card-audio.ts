@@ -13,9 +13,11 @@ import {
 } from "@/components/edit-card/audio-selection-draft"
 import type { Card, VisibleCardSide } from "@/domain/card"
 import type {
+  CardSetTtsSelectionPatch,
   SupportedTtsLocale,
   VisibleCardTtsSelectionPatch,
 } from "@/domain/card-audio"
+import { toCanonicalCardTtsSelectionPatch } from "@/domain/card-audio"
 import { useFileAudioPlayer } from "@/hooks/use-file-audio-player"
 import { hasMeaningfulHtmlContent } from "@/utils/html"
 
@@ -36,6 +38,10 @@ type EditCardAudioSideState = {
   isPreviewLoading: boolean
   setHtml: (html: string) => void
   playPreview: () => Promise<void>
+}
+
+type AttachTtsErrorResponse = {
+  error: string
 }
 
 type UseEditCardAudioOptions = {
@@ -68,6 +74,17 @@ function isDraftTtsErrorResponse(
   )
 }
 
+function isAttachTtsErrorResponse(
+  value: unknown,
+): value is AttachTtsErrorResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "string"
+  )
+}
+
 export function useEditCardAudio({
   initialCard,
 }: UseEditCardAudioOptions = {}) {
@@ -91,16 +108,26 @@ export function useEditCardAudio({
     resetAudioSelectionDraft()
     setAudioSelectionDraftHtml("front", initialCard?.frontHtml ?? "")
     setAudioSelectionDraftHtml("back", initialCard?.backHtml ?? "")
-    hydrateAudioSelectionDraftSide("front", initialCard?.frontTtsLocale ?? null)
-    hydrateAudioSelectionDraftSide("back", initialCard?.backTtsLocale ?? null)
+    hydrateAudioSelectionDraftSide("front", {
+      locale: initialCard?.frontTtsLocale ?? null,
+      assetId: null,
+      fileUrl: initialCard?.frontTtsFileUrl ?? null,
+    })
+    hydrateAudioSelectionDraftSide("back", {
+      locale: initialCard?.backTtsLocale ?? null,
+      assetId: null,
+      fileUrl: initialCard?.backTtsFileUrl ?? null,
+    })
 
     return () => {
       resetAudioSelectionDraft()
     }
   }, [
     initialCard?.backHtml,
+    initialCard?.backTtsFileUrl,
     initialCard?.backTtsLocale,
     initialCard?.frontHtml,
+    initialCard?.frontTtsFileUrl,
     initialCard?.frontTtsLocale,
   ])
 
@@ -238,26 +265,74 @@ export function useEditCardAudio({
     }
   }
 
+  const getVisibleCardTtsSelection = (): VisibleCardTtsSelectionPatch => {
+    const selection: VisibleCardTtsSelectionPatch = {}
+
+    ;(["front", "back"] as const).forEach((side) => {
+      const sideDraft = audioSelectionDraft[side]
+
+      if (!sideDraft.isDirty) {
+        return
+      }
+
+      selection[side] = {
+        locale: sideDraft.locale,
+        assetId: sideDraft.assetId,
+      }
+    })
+
+    return selection
+  }
+
+  const getCanonicalTtsSelection = (): CardSetTtsSelectionPatch => {
+    return toCanonicalCardTtsSelectionPatch(
+      getVisibleCardTtsSelection(),
+      initialCard?.variant ?? "forward",
+    )
+  }
+
   return {
     front: createSideState("front"),
     back: createSideState("back"),
-    getPersistedSelection: (): VisibleCardTtsSelectionPatch => {
-      const selection: VisibleCardTtsSelectionPatch = {}
+    getPersistedSelection: getVisibleCardTtsSelection,
+    persistCardAudio: async (cardSetId: string) => {
+      const tts = getCanonicalTtsSelection()
 
-      ;(["front", "back"] as const).forEach((side) => {
-        const sideDraft = audioSelectionDraft[side]
+      if (Object.keys(tts).length === 0) {
+        return
+      }
 
-        if (!sideDraft.isDirty) {
-          return
+      if (status !== "signed-in" || !user?.refreshToken) {
+        Alert.alert(t("audioUnavailable"))
+        return
+      }
+
+      try {
+        const response = await fetch("/api/tts/attach", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user.refreshToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            cardSetId,
+            tts,
+          }),
+        })
+        const payload: unknown = await response.json().catch(() => null)
+
+        if (!response.ok) {
+          throw new Error(
+            isAttachTtsErrorResponse(payload)
+              ? payload.error
+              : t("audioUnavailable"),
+          )
         }
-
-        selection[side] = {
-          locale: sideDraft.locale,
-          assetId: sideDraft.assetId,
-        }
-      })
-
-      return selection
+      } catch (error) {
+        Alert.alert(
+          error instanceof Error ? error.message : t("audioUnavailable"),
+        )
+      }
     },
     resetDraft: resetAudioSelectionDraft,
   }

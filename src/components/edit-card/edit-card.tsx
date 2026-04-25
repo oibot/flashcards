@@ -135,12 +135,14 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     }
 
     if (initialCard) {
-      await updateCard(createUpdateCardInput(draft))
+      const result = await updateCard(createUpdateCardInput(draft))
+      await audio.persistCardAudio(result.cardSetId)
       onClose()
       return
     }
 
-    await addCard(createNewCardInput(draft))
+    const result = await addCard(createNewCardInput(draft))
+    await audio.persistCardAudio(result.cardSetId)
     onClose()
   }
 
@@ -148,7 +150,8 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     const draft = await getValidatedDraft()
     if (!draft) return
 
-    await addCard(createNewCardInput(draft))
+    const result = await addCard(createNewCardInput(draft))
+    await audio.persistCardAudio(result.cardSetId)
     audio.resetDraft()
     resetForm()
   }

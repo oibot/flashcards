@@ -5,9 +5,11 @@ import { adminDb } from "@/db/instant/admin"
 import type { AppSchema } from "@/db/instant/instant.schema"
 import type {
   CardContentSide,
+  CardSetTtsSelectionPatch,
   SupportedTtsLocale,
   TtsConfig,
 } from "@/domain/card-audio"
+import { hasOwn } from "@/utils/object"
 
 type EmptyRelations = Record<never, never>
 
@@ -29,6 +31,14 @@ export type CardRecord = InstaQLEntity<
 >
 
 export type CardSetRecord = NonNullable<CardRecord["cardSet"]>
+export type OwnedCardSetRecord = InstaQLEntity<
+  AppSchema,
+  "cardSets",
+  {
+    sideATtsAsset: EmptyRelations
+    sideBTtsAsset: EmptyRelations
+  }
+>
 
 export function getSelectedTtsAsset(
   cardSet: CardSetRecord,
@@ -97,6 +107,97 @@ export async function updateCardSetTtsReference(
   await adminDb.transact(
     adminDb.tx.cardSets[cardSetId].link({ sideBTtsAsset: assetId }),
   )
+}
+
+export async function loadOwnedCardSetForTts(
+  userId: string,
+  cardSetId: string,
+) {
+  const data = await adminDb.query({
+    $users: {
+      $: {
+        where: {
+          id: userId,
+        },
+      },
+      cardSets: {
+        $: {
+          where: {
+            id: cardSetId,
+          },
+        },
+        sideATtsAsset: {},
+        sideBTtsAsset: {},
+      },
+    },
+  })
+
+  return data.$users[0]?.cardSets[0] as OwnedCardSetRecord | undefined
+}
+
+export async function updateCardSetTtsSelection(
+  cardSet: OwnedCardSetRecord,
+  selectionPatch: CardSetTtsSelectionPatch,
+) {
+  const transactions = []
+
+  if (hasOwn(selectionPatch, "sideATtsAssetId")) {
+    const currentSideAAssetId = cardSet.sideATtsAsset?.id
+
+    if (
+      currentSideAAssetId &&
+      currentSideAAssetId !== selectionPatch.sideATtsAssetId
+    ) {
+      transactions.push(
+        adminDb.tx.cardSets[cardSet.id].unlink({
+          sideATtsAsset: currentSideAAssetId,
+        }),
+      )
+    }
+
+    if (
+      selectionPatch.sideATtsAssetId &&
+      selectionPatch.sideATtsAssetId !== currentSideAAssetId
+    ) {
+      transactions.push(
+        adminDb.tx.cardSets[cardSet.id].link({
+          sideATtsAsset: selectionPatch.sideATtsAssetId,
+        }),
+      )
+    }
+  }
+
+  if (hasOwn(selectionPatch, "sideBTtsAssetId")) {
+    const currentSideBAssetId = cardSet.sideBTtsAsset?.id
+
+    if (
+      currentSideBAssetId &&
+      currentSideBAssetId !== selectionPatch.sideBTtsAssetId
+    ) {
+      transactions.push(
+        adminDb.tx.cardSets[cardSet.id].unlink({
+          sideBTtsAsset: currentSideBAssetId,
+        }),
+      )
+    }
+
+    if (
+      selectionPatch.sideBTtsAssetId &&
+      selectionPatch.sideBTtsAssetId !== currentSideBAssetId
+    ) {
+      transactions.push(
+        adminDb.tx.cardSets[cardSet.id].link({
+          sideBTtsAsset: selectionPatch.sideBTtsAssetId,
+        }),
+      )
+    }
+  }
+
+  if (transactions.length === 0) {
+    return
+  }
+
+  await adminDb.transact(transactions)
 }
 
 export async function updateCardSetTtsLocale(

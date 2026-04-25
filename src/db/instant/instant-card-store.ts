@@ -1,7 +1,7 @@
 import { id, lookup } from "@instantdb/react-native"
 
 import { useAuthSession } from "@/auth/use-auth-session"
-import type { CardStore, TagsQueryState } from "@/db/card-store"
+import type { CardSaveResult, CardStore, TagsQueryState } from "@/db/card-store"
 import { db } from "@/db/instant/db"
 import {
   normalizeError,
@@ -32,6 +32,7 @@ import {
   type ReviewGrade,
   scheduleCardReview,
 } from "@/domain/review-scheduler"
+import { hasOwn } from "@/utils/object"
 
 async function requireCurrentUser() {
   const user = await db.getAuth()
@@ -71,19 +72,12 @@ function diffTags(previousTags: string[], nextTags: string[]) {
   }
 }
 
-function hasOwnProperty<K extends PropertyKey>(
-  value: object,
-  key: K,
-): value is Record<K, unknown> {
-  return Object.prototype.hasOwnProperty.call(value, key)
-}
-
 function buildCardSetTtsUpdateData(ttsPatch: CardSetTtsPatch) {
   return {
-    ...(hasOwnProperty(ttsPatch, "sideATtsLocale")
+    ...(hasOwn(ttsPatch, "sideATtsLocale")
       ? { sideATtsLocale: ttsPatch.sideATtsLocale ?? null }
       : {}),
-    ...(hasOwnProperty(ttsPatch, "sideBTtsLocale")
+    ...(hasOwn(ttsPatch, "sideBTtsLocale")
       ? { sideBTtsLocale: ttsPatch.sideBTtsLocale ?? null }
       : {}),
   }
@@ -163,8 +157,8 @@ export const createInstantCardStore = (): CardStore => {
               },
               cards: {
                 cardSet: {
-                  sideATtsAsset: {},
-                  sideBTtsAsset: {},
+                  sideATtsAsset: { file: {} },
+                  sideBTtsAsset: { file: {} },
                   tags: {},
                 },
               },
@@ -196,8 +190,8 @@ export const createInstantCardStore = (): CardStore => {
                 },
               },
               cardSet: {
-                sideATtsAsset: {},
-                sideBTtsAsset: {},
+                sideATtsAsset: { file: {} },
+                sideBTtsAsset: { file: {} },
                 tags: {},
               },
             },
@@ -337,7 +331,7 @@ export const createInstantCardStore = (): CardStore => {
     ])
   }
 
-  const addCard = async (input: NewCardInput) => {
+  const addCard = async (input: NewCardInput): Promise<CardSaveResult> => {
     const currentUser = await requireCurrentUser()
     const tags = parseTags(input.tags)
     const cardSetId = id()
@@ -383,9 +377,13 @@ export const createInstantCardStore = (): CardStore => {
       cardSetTransaction,
       ...cardTransactions,
     ])
+
+    return { cardSetId }
   }
 
-  const updateCard = async (input: UpdateCardInput) => {
+  const updateCard = async (
+    input: UpdateCardInput,
+  ): Promise<CardSaveResult> => {
     const currentUser = await requireCurrentUser()
     const query = {
       $users: {
@@ -401,8 +399,8 @@ export const createInstantCardStore = (): CardStore => {
             },
           },
           cardSet: {
-            sideATtsAsset: {},
-            sideBTtsAsset: {},
+            sideATtsAsset: { file: {} },
+            sideBTtsAsset: { file: {} },
             tags: {},
           },
         },
@@ -441,7 +439,7 @@ export const createInstantCardStore = (): CardStore => {
 
     if (tagsToLink.length === 0 && tagsToUnlink.length === 0) {
       await db.transact(cardSetTransaction)
-      return
+      return { cardSetId: currentCard.cardSetId }
     }
 
     const createTagTransactions = createEnsureTagTransactions(
@@ -462,6 +460,8 @@ export const createInstantCardStore = (): CardStore => {
     }
 
     await db.transact([...createTagTransactions, cardSetTransaction])
+
+    return { cardSetId: currentCard.cardSetId }
   }
 
   const reviewCard = async (

@@ -14,14 +14,18 @@ export type TagsQueryState = {
   error: Error | null
 }
 
+export type CardSaveResult = {
+  cardSetId: string
+}
+
 export type CardStore = {
   useCardsQuery: () => CardsQueryState
   useDueCardsQuery: (now?: number) => CardsQueryState
   useTagsQuery: () => TagsQueryState
   exportCards: () => Promise<CardBackupEnvelope>
   importCards: (backup: CardBackupEnvelope) => Promise<void>
-  addCard: (input: NewCardInput) => Promise<void>
-  updateCard: (input: UpdateCardInput) => Promise<void>
+  addCard: (input: NewCardInput) => Promise<CardSaveResult>
+  updateCard: (input: UpdateCardInput) => Promise<CardSaveResult>
   reviewCard: (
     card: Card,
     grade: ReviewGrade,

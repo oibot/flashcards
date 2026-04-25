@@ -27,6 +27,8 @@ export type Card = VisibleCardContent & {
   tags: string[]
   frontTtsLocale?: SupportedTtsLocale
   backTtsLocale?: SupportedTtsLocale
+  frontTtsFileUrl?: string
+  backTtsFileUrl?: string
   frontHasSound: boolean
   backHasSound: boolean
   createdAt: number
