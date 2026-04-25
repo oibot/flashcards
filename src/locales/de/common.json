@@ -37,12 +37,14 @@
       "description": "Erstellt zusätzlich eine zweite Karte mit vertauschter Vorder- und Rückseite.",
       "label": "Gegenrichtung auch üben"
     },
-    "soundAction": "Sound festlegen",
+    "audioLabel": "Audio",
+    "previewAudioAccessibilityLabel": "Audio vorhören",
     "soundSheet": {
       "back": "Rückseite",
       "description": "Unterstützte Sprachen für diese Seite.",
       "front": "Vorderseite",
       "headline": "Verfügbare Sprachen",
+      "none": "Keine",
       "languages": {
         "ar-SA": {
           "label": "Arabisch"
@@ -132,7 +134,7 @@
           "label": "Chinesisch"
         }
       },
-      "title": "Sound für {{side}}"
+      "title": "Audio für {{side}}"
     },
     "saveCard": "Karte speichern",
     "saveCardAccessibilityLabel": "Karte speichern",

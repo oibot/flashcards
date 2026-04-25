@@ -37,12 +37,14 @@
       "description": "Also create a second card with front and back swapped.",
       "label": "Practice opposite direction too"
     },
-    "soundAction": "Set sound",
+    "audioLabel": "Audio",
+    "previewAudioAccessibilityLabel": "Preview audio",
     "soundSheet": {
       "back": "Back",
       "description": "Supported languages for this side.",
       "front": "Front",
       "headline": "Available languages",
+      "none": "None",
       "languages": {
         "ar-SA": {
           "label": "Arabic"
@@ -132,7 +134,7 @@
           "label": "Chinese"
         }
       },
-      "title": "{{side}} Sound"
+      "title": "{{side}} Audio"
     },
     "saveCard": "Save card",
     "saveCardAccessibilityLabel": "Save card",

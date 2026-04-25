@@ -1,3 +1,4 @@
+import { SymbolView } from "expo-symbols"
 import type { RefObject } from "react"
 import { Pressable, Text, View } from "react-native"
 import type {
@@ -5,7 +6,9 @@ import type {
   OnChangeStateEvent,
 } from "react-native-enriched"
 import { EnrichedTextInput } from "react-native-enriched"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
+import { IconButtonAudio } from "@/components/UI/icon-button"
 
 type CardSideFieldProps = {
   label: string
@@ -13,9 +16,18 @@ type CardSideFieldProps = {
   onBlur: () => void
   onFocus: () => void
   onStateChange: (nextState: OnChangeStateEvent) => void
-  soundActionLabel?: string
-  onPressSoundAction?: () => void
+  audioActionLabel?: string
+  audioPreviewAccessibilityLabel?: string
+  audioValueLabel?: string
+  isAudioPreviewDisabled?: boolean
+  onPressAudioAction?: () => void
+  onPressAudioPreview?: () => void
 }
+
+const chevronIconName = {
+  ios: "chevron.right",
+  android: "chevron_right",
+} as const
 
 export default function CardSideField({
   label,
@@ -23,9 +35,15 @@ export default function CardSideField({
   onBlur,
   onFocus,
   onStateChange,
-  soundActionLabel,
-  onPressSoundAction,
+  audioActionLabel,
+  audioPreviewAccessibilityLabel,
+  audioValueLabel,
+  isAudioPreviewDisabled = true,
+  onPressAudioAction,
+  onPressAudioPreview,
 }: CardSideFieldProps) {
+  const { theme } = useUnistyles()
+
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -36,17 +54,39 @@ export default function CardSideField({
         onFocus={onFocus}
         style={styles.input}
       />
-      {soundActionLabel && onPressSoundAction ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPressSoundAction}
-          style={({ pressed }) => [
-            styles.soundButton,
-            pressed ? styles.soundButtonPressed : null,
-          ]}
-        >
-          <Text style={styles.soundButtonLabel}>{soundActionLabel}</Text>
-        </Pressable>
+      {audioActionLabel &&
+      audioPreviewAccessibilityLabel &&
+      audioValueLabel &&
+      onPressAudioAction &&
+      onPressAudioPreview ? (
+        <View style={styles.audioControls}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPressAudioAction}
+            style={({ pressed }) => [
+              styles.audioRow,
+              pressed ? styles.audioRowPressed : null,
+            ]}
+          >
+            <Text style={styles.audioActionLabel}>{audioActionLabel}</Text>
+            <View style={styles.audioValueGroup}>
+              <Text style={styles.audioValueLabel}>{audioValueLabel}</Text>
+              <SymbolView
+                name={chevronIconName}
+                size={16}
+                tintColor={theme.colors.secondary}
+              />
+            </View>
+          </Pressable>
+          <IconButtonAudio
+            accessibilityLabel={audioPreviewAccessibilityLabel}
+            disabled={isAudioPreviewDisabled}
+            onPress={onPressAudioPreview}
+            size={20}
+            style={styles.audioPreviewButton}
+            tintColor={theme.colors.primary}
+          />
+        </View>
       ) : null}
     </View>
   )
@@ -73,23 +113,46 @@ const styles = StyleSheet.create((theme) => ({
     borderCurve: "continuous",
     textAlignVertical: "top",
   },
-  soundButton: {
+  audioControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  audioRow: {
+    flex: 1,
     minHeight: 42,
     borderRadius: 14,
     borderCurve: "continuous",
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 14,
     backgroundColor: theme.colors.secondaryBackground,
     borderWidth: 1,
     borderColor: theme.colors.chromeMuted,
   },
-  soundButtonPressed: {
+  audioRowPressed: {
     opacity: 0.85,
   },
-  soundButtonLabel: {
+  audioActionLabel: {
     ...theme.typography.styles.subheadline,
     color: theme.colors.primary,
     fontWeight: "600",
+  },
+  audioValueGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  audioValueLabel: {
+    ...theme.typography.styles.subheadline,
+    color: theme.colors.secondary,
+  },
+  audioPreviewButton: {
+    width: 42,
+    height: 42,
+    backgroundColor: theme.colors.secondaryBackground,
+    borderWidth: 1,
+    borderColor: theme.colors.chromeMuted,
   },
 }))

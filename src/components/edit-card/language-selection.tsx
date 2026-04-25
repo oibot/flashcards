@@ -12,37 +12,11 @@ import {
   type SupportedTtsLocale,
 } from "@/domain/card-audio"
 
-const TTS_LANGUAGE_NATIVE_LABELS = {
-  "en-US": "English",
-  "ja-JP": "日本語",
-  "zh-CN": "中文",
-  "de-DE": "Deutsch",
-  "hi-IN": "हिन्दी",
-  "fr-FR": "Français",
-  "ko-KR": "한국어",
-  "pt-BR": "Português",
-  "it-IT": "Italiano",
-  "es-ES": "Español",
-  "id-ID": "Bahasa Indonesia",
-  "nl-NL": "Nederlands",
-  "tr-TR": "Türkçe",
-  "fil-PH": "Filipino",
-  "pl-PL": "Polski",
-  "sv-SE": "Svenska",
-  "bg-BG": "Български",
-  "ro-RO": "Română",
-  "ar-SA": "العربية",
-  "cs-CZ": "Čeština",
-  "el-GR": "Ελληνικά",
-  "fi-FI": "Suomi",
-  "hr-HR": "Hrvatski",
-  "ms-MY": "Bahasa Melayu",
-  "sk-SK": "Slovenčina",
-  "da-DK": "Dansk",
-  "ta-IN": "தமிழ்",
-  "uk-UA": "Українська",
-  "ru-RU": "Русский",
-} satisfies Record<SupportedTtsLocale, string>
+import { TTS_LANGUAGE_NATIVE_LABELS } from "./audio-labels"
+import {
+  setAudioSelectionDraft,
+  useAudioSelectionDraft,
+} from "./audio-selection-draft"
 
 const checkmarkIconName = { ios: "checkmark", android: "done" } as const
 
@@ -62,11 +36,17 @@ export default function LanguageSelection() {
   const isIOS = Platform.OS === "ios"
   const isAndroid = Platform.OS === "android"
   const sideLabel = tSoundSheet(side)
+  const audioSelectionDraft = useAudioSelectionDraft()
   const preferredLocale: SupportedTtsLocale =
     i18n.resolvedLanguage === "de" ? "de-DE" : "en-US"
+  const currentLocale = audioSelectionDraft[side]
   const [selectedLocale, setSelectedLocale] =
-    useState<SupportedTtsLocale | null>(null)
+    useState<SupportedTtsLocale | null>(currentLocale)
   const handleDismiss = () => {
+    dismiss()
+  }
+  const handleSave = () => {
+    setAudioSelectionDraft(side, selectedLocale)
     dismiss()
   }
   const languages = useMemo(() => {
@@ -75,11 +55,18 @@ export default function LanguageSelection() {
       ...SUPPORTED_TTS_LOCALES.filter((locale) => locale !== preferredLocale),
     ]
 
-    return orderedLocales.map((locale) => ({
-      locale,
-      label: tSoundSheet(`languages.${locale}.label`),
-      nativeLabel: TTS_LANGUAGE_NATIVE_LABELS[locale],
-    }))
+    return [
+      {
+        locale: null,
+        label: tSoundSheet("none"),
+        nativeLabel: null,
+      },
+      ...orderedLocales.map((locale) => ({
+        locale,
+        label: tSoundSheet(`languages.${locale}.label`),
+        nativeLabel: TTS_LANGUAGE_NATIVE_LABELS[locale],
+      })),
+    ]
   }, [preferredLocale, tSoundSheet])
 
   return (
@@ -113,7 +100,7 @@ export default function LanguageSelection() {
                     },
                     tintColor: theme.colors.accent,
                     variant: "prominent",
-                    onPress: handleDismiss,
+                    onPress: handleSave,
                   },
                 ],
               }
@@ -132,7 +119,7 @@ export default function LanguageSelection() {
                             "saveCardAccessibilityLabel",
                           )}
                           accessibilityRole="button"
-                          onPress={handleDismiss}
+                          onPress={handleSave}
                           style={styles.androidHeaderSaveButton}
                         >
                           <Text style={styles.androidHeaderSaveLabel}>
@@ -153,6 +140,7 @@ export default function LanguageSelection() {
         <View style={styles.languageList}>
           {languages.map((language) => {
             const showNativeLabel =
+              language.locale != null &&
               language.locale !== preferredLocale &&
               language.nativeLabel !== language.label
             const isSelected = language.locale === selectedLocale
@@ -161,7 +149,7 @@ export default function LanguageSelection() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
-                key={language.locale}
+                key={language.locale ?? "none"}
                 onPress={() => {
                   setSelectedLocale(language.locale)
                 }}
