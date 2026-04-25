@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Alert, View } from "react-native"
+import { Alert, Keyboard, View } from "react-native"
 import {
   KeyboardAwareScrollView,
   KeyboardToolbar,
@@ -156,7 +156,12 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     resetForm()
   }
 
-  const openSoundSheet = (side: "front" | "back") => {
+  const openLanguagePicker = (side: "front" | "back") => {
+    Keyboard.dismiss()
+    frontRef.current?.blur()
+    backRef.current?.blur()
+    setFocusedField(null)
+
     push({
       pathname: "/edit-card-language-selection",
       params: { side },
@@ -209,7 +214,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
               handleEditorFocus("front")
             }}
             onPressAudioAction={() => {
-              openSoundSheet("front")
+              openLanguagePicker("front")
             }}
             onPressAudioPreview={audio.front.playPreview}
             onStateChange={(nextState) =>
@@ -232,7 +237,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
               handleEditorFocus("back")
             }}
             onPressAudioAction={() => {
-              openSoundSheet("back")
+              openLanguagePicker("back")
             }}
             onPressAudioPreview={audio.back.playPreview}
             onStateChange={(nextState) =>

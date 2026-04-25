@@ -43,6 +43,12 @@
     "soundSheet": {
       "back": "Rückseite",
       "description": "Unterstützte Sprachen für diese Seite.",
+      "deleteConfirmation": {
+        "cancel": "Audio behalten",
+        "confirm": "Löschen",
+        "message": "Möchtest du dieses Audio wirklich löschen?",
+        "title": "Audio löschen?"
+      },
       "front": "Vorderseite",
       "headline": "Verfügbare Sprachen",
       "audioUnavailable": "Audio nicht verfügbar",

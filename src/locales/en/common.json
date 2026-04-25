@@ -43,6 +43,12 @@
     "soundSheet": {
       "back": "Back",
       "description": "Supported languages for this side.",
+      "deleteConfirmation": {
+        "cancel": "Keep audio",
+        "confirm": "Delete",
+        "message": "Do you really want to delete this audio?",
+        "title": "Delete audio?"
+      },
       "front": "Front",
       "headline": "Available languages",
       "audioUnavailable": "Audio unavailable",

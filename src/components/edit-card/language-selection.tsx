@@ -2,7 +2,14 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { SymbolView } from "expo-symbols"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Platform, Pressable, ScrollView, Text, View } from "react-native"
+import {
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import AndroidHeader from "@/components/UI/android-header"
@@ -44,11 +51,40 @@ export default function LanguageSelection() {
   const currentLocale = sideDraft.locale
   const [selectedLocale, setSelectedLocale] =
     useState<SupportedTtsLocale | null>(currentLocale)
+  const [lastNonNullSelectedLocale, setLastNonNullSelectedLocale] =
+    useState<SupportedTtsLocale | null>(currentLocale)
+  const hasExistingAudioAsset =
+    sideDraft.fileUrl != null || sideDraft.assetId != null
   const handleDismiss = () => {
     dismiss()
   }
   const handleSave = () => {
     if (selectedLocale === null) {
+      if (hasExistingAudioAsset) {
+        Alert.alert(
+          tSoundSheet("deleteConfirmation.title"),
+          tSoundSheet("deleteConfirmation.message"),
+          [
+            {
+              text: tSoundSheet("deleteConfirmation.cancel"),
+              style: "cancel",
+              onPress: () => {
+                setSelectedLocale(lastNonNullSelectedLocale)
+              },
+            },
+            {
+              text: tSoundSheet("deleteConfirmation.confirm"),
+              style: "destructive",
+              onPress: () => {
+                clearAudioSelectionDraftSide(side)
+                dismiss()
+              },
+            },
+          ],
+        )
+        return
+      }
+
       clearAudioSelectionDraftSide(side)
       dismiss()
       return
@@ -160,6 +196,10 @@ export default function LanguageSelection() {
                 key={language.locale ?? "none"}
                 onPress={() => {
                   setSelectedLocale(language.locale)
+
+                  if (language.locale !== null) {
+                    setLastNonNullSelectedLocale(language.locale)
+                  }
                 }}
                 style={({ pressed }) => [
                   styles.languageRow,
