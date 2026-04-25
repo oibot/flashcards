@@ -92,9 +92,9 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
   const cardSet = toStoredCardSet(card.cardSet)
   const resolvedContent = resolveCardContent(cardSet, card.variant)
   const sideAHasSound =
-    cardSet.sideATtsLocale !== undefined || card.cardSet.sideATtsAsset !== null
+    cardSet.sideATtsLocale !== undefined || card.cardSet.sideATtsAsset != null
   const sideBHasSound =
-    cardSet.sideBTtsLocale !== undefined || card.cardSet.sideBTtsAsset !== null
+    cardSet.sideBTtsLocale !== undefined || card.cardSet.sideBTtsAsset != null
 
   return {
     id: card.id,
