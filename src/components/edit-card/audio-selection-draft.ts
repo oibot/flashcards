@@ -10,6 +10,7 @@ export type AudioSelectionDraftSide = {
   locale: SupportedTtsLocale | null
   assetId: string | null
   fileUrl: string | null
+  isDirty: boolean
   status: AudioSelectionDraftStatus
 }
 
@@ -21,6 +22,7 @@ function createEmptySideDraft(): AudioSelectionDraftSide {
     locale: null,
     assetId: null,
     fileUrl: null,
+    isDirty: false,
     status: "idle",
   }
 }
@@ -85,6 +87,7 @@ export function clearAudioSelectionDraftSide(side: VisibleCardSide) {
     locale: null,
     assetId: null,
     fileUrl: null,
+    isDirty: true,
     status: "idle",
   }))
 }
@@ -98,6 +101,7 @@ export function setAudioSelectionDraftCreating(
     locale,
     assetId: null,
     fileUrl: null,
+    isDirty: true,
     status: "creating",
   }))
 }
@@ -113,6 +117,7 @@ export function setAudioSelectionDraftReady(
     locale,
     assetId,
     fileUrl,
+    isDirty: true,
     status: "ready",
   }))
 }
@@ -126,6 +131,7 @@ export function setAudioSelectionDraftError(
     locale,
     assetId: null,
     fileUrl: null,
+    isDirty: true,
     status: "error",
   }))
 }

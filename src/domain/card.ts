@@ -1,3 +1,4 @@
+import type { VisibleCardTtsSelectionPatch } from "@/domain/card-audio"
 import type { CardState } from "@/domain/card-state"
 import { normalizeWhitespace } from "@/utils/html"
 
@@ -36,6 +37,7 @@ export type Card = VisibleCardContent & {
 
 export type EditableCardInput = VisibleCardContent & {
   tags: string[]
+  tts?: VisibleCardTtsSelectionPatch
 }
 
 export type CardVariants = readonly [CardVariant, ...CardVariant[]]

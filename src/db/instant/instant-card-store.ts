@@ -18,6 +18,10 @@ import {
   type UpdateCardInput,
 } from "@/domain/card"
 import {
+  type CardSetTtsPatch,
+  toCanonicalCardTtsPatch,
+} from "@/domain/card-audio"
+import {
   CARD_BACKUP_APP,
   type CardBackupCard,
   type CardBackupCardSet,
@@ -64,6 +68,24 @@ function diffTags(previousTags: string[], nextTags: string[]) {
   return {
     tagsToLink: nextTags.filter((tag) => !previousTagSet.has(tag)),
     tagsToUnlink: previousTags.filter((tag) => !nextTagSet.has(tag)),
+  }
+}
+
+function hasOwnProperty<K extends PropertyKey>(
+  value: object,
+  key: K,
+): value is Record<K, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, key)
+}
+
+function buildCardSetTtsUpdateData(ttsPatch: CardSetTtsPatch) {
+  return {
+    ...(hasOwnProperty(ttsPatch, "sideATtsLocale")
+      ? { sideATtsLocale: ttsPatch.sideATtsLocale ?? null }
+      : {}),
+    ...(hasOwnProperty(ttsPatch, "sideBTtsLocale")
+      ? { sideBTtsLocale: ttsPatch.sideBTtsLocale ?? null }
+      : {}),
   }
 }
 
@@ -320,6 +342,7 @@ export const createInstantCardStore = (): CardStore => {
     const tags = parseTags(input.tags)
     const cardSetId = id()
     const now = Date.now()
+    const ttsPatch = toCanonicalCardTtsPatch(input.tts ?? {}, "forward")
     const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
       tags,
@@ -329,10 +352,23 @@ export const createInstantCardStore = (): CardStore => {
       .update({
         sideAHtml: input.frontHtml,
         sideBHtml: input.backHtml,
+        ...buildCardSetTtsUpdateData(ttsPatch),
         createdAt: now,
         updatedAt: now,
       })
       .link({ owner: currentUser.id })
+
+    if (typeof ttsPatch.sideATtsAssetId === "string") {
+      cardSetTransaction = cardSetTransaction.link({
+        sideATtsAsset: ttsPatch.sideATtsAssetId,
+      })
+    }
+
+    if (typeof ttsPatch.sideBTtsAssetId === "string") {
+      cardSetTransaction = cardSetTransaction.link({
+        sideBTtsAsset: ttsPatch.sideBTtsAssetId,
+      })
+    }
 
     if (tags.length > 0) {
       cardSetTransaction = cardSetTransaction.link({
@@ -391,6 +427,11 @@ export const createInstantCardStore = (): CardStore => {
       throw new Error("Card not found.")
     }
 
+    if (!currentCardRecord.cardSet) {
+      throw new Error("Card set not found.")
+    }
+
+    const currentCardSetRecord = currentCardRecord.cardSet
     const currentCard = toCard(currentCardRecord)
     const tags = parseTags(input.tags)
     const previousTags = parseTags(input.previousTags)
@@ -402,13 +443,42 @@ export const createInstantCardStore = (): CardStore => {
       },
       currentCard.variant,
     )
+    const ttsPatch = toCanonicalCardTtsPatch(
+      input.tts ?? {},
+      currentCard.variant,
+    )
     const { tagsToLink, tagsToUnlink } = diffTags(previousTags, tags)
 
     let cardSetTransaction = db.tx.cardSets[currentCard.cardSetId].update({
       sideAHtml,
       sideBHtml,
+      ...buildCardSetTtsUpdateData(ttsPatch),
       updatedAt: now,
     })
+
+    if (hasOwnProperty(ttsPatch, "sideATtsAssetId")) {
+      if (typeof ttsPatch.sideATtsAssetId === "string") {
+        cardSetTransaction = cardSetTransaction.link({
+          sideATtsAsset: ttsPatch.sideATtsAssetId,
+        })
+      } else if (currentCardSetRecord.sideATtsAsset?.id) {
+        cardSetTransaction = cardSetTransaction.unlink({
+          sideATtsAsset: currentCardSetRecord.sideATtsAsset.id,
+        })
+      }
+    }
+
+    if (hasOwnProperty(ttsPatch, "sideBTtsAssetId")) {
+      if (typeof ttsPatch.sideBTtsAssetId === "string") {
+        cardSetTransaction = cardSetTransaction.link({
+          sideBTtsAsset: ttsPatch.sideBTtsAssetId,
+        })
+      } else if (currentCardSetRecord.sideBTtsAsset?.id) {
+        cardSetTransaction = cardSetTransaction.unlink({
+          sideBTtsAsset: currentCardSetRecord.sideBTtsAsset.id,
+        })
+      }
+    }
 
     if (tagsToLink.length === 0 && tagsToUnlink.length === 0) {
       await db.transact(cardSetTransaction)

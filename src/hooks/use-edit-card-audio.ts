@@ -11,7 +11,10 @@ import {
   useAudioSelectionDraft,
 } from "@/components/edit-card/audio-selection-draft"
 import type { Card, VisibleCardSide } from "@/domain/card"
-import type { SupportedTtsLocale } from "@/domain/card-audio"
+import type {
+  SupportedTtsLocale,
+  VisibleCardTtsSelectionPatch,
+} from "@/domain/card-audio"
 import { useFileAudioPlayer } from "@/hooks/use-file-audio-player"
 import { hasMeaningfulHtmlContent } from "@/utils/html"
 
@@ -230,6 +233,24 @@ export function useEditCardAudio({
   return {
     front: createSideState("front"),
     back: createSideState("back"),
+    getPersistedSelection: (): VisibleCardTtsSelectionPatch => {
+      const selection: VisibleCardTtsSelectionPatch = {}
+
+      ;(["front", "back"] as const).forEach((side) => {
+        const sideDraft = audioSelectionDraft[side]
+
+        if (!sideDraft.isDirty) {
+          return
+        }
+
+        selection[side] = {
+          locale: sideDraft.locale,
+          assetId: sideDraft.assetId,
+        }
+      })
+
+      return selection
+    },
     resetDraft: resetAudioSelectionDraft,
   }
 }

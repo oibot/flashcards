@@ -9,6 +9,13 @@ type UseEditCardFormOptions = {
   initialCard?: Card
 }
 
+export type EditCardDraft = {
+  backHtml: string
+  frontHtml: string
+  hasOppositeDirection: boolean
+  tags: string[]
+}
+
 const areTagsEqual = (left: string[], right: string[]) => {
   return (
     left.length === right.length &&
@@ -63,7 +70,7 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     )
   }
 
-  const getDraft = async () => {
+  const getDraft = async (): Promise<EditCardDraft> => {
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
     const backHtml = (await backRef.current?.getHTML()) ?? ""
     const nextTags = tagInputRef.current?.commitInput() ?? tags

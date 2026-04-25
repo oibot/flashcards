@@ -68,9 +68,32 @@ export type CardSetTtsSelection = {
   sideBTtsAssetId?: string
 }
 
+export type CardSetTtsSelectionPatch = {
+  sideATtsAssetId?: string | null
+  sideBTtsAssetId?: string | null
+}
+
 export type CardSetTtsLocaleSelection = {
   sideATtsLocale?: SupportedTtsLocale
   sideBTtsLocale?: SupportedTtsLocale
+}
+
+export type CardSetTtsLocaleSelectionPatch = {
+  sideATtsLocale?: SupportedTtsLocale | null
+  sideBTtsLocale?: SupportedTtsLocale | null
+}
+
+export type CardSetTtsPatch = CardSetTtsLocaleSelectionPatch &
+  CardSetTtsSelectionPatch
+
+export type VisibleCardTtsSideSelection = {
+  locale: SupportedTtsLocale | null
+  assetId: string | null
+}
+
+export type VisibleCardTtsSelectionPatch = {
+  front?: VisibleCardTtsSideSelection
+  back?: VisibleCardTtsSideSelection
 }
 
 export type TtsAsset = {
@@ -124,6 +147,34 @@ export function getCardSetTtsLocale(
   }
 
   return selection.sideBTtsLocale
+}
+
+export function toCanonicalCardTtsPatch(
+  selection: VisibleCardTtsSelectionPatch,
+  variant: CardVariant,
+): CardSetTtsPatch {
+  const patch: CardSetTtsPatch = {}
+
+  ;(["front", "back"] as const).forEach((visibleSide) => {
+    const sideSelection = selection[visibleSide]
+
+    if (!sideSelection) {
+      return
+    }
+
+    const contentSide = resolveCardContentSide(variant, visibleSide)
+
+    if (contentSide === "sideA") {
+      patch.sideATtsLocale = sideSelection.locale
+      patch.sideATtsAssetId = sideSelection.assetId
+      return
+    }
+
+    patch.sideBTtsLocale = sideSelection.locale
+    patch.sideBTtsAssetId = sideSelection.assetId
+  })
+
+  return patch
 }
 
 export async function createTtsCacheKey(

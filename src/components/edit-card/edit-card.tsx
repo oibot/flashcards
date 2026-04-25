@@ -11,9 +11,15 @@ import { StyleSheet } from "react-native-unistyles"
 import { TagInput } from "@/components/UI/tag-input"
 import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
-import type { Card, CardVariants } from "@/domain/card"
+import type {
+  Card,
+  CardVariants,
+  NewCardInput,
+  UpdateCardInput,
+} from "@/domain/card"
 import { useEditCard } from "@/hooks/use-edit-card"
 import { useEditCardAudio } from "@/hooks/use-edit-card-audio"
+import type { EditCardDraft } from "@/hooks/use-edit-card-form"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
 import { hasMeaningfulHtmlContent } from "@/utils/html"
 
@@ -80,6 +86,29 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     return hasOppositeDirection ? ["forward", "reverse"] : ["forward"]
   }
 
+  const createNewCardInput = (draft: EditCardDraft): NewCardInput => ({
+    tags: draft.tags,
+    frontHtml: draft.frontHtml,
+    backHtml: draft.backHtml,
+    tts: audio.getPersistedSelection(),
+    variants: getVariants(draft.hasOppositeDirection),
+  })
+
+  const createUpdateCardInput = (draft: EditCardDraft): UpdateCardInput => {
+    if (!initialCard) {
+      throw new Error("Cannot create update payload without an initial card.")
+    }
+
+    return {
+      id: initialCard.id,
+      previousTags: initialCard.tags,
+      tags: draft.tags,
+      frontHtml: draft.frontHtml,
+      backHtml: draft.backHtml,
+      tts: audio.getPersistedSelection(),
+    }
+  }
+
   const handleClose = async () => {
     if (!(await hasUnsavedChanges())) {
       onClose()
@@ -105,26 +134,13 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       return
     }
 
-    const { backHtml, frontHtml, tags: nextTags } = draft
-
     if (initialCard) {
-      await updateCard({
-        id: initialCard.id,
-        previousTags: initialCard.tags,
-        tags: nextTags,
-        frontHtml,
-        backHtml,
-      })
+      await updateCard(createUpdateCardInput(draft))
       onClose()
       return
     }
 
-    await addCard({
-      tags: nextTags,
-      frontHtml,
-      backHtml,
-      variants: getVariants(draft.hasOppositeDirection),
-    })
+    await addCard(createNewCardInput(draft))
     onClose()
   }
 
@@ -132,12 +148,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
     const draft = await getValidatedDraft()
     if (!draft) return
 
-    await addCard({
-      tags: draft.tags,
-      frontHtml: draft.frontHtml,
-      backHtml: draft.backHtml,
-      variants: getVariants(draft.hasOppositeDirection),
-    })
+    await addCard(createNewCardInput(draft))
     audio.resetDraft()
     resetForm()
   }
