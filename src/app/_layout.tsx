@@ -60,7 +60,7 @@ export default function Layout() {
                   }}
                 />
                 <Stack.Screen
-                  name="(modals)/edit-card-sound"
+                  name="(modals)/edit-card-language-selection"
                   options={{
                     headerShown: true,
                     presentation: "formSheet",

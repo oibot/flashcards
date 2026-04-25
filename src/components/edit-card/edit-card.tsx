@@ -141,7 +141,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
 
   const openSoundSheet = (side: "front" | "back") => {
     push({
-      pathname: "/edit-card-sound",
+      pathname: "/edit-card-language-selection",
       params: { side },
     })
   }
