@@ -81,6 +81,20 @@ export function setAudioSelectionDraftHtml(
   }))
 }
 
+export function hydrateAudioSelectionDraftSide(
+  side: VisibleCardSide,
+  locale: SupportedTtsLocale | null,
+) {
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    locale,
+    assetId: null,
+    fileUrl: null,
+    isDirty: false,
+    status: "idle",
+  }))
+}
+
 export function clearAudioSelectionDraftSide(side: VisibleCardSide) {
   updateSide(side, (currentSide) => ({
     ...currentSide,

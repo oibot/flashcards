@@ -91,6 +91,10 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
 
   const cardSet = toStoredCardSet(card.cardSet)
   const resolvedContent = resolveCardContent(cardSet, card.variant)
+  const frontTtsLocale =
+    card.variant === "forward" ? cardSet.sideATtsLocale : cardSet.sideBTtsLocale
+  const backTtsLocale =
+    card.variant === "forward" ? cardSet.sideBTtsLocale : cardSet.sideATtsLocale
   const sideAHasSound =
     cardSet.sideATtsLocale !== undefined || card.cardSet.sideATtsAsset != null
   const sideBHasSound =
@@ -101,6 +105,8 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
     cardSetId: cardSet.id,
     variant: card.variant,
     tags: cardSet.tags,
+    frontTtsLocale,
+    backTtsLocale,
     frontHtml: resolvedContent.frontHtml,
     backHtml: resolvedContent.backHtml,
     frontHasSound: card.variant === "forward" ? sideAHasSound : sideBHasSound,

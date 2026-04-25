@@ -4,6 +4,7 @@ import { Alert } from "react-native"
 
 import { useAuthSession } from "@/auth/use-auth-session"
 import {
+  hydrateAudioSelectionDraftSide,
   resetAudioSelectionDraft,
   setAudioSelectionDraftError,
   setAudioSelectionDraftHtml,
@@ -90,11 +91,18 @@ export function useEditCardAudio({
     resetAudioSelectionDraft()
     setAudioSelectionDraftHtml("front", initialCard?.frontHtml ?? "")
     setAudioSelectionDraftHtml("back", initialCard?.backHtml ?? "")
+    hydrateAudioSelectionDraftSide("front", initialCard?.frontTtsLocale ?? null)
+    hydrateAudioSelectionDraftSide("back", initialCard?.backTtsLocale ?? null)
 
     return () => {
       resetAudioSelectionDraft()
     }
-  }, [initialCard?.backHtml, initialCard?.frontHtml])
+  }, [
+    initialCard?.backHtml,
+    initialCard?.backTtsLocale,
+    initialCard?.frontHtml,
+    initialCard?.frontTtsLocale,
+  ])
 
   useEffect(() => {
     const createDraftAudio = async (

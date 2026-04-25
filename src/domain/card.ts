@@ -1,4 +1,7 @@
-import type { VisibleCardTtsSelectionPatch } from "@/domain/card-audio"
+import type {
+  SupportedTtsLocale,
+  VisibleCardTtsSelectionPatch,
+} from "@/domain/card-audio"
 import type { CardState } from "@/domain/card-state"
 import { normalizeWhitespace } from "@/utils/html"
 
@@ -22,6 +25,8 @@ export type Card = VisibleCardContent & {
   cardSetId: string
   variant: CardVariant
   tags: string[]
+  frontTtsLocale?: SupportedTtsLocale
+  backTtsLocale?: SupportedTtsLocale
   frontHasSound: boolean
   backHasSound: boolean
   createdAt: number
