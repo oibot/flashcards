@@ -358,18 +358,6 @@ export const createInstantCardStore = (): CardStore => {
       })
       .link({ owner: currentUser.id })
 
-    if (typeof ttsPatch.sideATtsAssetId === "string") {
-      cardSetTransaction = cardSetTransaction.link({
-        sideATtsAsset: ttsPatch.sideATtsAssetId,
-      })
-    }
-
-    if (typeof ttsPatch.sideBTtsAssetId === "string") {
-      cardSetTransaction = cardSetTransaction.link({
-        sideBTtsAsset: ttsPatch.sideBTtsAssetId,
-      })
-    }
-
     if (tags.length > 0) {
       cardSetTransaction = cardSetTransaction.link({
         tags: toTagLookups(currentUser.id, tags),
@@ -427,11 +415,6 @@ export const createInstantCardStore = (): CardStore => {
       throw new Error("Card not found.")
     }
 
-    if (!currentCardRecord.cardSet) {
-      throw new Error("Card set not found.")
-    }
-
-    const currentCardSetRecord = currentCardRecord.cardSet
     const currentCard = toCard(currentCardRecord)
     const tags = parseTags(input.tags)
     const previousTags = parseTags(input.previousTags)
@@ -455,30 +438,6 @@ export const createInstantCardStore = (): CardStore => {
       ...buildCardSetTtsUpdateData(ttsPatch),
       updatedAt: now,
     })
-
-    if (hasOwnProperty(ttsPatch, "sideATtsAssetId")) {
-      if (typeof ttsPatch.sideATtsAssetId === "string") {
-        cardSetTransaction = cardSetTransaction.link({
-          sideATtsAsset: ttsPatch.sideATtsAssetId,
-        })
-      } else if (currentCardSetRecord.sideATtsAsset?.id) {
-        cardSetTransaction = cardSetTransaction.unlink({
-          sideATtsAsset: currentCardSetRecord.sideATtsAsset.id,
-        })
-      }
-    }
-
-    if (hasOwnProperty(ttsPatch, "sideBTtsAssetId")) {
-      if (typeof ttsPatch.sideBTtsAssetId === "string") {
-        cardSetTransaction = cardSetTransaction.link({
-          sideBTtsAsset: ttsPatch.sideBTtsAssetId,
-        })
-      } else if (currentCardSetRecord.sideBTtsAsset?.id) {
-        cardSetTransaction = cardSetTransaction.unlink({
-          sideBTtsAsset: currentCardSetRecord.sideBTtsAsset.id,
-        })
-      }
-    }
 
     if (tagsToLink.length === 0 && tagsToUnlink.length === 0) {
       await db.transact(cardSetTransaction)
