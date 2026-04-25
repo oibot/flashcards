@@ -51,7 +51,6 @@ function createEnsureTagTransactions(userId: string, tags: string[]) {
   return tags.map((tag) =>
     db.tx.tags[lookup("ownerTitle", toOwnerTitle(userId, tag))]
       .update({
-        ownerTitle: toOwnerTitle(userId, tag),
         title: tag,
       })
       .link({ owner: userId }),
