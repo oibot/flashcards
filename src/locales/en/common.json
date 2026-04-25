@@ -40,9 +40,98 @@
     "soundAction": "Set sound",
     "soundSheet": {
       "back": "Back",
-      "description": "This sheet will hold the sound controls for this side.",
+      "description": "Supported languages for this side.",
       "front": "Front",
-      "headline": "{{side}} sound",
+      "headline": "Available languages",
+      "languages": {
+        "ar-SA": {
+          "label": "Arabic"
+        },
+        "bg-BG": {
+          "label": "Bulgarian"
+        },
+        "cs-CZ": {
+          "label": "Czech"
+        },
+        "da-DK": {
+          "label": "Danish"
+        },
+        "de-DE": {
+          "label": "German"
+        },
+        "el-GR": {
+          "label": "Greek"
+        },
+        "en-US": {
+          "label": "English"
+        },
+        "es-ES": {
+          "label": "Spanish"
+        },
+        "fi-FI": {
+          "label": "Finnish"
+        },
+        "fil-PH": {
+          "label": "Filipino"
+        },
+        "fr-FR": {
+          "label": "French"
+        },
+        "hi-IN": {
+          "label": "Hindi"
+        },
+        "hr-HR": {
+          "label": "Croatian"
+        },
+        "id-ID": {
+          "label": "Indonesian"
+        },
+        "it-IT": {
+          "label": "Italian"
+        },
+        "ja-JP": {
+          "label": "Japanese"
+        },
+        "ko-KR": {
+          "label": "Korean"
+        },
+        "ms-MY": {
+          "label": "Malay"
+        },
+        "nl-NL": {
+          "label": "Dutch"
+        },
+        "pl-PL": {
+          "label": "Polish"
+        },
+        "pt-BR": {
+          "label": "Portuguese"
+        },
+        "ro-RO": {
+          "label": "Romanian"
+        },
+        "ru-RU": {
+          "label": "Russian"
+        },
+        "sk-SK": {
+          "label": "Slovak"
+        },
+        "sv-SE": {
+          "label": "Swedish"
+        },
+        "ta-IN": {
+          "label": "Tamil"
+        },
+        "tr-TR": {
+          "label": "Turkish"
+        },
+        "uk-UA": {
+          "label": "Ukrainian"
+        },
+        "zh-CN": {
+          "label": "Chinese"
+        }
+      },
       "title": "{{side}} Sound"
     },
     "saveCard": "Save card",

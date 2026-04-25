@@ -40,9 +40,98 @@
     "soundAction": "Sound festlegen",
     "soundSheet": {
       "back": "Rückseite",
-      "description": "Dieses Sheet enthält später die Sound-Einstellungen für diese Seite.",
+      "description": "Unterstützte Sprachen für diese Seite.",
       "front": "Vorderseite",
-      "headline": "Sound für {{side}}",
+      "headline": "Verfügbare Sprachen",
+      "languages": {
+        "ar-SA": {
+          "label": "Arabisch"
+        },
+        "bg-BG": {
+          "label": "Bulgarisch"
+        },
+        "cs-CZ": {
+          "label": "Tschechisch"
+        },
+        "da-DK": {
+          "label": "Dänisch"
+        },
+        "de-DE": {
+          "label": "Deutsch"
+        },
+        "el-GR": {
+          "label": "Griechisch"
+        },
+        "en-US": {
+          "label": "Englisch"
+        },
+        "es-ES": {
+          "label": "Spanisch"
+        },
+        "fi-FI": {
+          "label": "Finnisch"
+        },
+        "fil-PH": {
+          "label": "Filipino"
+        },
+        "fr-FR": {
+          "label": "Französisch"
+        },
+        "hi-IN": {
+          "label": "Hindi"
+        },
+        "hr-HR": {
+          "label": "Kroatisch"
+        },
+        "id-ID": {
+          "label": "Indonesisch"
+        },
+        "it-IT": {
+          "label": "Italienisch"
+        },
+        "ja-JP": {
+          "label": "Japanisch"
+        },
+        "ko-KR": {
+          "label": "Koreanisch"
+        },
+        "ms-MY": {
+          "label": "Malaiisch"
+        },
+        "nl-NL": {
+          "label": "Niederländisch"
+        },
+        "pl-PL": {
+          "label": "Polnisch"
+        },
+        "pt-BR": {
+          "label": "Portugiesisch"
+        },
+        "ro-RO": {
+          "label": "Rumänisch"
+        },
+        "ru-RU": {
+          "label": "Russisch"
+        },
+        "sk-SK": {
+          "label": "Slowakisch"
+        },
+        "sv-SE": {
+          "label": "Schwedisch"
+        },
+        "ta-IN": {
+          "label": "Tamil"
+        },
+        "tr-TR": {
+          "label": "Türkisch"
+        },
+        "uk-UA": {
+          "label": "Ukrainisch"
+        },
+        "zh-CN": {
+          "label": "Chinesisch"
+        }
+      },
       "title": "Sound für {{side}}"
     },
     "saveCard": "Karte speichern",

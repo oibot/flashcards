@@ -64,7 +64,7 @@ export default function Layout() {
                   options={{
                     headerShown: true,
                     presentation: "formSheet",
-                    sheetAllowedDetents: [0.45, 0.8],
+                    sheetAllowedDetents: [0.45, 1],
                     sheetGrabberVisible: true,
                   }}
                 />
