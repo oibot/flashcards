@@ -1,8 +1,9 @@
 import { SymbolView } from "expo-symbols"
 import type { RefObject } from "react"
-import { Pressable, Text, View } from "react-native"
+import { type NativeSyntheticEvent, Pressable, Text, View } from "react-native"
 import type {
   EnrichedTextInputInstance,
+  OnChangeHtmlEvent,
   OnChangeStateEvent,
 } from "react-native-enriched"
 import { EnrichedTextInput } from "react-native-enriched"
@@ -15,9 +16,12 @@ type CardSideFieldProps = {
   editorRef: RefObject<EnrichedTextInputInstance | null>
   onBlur: () => void
   onFocus: () => void
+  onChangeHtml?: (html: string) => void
   onStateChange: (nextState: OnChangeStateEvent) => void
   audioActionLabel?: string
+  audioActionDisabled?: boolean
   audioPreviewAccessibilityLabel?: string
+  audioPreviewLoading?: boolean
   audioValueLabel?: string
   isAudioPreviewDisabled?: boolean
   onPressAudioAction?: () => void
@@ -34,9 +38,12 @@ export default function CardSideField({
   editorRef,
   onBlur,
   onFocus,
+  onChangeHtml,
   onStateChange,
   audioActionLabel,
+  audioActionDisabled = false,
   audioPreviewAccessibilityLabel,
+  audioPreviewLoading = false,
   audioValueLabel,
   isAudioPreviewDisabled = true,
   onPressAudioAction,
@@ -50,6 +57,9 @@ export default function CardSideField({
       <EnrichedTextInput
         ref={editorRef}
         onBlur={onBlur}
+        onChangeHtml={(event: NativeSyntheticEvent<OnChangeHtmlEvent>) => {
+          onChangeHtml?.(event.nativeEvent.value)
+        }}
         onChangeState={(event) => onStateChange(event.nativeEvent)}
         onFocus={onFocus}
         style={styles.input}
@@ -62,9 +72,11 @@ export default function CardSideField({
         <View style={styles.audioControls}>
           <Pressable
             accessibilityRole="button"
+            disabled={audioActionDisabled}
             onPress={onPressAudioAction}
             style={({ pressed }) => [
               styles.audioRow,
+              audioActionDisabled ? styles.audioRowDisabled : null,
               pressed ? styles.audioRowPressed : null,
             ]}
           >
@@ -81,6 +93,7 @@ export default function CardSideField({
           <IconButtonAudio
             accessibilityLabel={audioPreviewAccessibilityLabel}
             disabled={isAudioPreviewDisabled}
+            loading={audioPreviewLoading}
             onPress={onPressAudioPreview}
             size={20}
             style={styles.audioPreviewButton}
@@ -133,6 +146,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   audioRowPressed: {
     opacity: 0.85,
+  },
+  audioRowDisabled: {
+    opacity: 0.5,
   },
   audioActionLabel: {
     ...theme.typography.styles.subheadline,

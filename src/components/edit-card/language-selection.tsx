@@ -14,7 +14,8 @@ import {
 
 import { TTS_LANGUAGE_NATIVE_LABELS } from "./audio-labels"
 import {
-  setAudioSelectionDraft,
+  clearAudioSelectionDraftSide,
+  setAudioSelectionDraftCreating,
   useAudioSelectionDraft,
 } from "./audio-selection-draft"
 
@@ -37,16 +38,23 @@ export default function LanguageSelection() {
   const isAndroid = Platform.OS === "android"
   const sideLabel = tSoundSheet(side)
   const audioSelectionDraft = useAudioSelectionDraft()
+  const sideDraft = audioSelectionDraft[side]
   const preferredLocale: SupportedTtsLocale =
     i18n.resolvedLanguage === "de" ? "de-DE" : "en-US"
-  const currentLocale = audioSelectionDraft[side]
+  const currentLocale = sideDraft.locale
   const [selectedLocale, setSelectedLocale] =
     useState<SupportedTtsLocale | null>(currentLocale)
   const handleDismiss = () => {
     dismiss()
   }
   const handleSave = () => {
-    setAudioSelectionDraft(side, selectedLocale)
+    if (selectedLocale === null) {
+      clearAudioSelectionDraftSide(side)
+      dismiss()
+      return
+    }
+
+    setAudioSelectionDraftCreating(side, selectedLocale)
     dismiss()
   }
   const languages = useMemo(() => {

@@ -3,12 +3,32 @@ import { useSyncExternalStore } from "react"
 import type { VisibleCardSide } from "@/domain/card"
 import type { SupportedTtsLocale } from "@/domain/card-audio"
 
-type AudioSelectionDraft = Record<VisibleCardSide, SupportedTtsLocale | null>
+export type AudioSelectionDraftStatus = "idle" | "creating" | "ready" | "error"
+
+export type AudioSelectionDraftSide = {
+  html: string
+  locale: SupportedTtsLocale | null
+  assetId: string | null
+  fileUrl: string | null
+  status: AudioSelectionDraftStatus
+}
+
+type AudioSelectionDraft = Record<VisibleCardSide, AudioSelectionDraftSide>
+
+function createEmptySideDraft(): AudioSelectionDraftSide {
+  return {
+    html: "",
+    locale: null,
+    assetId: null,
+    fileUrl: null,
+    status: "idle",
+  }
+}
 
 function createEmptyDraft(): AudioSelectionDraft {
   return {
-    front: null,
-    back: null,
+    front: createEmptySideDraft(),
+    back: createEmptySideDraft(),
   }
 }
 
@@ -34,19 +54,80 @@ function getSnapshot() {
   return currentDraft
 }
 
+function updateSide(
+  side: VisibleCardSide,
+  updater: (currentSide: AudioSelectionDraftSide) => AudioSelectionDraftSide,
+) {
+  currentDraft = {
+    ...currentDraft,
+    [side]: updater(currentDraft[side]),
+  }
+  emitChange()
+}
+
 export function useAudioSelectionDraft() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
-export function setAudioSelectionDraft(
+export function setAudioSelectionDraftHtml(
   side: VisibleCardSide,
-  locale: SupportedTtsLocale | null,
+  html: string,
 ) {
-  currentDraft = {
-    ...currentDraft,
-    [side]: locale,
-  }
-  emitChange()
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    html,
+  }))
+}
+
+export function clearAudioSelectionDraftSide(side: VisibleCardSide) {
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    locale: null,
+    assetId: null,
+    fileUrl: null,
+    status: "idle",
+  }))
+}
+
+export function setAudioSelectionDraftCreating(
+  side: VisibleCardSide,
+  locale: SupportedTtsLocale,
+) {
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    locale,
+    assetId: null,
+    fileUrl: null,
+    status: "creating",
+  }))
+}
+
+export function setAudioSelectionDraftReady(
+  side: VisibleCardSide,
+  locale: SupportedTtsLocale,
+  assetId: string,
+  fileUrl: string,
+) {
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    locale,
+    assetId,
+    fileUrl,
+    status: "ready",
+  }))
+}
+
+export function setAudioSelectionDraftError(
+  side: VisibleCardSide,
+  locale: SupportedTtsLocale,
+) {
+  updateSide(side, (currentSide) => ({
+    ...currentSide,
+    locale,
+    assetId: null,
+    fileUrl: null,
+    status: "error",
+  }))
 }
 
 export function resetAudioSelectionDraft() {

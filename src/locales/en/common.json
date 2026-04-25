@@ -24,6 +24,7 @@
     "backLabel": "Back",
     "cancel": "Cancel",
     "cancelAccessibilityLabel": "Cancel",
+    "audioUnavailable": "Audio unavailable",
     "discard": {
       "cancel": "Keep editing",
       "confirm": "Discard",
@@ -44,6 +45,7 @@
       "description": "Supported languages for this side.",
       "front": "Front",
       "headline": "Available languages",
+      "audioUnavailable": "Audio unavailable",
       "none": "None",
       "languages": {
         "ar-SA": {

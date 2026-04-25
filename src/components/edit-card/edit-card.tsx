@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, View } from "react-native"
 import {
@@ -13,13 +13,10 @@ import TagsMenu from "@/components/UI/tags-menu"
 import Toolbar from "@/components/UI/toolbar"
 import type { Card, CardVariants } from "@/domain/card"
 import { useEditCard } from "@/hooks/use-edit-card"
+import { useEditCardAudio } from "@/hooks/use-edit-card-audio"
 import { useEditCardForm } from "@/hooks/use-edit-card-form"
 import { hasMeaningfulHtmlContent } from "@/utils/html"
 
-import {
-  resetAudioSelectionDraft,
-  useAudioSelectionDraft,
-} from "./audio-selection-draft"
 import CardSideField from "./card-side-field"
 import EditCardHeader from "./edit-card-header"
 import OppositeDirectionToggle from "./opposite-direction-toggle"
@@ -37,7 +34,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
   const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
   const [focusedField, setFocusedField] = useState<FocusedField | null>(null)
-  const audioSelectionDraft = useAudioSelectionDraft()
+  const audio = useEditCardAudio({ initialCard })
   const {
     activeStyles,
     availableTags,
@@ -59,14 +56,6 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
   } = useEditCardForm({ initialCard })
   const isEditorToolbarEnabled =
     focusedField === "front" || focusedField === "back"
-
-  useEffect(() => {
-    resetAudioSelectionDraft()
-
-    return () => {
-      resetAudioSelectionDraft()
-    }
-  }, [])
 
   const createBlurHandler = (field: FocusedField) => () => {
     setFocusedField((currentField) =>
@@ -149,6 +138,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       backHtml: draft.backHtml,
       variants: getVariants(draft.hasOppositeDirection),
     })
+    audio.resetDraft()
     resetForm()
   }
 
@@ -157,16 +147,6 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
       pathname: "/edit-card-language-selection",
       params: { side },
     })
-  }
-
-  const getAudioValueLabel = (side: "front" | "back") => {
-    const selectedLocale = audioSelectionDraft[side]
-
-    if (!selectedLocale) {
-      return t("soundSheet.none")
-    }
-
-    return t(`soundSheet.languages.${selectedLocale}.label`)
   }
 
   return (
@@ -201,12 +181,15 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
           />
           <CardSideField
             audioActionLabel={t("audioLabel")}
+            audioActionDisabled={audio.front.isActionDisabled}
             audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
-            audioValueLabel={getAudioValueLabel("front")}
+            audioPreviewLoading={audio.front.isPreviewLoading}
+            audioValueLabel={audio.front.valueLabel}
             editorRef={frontRef}
-            isAudioPreviewDisabled={audioSelectionDraft.front == null}
+            isAudioPreviewDisabled={audio.front.isPreviewDisabled}
             label={t("frontLabel")}
             onBlur={createBlurHandler("front")}
+            onChangeHtml={audio.front.setHtml}
             onFocus={() => {
               setFocusedField("front")
               handleEditorFocus("front")
@@ -214,19 +197,22 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             onPressAudioAction={() => {
               openSoundSheet("front")
             }}
-            onPressAudioPreview={() => {}}
+            onPressAudioPreview={audio.front.playPreview}
             onStateChange={(nextState) =>
               handleEditorStateChange("front", nextState)
             }
           />
           <CardSideField
             audioActionLabel={t("audioLabel")}
+            audioActionDisabled={audio.back.isActionDisabled}
             audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
-            audioValueLabel={getAudioValueLabel("back")}
+            audioPreviewLoading={audio.back.isPreviewLoading}
+            audioValueLabel={audio.back.valueLabel}
             editorRef={backRef}
-            isAudioPreviewDisabled={audioSelectionDraft.back == null}
+            isAudioPreviewDisabled={audio.back.isPreviewDisabled}
             label={t("backLabel")}
             onBlur={createBlurHandler("back")}
+            onChangeHtml={audio.back.setHtml}
             onFocus={() => {
               setFocusedField("back")
               handleEditorFocus("back")
@@ -234,7 +220,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             onPressAudioAction={() => {
               openSoundSheet("back")
             }}
-            onPressAudioPreview={() => {}}
+            onPressAudioPreview={audio.back.playPreview}
             onStateChange={(nextState) =>
               handleEditorStateChange("back", nextState)
             }

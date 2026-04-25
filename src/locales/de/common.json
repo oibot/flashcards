@@ -24,6 +24,7 @@
     "backLabel": "Rückseite",
     "cancel": "Abbrechen",
     "cancelAccessibilityLabel": "Abbrechen",
+    "audioUnavailable": "Audio nicht verfügbar",
     "discard": {
       "cancel": "Weiter bearbeiten",
       "confirm": "Verwerfen",
@@ -44,6 +45,7 @@
       "description": "Unterstützte Sprachen für diese Seite.",
       "front": "Vorderseite",
       "headline": "Verfügbare Sprachen",
+      "audioUnavailable": "Audio nicht verfügbar",
       "none": "Keine",
       "languages": {
         "ar-SA": {

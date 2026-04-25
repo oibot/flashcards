@@ -1,14 +1,10 @@
-import {
-  setAudioModeAsync,
-  useAudioPlayer,
-  useAudioPlayerStatus,
-} from "expo-audio"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/auth/use-auth-session"
 import type { VisibleCardSide } from "@/domain/card"
 import type { TtsResolveReadyResponse } from "@/domain/card-audio"
+import { useFileAudioPlayer } from "@/hooks/use-file-audio-player"
 
 type UseReviewCardAudioOptions = {
   cardId: string
@@ -51,137 +47,25 @@ export function useReviewCardAudio({
 }: UseReviewCardAudioOptions) {
   const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
   const { status, user } = useAuthSession()
-  const player = useAudioPlayer(null, {
-    updateInterval: 250,
+  const [resolvedFileUrl, setResolvedFileUrl] = useState<string | null>(null)
+  const fileAudioPlayer = useFileAudioPlayer({
+    resetKey: `${cardId}:${visibleSide}`,
+    sourceUrl: resolvedFileUrl,
   })
-  const playerStatus = useAudioPlayerStatus(player)
-  const currentSourceUrlRef = useRef<string | null>(null)
-  const previousPlayerStatusRef = useRef<{
-    currentTime: number
-    didJustFinish: boolean
-    duration: number
-    isBuffering: boolean
-    isLoaded: boolean
-    playbackState: string
-    playing: boolean
-    reasonForWaitingToPlay: string
-    timeControlStatus: string
-  } | null>(null)
   const [isResolving, setIsResolving] = useState(false)
-  const [shouldPlayWhenLoaded, setShouldPlayWhenLoaded] = useState(false)
 
   useEffect(() => {
-    const configureAudioMode = async () => {
-      await setAudioModeAsync({
-        interruptionMode: "duckOthers",
-        playsInSilentMode: true,
-        shouldPlayInBackground: false,
-      })
-    }
-
-    configureAudioMode().catch((error) => {
-      console.error("Failed to configure review card audio mode.", error)
-    })
-  }, [])
-
-  useEffect(() => {
-    player.pause()
-    currentSourceUrlRef.current = null
+    setResolvedFileUrl(null)
     setIsResolving(false)
-    setShouldPlayWhenLoaded(false)
-  }, [cardId, player, visibleSide])
-
-  useEffect(() => {
-    const previousStatus = previousPlayerStatusRef.current
-    const nextStatus = {
-      currentTime: playerStatus.currentTime,
-      didJustFinish: playerStatus.didJustFinish,
-      duration: playerStatus.duration,
-      isBuffering: playerStatus.isBuffering,
-      isLoaded: playerStatus.isLoaded,
-      playbackState: playerStatus.playbackState,
-      playing: playerStatus.playing,
-      reasonForWaitingToPlay: playerStatus.reasonForWaitingToPlay,
-      timeControlStatus: playerStatus.timeControlStatus,
-    }
-
-    if (
-      previousStatus === null ||
-      previousStatus.isLoaded !== nextStatus.isLoaded ||
-      previousStatus.isBuffering !== nextStatus.isBuffering ||
-      previousStatus.playing !== nextStatus.playing ||
-      previousStatus.didJustFinish !== nextStatus.didJustFinish ||
-      previousStatus.playbackState !== nextStatus.playbackState ||
-      previousStatus.timeControlStatus !== nextStatus.timeControlStatus ||
-      previousStatus.reasonForWaitingToPlay !==
-        nextStatus.reasonForWaitingToPlay
-    ) {
-      console.log("Review card audio player status changed.", {
-        cardId,
-        visibleSide,
-        ...nextStatus,
-      })
-    }
-
-    previousPlayerStatusRef.current = nextStatus
-  }, [
-    cardId,
-    playerStatus.currentTime,
-    playerStatus.didJustFinish,
-    playerStatus.duration,
-    playerStatus.isBuffering,
-    playerStatus.isLoaded,
-    playerStatus.playbackState,
-    playerStatus.playing,
-    playerStatus.reasonForWaitingToPlay,
-    playerStatus.timeControlStatus,
-    visibleSide,
-  ])
-
-  useEffect(() => {
-    if (!shouldPlayWhenLoaded || !playerStatus.isLoaded) {
-      return
-    }
-
-    const startPlayback = async () => {
-      try {
-        await player.seekTo(0)
-        player.play()
-        console.log("Started review card audio playback.", {
-          cardId,
-          visibleSide,
-          duration: playerStatus.duration,
-          sourceUrl: currentSourceUrlRef.current,
-        })
-      } catch (error) {
-        currentSourceUrlRef.current = null
-        player.pause()
-        console.error("Failed to start review card audio playback.", error)
-      } finally {
-        setShouldPlayWhenLoaded(false)
-      }
-    }
-
-    void startPlayback()
-  }, [
-    cardId,
-    player,
-    playerStatus.duration,
-    playerStatus.isLoaded,
-    shouldPlayWhenLoaded,
-    t,
-    visibleSide,
-  ])
+  }, [cardId, visibleSide])
 
   const playAudio = async (): Promise<PlayAudioResult> => {
-    if (isResolving || shouldPlayWhenLoaded) {
+    if (isResolving || fileAudioPlayer.isLoading) {
       return { ok: true }
     }
 
-    if (currentSourceUrlRef.current && playerStatus.isLoaded) {
-      await player.seekTo(0)
-      player.play()
-      return { ok: true }
+    if (resolvedFileUrl) {
+      return fileAudioPlayer.playAudio()
     }
 
     if (status !== "signed-in" || !user?.refreshToken) {
@@ -229,14 +113,10 @@ export function useReviewCardAudio({
         throw new Error(t("audioUnavailable"))
       }
 
-      currentSourceUrlRef.current = payload.fileUrl
-      setShouldPlayWhenLoaded(true)
-      player.replace(payload.fileUrl)
-      return { ok: true }
+      setResolvedFileUrl(payload.fileUrl)
+      return fileAudioPlayer.playAudio(payload.fileUrl)
     } catch (error) {
-      currentSourceUrlRef.current = null
-      player.pause()
-      setShouldPlayWhenLoaded(false)
+      setResolvedFileUrl(null)
       console.error("Review card audio playback failed.", error)
       return { message: t("audioUnavailable"), ok: false }
     } finally {
@@ -245,8 +125,8 @@ export function useReviewCardAudio({
   }
 
   return {
-    isLoading: isResolving,
-    isPlaying: playerStatus.playing,
+    isLoading: isResolving || fileAudioPlayer.isLoading,
+    isPlaying: fileAudioPlayer.isPlaying,
     playAudio,
   }
 }
