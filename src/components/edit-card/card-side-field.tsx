@@ -9,7 +9,12 @@ import type {
 import { EnrichedTextInput } from "react-native-enriched"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { IconButtonAudio } from "@/components/UI/icon-button"
+import {
+  IconButtonAudio,
+  IconButtonAudioNone,
+  IconButtonAudioSelected,
+  IconButtonAudioStale,
+} from "@/components/UI/icon-button"
 
 type CardSideFieldProps = {
   label: string
@@ -22,6 +27,7 @@ type CardSideFieldProps = {
   audioActionDisabled?: boolean
   audioPreviewAccessibilityLabel?: string
   audioPreviewLoading?: boolean
+  audioPreviewState?: "none" | "selected" | "stale" | "ready"
   audioValueLabel?: string
   isAudioPreviewDisabled?: boolean
   onPressAudioAction?: () => void
@@ -44,12 +50,25 @@ export default function CardSideField({
   audioActionDisabled = false,
   audioPreviewAccessibilityLabel,
   audioPreviewLoading = false,
+  audioPreviewState = "none",
   audioValueLabel,
   isAudioPreviewDisabled = true,
   onPressAudioAction,
   onPressAudioPreview,
 }: CardSideFieldProps) {
   const { theme } = useUnistyles()
+  const audioPreviewTintColor =
+    audioPreviewState === "ready" ? theme.colors.accent : theme.colors.secondary
+  const audioPreviewBorderStyle =
+    audioPreviewState === "ready" ? styles.audioPreviewButtonReady : null
+  const AudioPreviewButton =
+    audioPreviewState === "none"
+      ? IconButtonAudioNone
+      : audioPreviewState === "selected"
+        ? IconButtonAudioSelected
+        : audioPreviewState === "stale"
+          ? IconButtonAudioStale
+          : IconButtonAudio
 
   return (
     <View style={styles.field}>
@@ -90,14 +109,14 @@ export default function CardSideField({
               />
             </View>
           </Pressable>
-          <IconButtonAudio
+          <AudioPreviewButton
             accessibilityLabel={audioPreviewAccessibilityLabel}
             disabled={isAudioPreviewDisabled}
             loading={audioPreviewLoading}
             onPress={onPressAudioPreview}
             size={20}
-            style={styles.audioPreviewButton}
-            tintColor={theme.colors.primary}
+            style={[styles.audioPreviewButton, audioPreviewBorderStyle]}
+            tintColor={audioPreviewTintColor}
           />
         </View>
       ) : null}
@@ -170,5 +189,8 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.secondaryBackground,
     borderWidth: 1,
     borderColor: theme.colors.chromeMuted,
+  },
+  audioPreviewButtonReady: {
+    borderColor: theme.colors.accent,
   },
 }))

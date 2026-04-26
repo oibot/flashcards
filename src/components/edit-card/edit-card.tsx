@@ -203,6 +203,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             audioActionDisabled={audio.front.isActionDisabled}
             audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
             audioPreviewLoading={audio.front.isPreviewLoading}
+            audioPreviewState={audio.front.previewState}
             audioValueLabel={audio.front.valueLabel}
             editorRef={frontRef}
             isAudioPreviewDisabled={audio.front.isPreviewDisabled}
@@ -226,6 +227,7 @@ export default function EditCard({ initialCard, onClose }: EditCardProps) {
             audioActionDisabled={audio.back.isActionDisabled}
             audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
             audioPreviewLoading={audio.back.isPreviewLoading}
+            audioPreviewState={audio.back.previewState}
             audioValueLabel={audio.back.valueLabel}
             editorRef={backRef}
             isAudioPreviewDisabled={audio.back.isPreviewDisabled}

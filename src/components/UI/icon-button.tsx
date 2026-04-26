@@ -26,6 +26,18 @@ const audioIconName = {
   ios: "speaker.wave.2.fill",
   android: "volume_up",
 } as const
+const audioNoneIconName = {
+  ios: "speaker.slash",
+  android: "volume_off",
+} as const
+const audioSelectedIconName = {
+  ios: "speaker.wave.2",
+  android: "volume_up",
+} as const
+const audioStaleIconName = {
+  ios: "arrow.clockwise.circle",
+  android: "refresh",
+} as const
 
 function IconButtonBase({
   iconName,
@@ -83,6 +95,18 @@ export function IconButtonPencil(props: IconButtonInstanceProps) {
 
 export function IconButtonAudio(props: IconButtonInstanceProps) {
   return <IconButtonBase {...props} iconName={audioIconName} />
+}
+
+export function IconButtonAudioNone(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={audioNoneIconName} />
+}
+
+export function IconButtonAudioSelected(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={audioSelectedIconName} />
+}
+
+export function IconButtonAudioStale(props: IconButtonInstanceProps) {
+  return <IconButtonBase {...props} iconName={audioStaleIconName} />
 }
 
 const styles = StyleSheet.create({

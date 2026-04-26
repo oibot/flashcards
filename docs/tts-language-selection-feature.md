@@ -315,6 +315,16 @@ Because locale and voice remain in the key:
 - changing the server voice mapping also produces a different cache key
 - old assets remain valid shared cache entries
 
+When a side's text changes later:
+
+- keep the selected locale
+- clear the side's current asset association in app draft state
+- require a fresh generation before preview is playable again
+- do not delete the underlying shared asset, because it is still a cache entry
+
+Review playback should also verify the current cache key before trusting an
+attached asset, so stale associations cannot produce incorrect playback.
+
 ## Failure Handling
 
 If a locale is selected but there is no configured voice profile:
@@ -428,6 +438,27 @@ Exit criteria:
 - verify cancelling the sheet does not save or generate audio
 - verify selecting a language saves the locale and plays audio
 - verify second play on the same side does not ask again
+
+## Follow-up: Text Edits After Audio Creation
+
+The locale-selection flow is correct only if later text edits do not keep
+pretending that old audio is still valid.
+
+Follow-up rollout:
+
+### Step 1: App-side invalidation
+
+- when side text changes, keep the selected locale
+- clear the draft asset and preview URL for that side
+- make the preview UI clearly show that the locale still exists but audio needs
+  regeneration
+
+### Step 2: Server-side verification
+
+- during review resolve, recompute the current cache key from saved text and
+  locale
+- only trust an attached asset if its `cacheKey` still matches
+- otherwise relink or regenerate
 - verify front and back sides can have different locales
 - verify generated assets are cached per text plus resolved TTS config
 

@@ -3,7 +3,7 @@ import type {
   CardVariant,
   VisibleCardSide,
 } from "@/domain/card"
-import { normalizeWhitespace } from "@/utils/html"
+import { extractPlainTextFromHtml, normalizeWhitespace } from "@/utils/html"
 
 export type TtsProvider = "elevenlabs"
 export type TtsOutputFormat = "mp3"
@@ -106,6 +106,14 @@ export function resolveCardContentSide(
 
 export function normalizeTtsSourceText(text: string) {
   return normalizeWhitespace(text)
+}
+
+export function extractTtsSourceTextFromHtml(html: string) {
+  return extractPlainTextFromHtml(html)
+}
+
+export function extractNormalizedTtsTextFromHtml(html: string) {
+  return normalizeTtsSourceText(extractTtsSourceTextFromHtml(html))
 }
 
 export function isSupportedTtsLocale(

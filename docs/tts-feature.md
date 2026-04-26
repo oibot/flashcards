@@ -310,6 +310,72 @@ An asset is considered active if any `cardSet` references it from:
 An asset with no incoming side references is stale and can be cleaned up later,
 along with its stored MP3 file.
 
+## Editing After Audio Exists
+
+The selected locale remains the source of truth for a card side.
+
+The attached `ttsAsset` is only a cached rendering of:
+
+- normalized current text
+- selected locale
+- current model and voice configuration
+
+That means text edits must not silently keep treating the old asset as valid.
+
+### App-side behavior
+
+When a user edits a side after audio already exists:
+
+- keep the selected locale
+- clear the side's current asset association in draft state
+- clear the side's preview file URL in draft state
+- require a fresh generation before preview becomes playable again
+
+The UI should make that state visible. In particular, the preview control should
+communicate the difference between:
+
+- no audio configured
+- locale selected but no current audio
+- audio currently generating
+- audio ready to play
+
+The app should unlink stale side associations later on save, but it should not
+delete the underlying shared `ttsAsset`. Shared assets remain cache entries and
+may still be reusable by other cards or by the same text later.
+
+### Server-side behavior
+
+The resolver must not trust an attached asset just because a file URL exists.
+
+Instead, review playback should:
+
+1. load the current saved text
+2. normalize the current text
+3. resolve the current locale and voice configuration
+4. compute the current cache key
+5. only use the attached asset if its `cacheKey` matches the current key
+6. otherwise look up a shared asset with the current key
+7. relink if a matching shared asset exists
+8. generate a new asset if no matching shared asset exists
+
+This makes the attached asset relation a cache hint rather than the source of
+truth.
+
+### Why both layers matter
+
+The app-side invalidation gives the user correct edit behavior and clear UI
+feedback.
+
+The server-side verification protects review playback from stale associations
+that can still exist because of:
+
+- partial save flows where card text save succeeds but asset attach/unlink does
+  not
+- older saved data created before invalidation existed
+- future bugs or manual/admin inconsistencies
+
+The feature should rely on both layers.
+
 ## UI
 
 ### Review card
@@ -415,6 +481,34 @@ client bundle.
 11. Add localization copy for playback errors and loading.
 12. Verify repeated playback reuses the cached file across sessions and keeps
     side references aligned.
+
+## Next Steps
+
+### Step 1: App-side stale-audio invalidation
+
+- when side text changes, keep the selected locale but clear the draft asset
+  and draft file URL for that side
+- make the preview control state more explicit so the user can see whether
+  audio is ready or needs regeneration
+- persist the cleared association when the card is saved
+
+Exit criteria:
+
+- editing text after audio creation disables preview until fresh audio exists
+- the selected locale remains visible after text edits
+- save unlinks stale side associations without deleting shared assets
+
+### Step 2: Server-side stale-association verification
+
+- update `POST /api/tts/resolve` so it computes the current cache key before
+  trusting an attached asset
+- only return an attached asset when its `cacheKey` still matches current text
+- otherwise relink to a matching shared asset or generate a new one
+
+Exit criteria:
+
+- review playback cannot use stale audio just because an old asset is attached
+- attached side assets are treated as cache hints, not as the source of truth
 
 ## Open Questions
 

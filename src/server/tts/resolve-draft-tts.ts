@@ -1,6 +1,7 @@
 import {
   createTtsCacheKey,
-  normalizeTtsSourceText,
+  extractNormalizedTtsTextFromHtml,
+  extractTtsSourceTextFromHtml,
   type SupportedTtsLocale,
 } from "@/domain/card-audio"
 import {
@@ -21,8 +22,6 @@ import {
   logTtsWarn,
   summarizeCacheKey,
 } from "@/server/tts/log"
-import { extractPlainTextFromHtml } from "@/utils/html"
-
 type ResolveDraftTtsInput = {
   userId: string
   html: string
@@ -59,8 +58,8 @@ export async function resolveDraftTts({
     locale,
   })
 
-  const sourceText = extractPlainTextFromHtml(html)
-  const normalizedText = normalizeTtsSourceText(sourceText)
+  const sourceText = extractTtsSourceTextFromHtml(html)
+  const normalizedText = extractNormalizedTtsTextFromHtml(html)
 
   if (normalizedText.length === 0) {
     logTtsWarn("Draft side has no speakable text", {

@@ -6,6 +6,7 @@ import { useAuthSession } from "@/auth/use-auth-session"
 import {
   hydrateAudioSelectionDraftSide,
   resetAudioSelectionDraft,
+  setAudioSelectionDraftCreating,
   setAudioSelectionDraftError,
   setAudioSelectionDraftHtml,
   setAudioSelectionDraftReady,
@@ -15,6 +16,7 @@ import type { Card, VisibleCardSide } from "@/domain/card"
 import type {
   CardSetTtsSelectionPatch,
   SupportedTtsLocale,
+  TtsResolveReadyResponse,
   VisibleCardTtsSelectionPatch,
 } from "@/domain/card-audio"
 import { toCanonicalCardTtsSelectionPatch } from "@/domain/card-audio"
@@ -31,11 +33,14 @@ type DraftTtsErrorResponse = {
   error: string
 }
 
+type AudioPreviewState = "none" | "selected" | "stale" | "ready"
+
 type EditCardAudioSideState = {
   valueLabel: string
   isActionDisabled: boolean
   isPreviewDisabled: boolean
   isPreviewLoading: boolean
+  previewState: AudioPreviewState
   setHtml: (html: string) => void
   playPreview: () => Promise<void>
 }
@@ -82,6 +87,21 @@ function isAttachTtsErrorResponse(
     value !== null &&
     "error" in value &&
     typeof value.error === "string"
+  )
+}
+
+function isResolveTtsReadyResponse(
+  value: unknown,
+): value is TtsResolveReadyResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "status" in value &&
+    value.status === "ready" &&
+    "assetId" in value &&
+    typeof value.assetId === "string" &&
+    "fileUrl" in value &&
+    typeof value.fileUrl === "string"
   )
 }
 
@@ -240,6 +260,11 @@ export function useEditCardAudio({
     const sideDraft = audioSelectionDraft[side]
     const audioPreview = side === "front" ? frontAudioPreview : backAudioPreview
     const hasMeaningfulContent = hasMeaningfulHtmlContent(sideDraft.html)
+    const canResolvePersistedAudio =
+      initialCard?.id != null &&
+      sideDraft.locale != null &&
+      !sideDraft.isDirty &&
+      sideDraft.status !== "stale"
 
     return {
       valueLabel: sideDraft.locale
@@ -248,14 +273,71 @@ export function useEditCardAudio({
       isActionDisabled: !hasMeaningfulContent,
       isPreviewDisabled:
         !hasMeaningfulContent ||
-        sideDraft.fileUrl == null ||
+        (sideDraft.fileUrl == null &&
+          sideDraft.status !== "stale" &&
+          !canResolvePersistedAudio) ||
         sideDraft.status === "creating",
       isPreviewLoading:
         sideDraft.status === "creating" || audioPreview.isLoading,
+      previewState: !sideDraft.locale
+        ? "none"
+        : sideDraft.fileUrl
+          ? "ready"
+          : sideDraft.status === "stale"
+            ? "stale"
+            : "selected",
       setHtml: (html) => {
         setAudioSelectionDraftHtml(side, html)
       },
       playPreview: async () => {
+        if (sideDraft.status === "stale" && sideDraft.locale) {
+          setAudioSelectionDraftCreating(side, sideDraft.locale)
+          return
+        }
+
+        if (
+          sideDraft.fileUrl == null &&
+          canResolvePersistedAudio &&
+          status === "signed-in" &&
+          user?.refreshToken
+        ) {
+          try {
+            const response = await fetch("/api/tts/resolve", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${user.refreshToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                cardId: initialCard.id,
+                visibleSide: side,
+              }),
+            })
+            const payload: unknown = await response.json().catch(() => null)
+
+            if (!response.ok || !isResolveTtsReadyResponse(payload)) {
+              throw new Error(t("audioUnavailable"))
+            }
+
+            hydrateAudioSelectionDraftSide(side, {
+              locale: sideDraft.locale,
+              assetId: payload.assetId,
+              fileUrl: payload.fileUrl,
+            })
+
+            const result = await audioPreview.playAudio(payload.fileUrl)
+
+            if (!result.ok) {
+              Alert.alert(t("audioUnavailable"))
+            }
+
+            return
+          } catch {
+            Alert.alert(t("audioUnavailable"))
+            return
+          }
+        }
+
         const result = await audioPreview.playAudio()
 
         if (!result.ok) {

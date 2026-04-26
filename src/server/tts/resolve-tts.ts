@@ -5,9 +5,10 @@ import {
 } from "@/domain/card"
 import {
   createTtsCacheKey,
+  extractNormalizedTtsTextFromHtml,
+  extractTtsSourceTextFromHtml,
   getCardSetTtsLocale,
   isSupportedTtsLocale,
-  normalizeTtsSourceText,
   resolveCardContentSide,
   type TtsResolveReadyResponse,
   type TtsResolveResponse,
@@ -35,8 +36,6 @@ import {
   logTtsWarn,
   summarizeCacheKey,
 } from "@/server/tts/log"
-import { extractPlainTextFromHtml } from "@/utils/html"
-
 type ResolveTtsInput = {
   userId: string
   cardId: string
@@ -118,8 +117,8 @@ export async function resolveTts({
 
   const html =
     visibleSide === "front" ? visibleContent.frontHtml : visibleContent.backHtml
-  const sourceText = extractPlainTextFromHtml(html)
-  const normalizedText = normalizeTtsSourceText(sourceText)
+  const sourceText = extractTtsSourceTextFromHtml(html)
+  const normalizedText = extractNormalizedTtsTextFromHtml(html)
 
   if (normalizedText.length === 0) {
     logTtsWarn("Review card side has no speakable text", {

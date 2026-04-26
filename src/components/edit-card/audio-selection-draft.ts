@@ -1,15 +1,24 @@
 import { useSyncExternalStore } from "react"
 
 import type { VisibleCardSide } from "@/domain/card"
-import type { SupportedTtsLocale } from "@/domain/card-audio"
+import {
+  extractNormalizedTtsTextFromHtml,
+  type SupportedTtsLocale,
+} from "@/domain/card-audio"
 
-export type AudioSelectionDraftStatus = "idle" | "creating" | "ready" | "error"
+export type AudioSelectionDraftStatus =
+  | "idle"
+  | "creating"
+  | "ready"
+  | "error"
+  | "stale"
 
 export type AudioSelectionDraftSide = {
   html: string
   locale: SupportedTtsLocale | null
   assetId: string | null
   fileUrl: string | null
+  audioText: string | null
   isDirty: boolean
   status: AudioSelectionDraftStatus
 }
@@ -26,9 +35,16 @@ function createEmptySideDraft(): AudioSelectionDraftSide {
     locale: null,
     assetId: null,
     fileUrl: null,
+    audioText: null,
     isDirty: false,
     status: "idle",
   }
+}
+
+function toNormalizedAudioText(html: string) {
+  const normalizedText = extractNormalizedTtsTextFromHtml(html)
+
+  return normalizedText.length > 0 ? normalizedText : null
 }
 
 function createEmptyDraft(): AudioSelectionDraft {
@@ -79,10 +95,32 @@ export function setAudioSelectionDraftHtml(
   side: VisibleCardSide,
   html: string,
 ) {
-  updateSide(side, (currentSide) => ({
-    ...currentSide,
-    html,
-  }))
+  updateSide(side, (currentSide) => {
+    const previousHtmlText = toNormalizedAudioText(currentSide.html)
+    const nextHtmlText = toNormalizedAudioText(html)
+    const didTextChange = previousHtmlText !== nextHtmlText
+    const shouldInvalidateReadyAudio =
+      currentSide.audioText !== null && currentSide.audioText !== nextHtmlText
+    const shouldCancelPendingAudio =
+      currentSide.status === "creating" && didTextChange
+
+    if (!shouldInvalidateReadyAudio && !shouldCancelPendingAudio) {
+      return {
+        ...currentSide,
+        html,
+      }
+    }
+
+    return {
+      ...currentSide,
+      html,
+      assetId: null,
+      fileUrl: null,
+      audioText: null,
+      isDirty: true,
+      status: shouldInvalidateReadyAudio ? "stale" : "idle",
+    }
+  })
 }
 
 export function hydrateAudioSelectionDraftSide(
@@ -94,6 +132,10 @@ export function hydrateAudioSelectionDraftSide(
     locale: value.locale,
     assetId: value.assetId,
     fileUrl: value.fileUrl,
+    audioText:
+      value.assetId != null || value.fileUrl != null
+        ? toNormalizedAudioText(currentSide.html)
+        : null,
     isDirty: false,
     status: value.fileUrl ? "ready" : "idle",
   }))
@@ -105,6 +147,7 @@ export function clearAudioSelectionDraftSide(side: VisibleCardSide) {
     locale: null,
     assetId: null,
     fileUrl: null,
+    audioText: null,
     isDirty: true,
     status: "idle",
   }))
@@ -119,6 +162,7 @@ export function setAudioSelectionDraftCreating(
     locale,
     assetId: null,
     fileUrl: null,
+    audioText: null,
     isDirty: true,
     status: "creating",
   }))
@@ -135,6 +179,7 @@ export function setAudioSelectionDraftReady(
     locale,
     assetId,
     fileUrl,
+    audioText: toNormalizedAudioText(currentSide.html),
     isDirty: true,
     status: "ready",
   }))
@@ -149,6 +194,7 @@ export function setAudioSelectionDraftError(
     locale,
     assetId: null,
     fileUrl: null,
+    audioText: null,
     isDirty: true,
     status: "error",
   }))
