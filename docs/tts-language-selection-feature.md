@@ -154,40 +154,18 @@ the global model and output settings.
 
 ## Supported Languages
 
-The first version should support all `29` languages available in
-`eleven_multilingual_v2`, with one canonical app locale and one configured
-voice per language.
+The first version should support a focused set of `8` languages, with one
+canonical app locale and one configured voice per language.
 
 Supported locales:
 
 - `en-US` English
+- `de-DE` German
+- `es-ES` Spanish
+- `fr-FR` French
+- `pt-BR` Portuguese
 - `ja-JP` Japanese
 - `zh-CN` Chinese
-- `de-DE` German
-- `hi-IN` Hindi
-- `fr-FR` French
-- `ko-KR` Korean
-- `pt-BR` Portuguese
-- `it-IT` Italian
-- `es-ES` Spanish
-- `id-ID` Indonesian
-- `nl-NL` Dutch
-- `tr-TR` Turkish
-- `fil-PH` Filipino
-- `pl-PL` Polish
-- `sv-SE` Swedish
-- `bg-BG` Bulgarian
-- `ro-RO` Romanian
-- `ar-SA` Arabic
-- `cs-CZ` Czech
-- `el-GR` Greek
-- `fi-FI` Finnish
-- `hr-HR` Croatian
-- `ms-MY` Malay
-- `sk-SK` Slovak
-- `da-DK` Danish
-- `ta-IN` Tamil
-- `uk-UA` Ukrainian
 - `ru-RU` Russian
 
 These locales should define:
@@ -245,7 +223,7 @@ The sheet should contain:
 - title: `Choose Audio Language`
 - short explanation: `Pick the language used to pronounce this side.`
 - a short preview of the text that will be spoken
-- a plain list of all supported languages
+- a plain list of the supported languages
 - a `Cancel` action
 
 Language rows should:
@@ -378,7 +356,7 @@ Likely files to update when implementing:
 Exit criteria:
 
 - the schema can represent locale selection per content side
-- the app has one shared source of truth for the 29 supported locales
+- the app has one shared source of truth for the 8 supported locales
 
 ### Step 2: Add server-side voice resolution
 
