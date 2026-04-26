@@ -135,7 +135,7 @@ Example logical input:
   text: "apple",
   locale: "en-US",
   voiceId: "voice_abc",
-  modelId: "eleven_multilingual_v2",
+  modelId: "eleven_flash_v2_5",
   outputFormat: "mp3",
   cacheVersion: 1,
 }

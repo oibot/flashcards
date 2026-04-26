@@ -137,7 +137,7 @@ Suggested config split:
 ```ts
 type TtsBaseConfig = {
   provider: "elevenlabs"
-  modelId: "eleven_multilingual_v2"
+  modelId: "eleven_flash_v2_5"
   outputFormat: "mp3"
 }
 ```

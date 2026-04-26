@@ -12,7 +12,7 @@ const ELEVENLABS_OUTPUT_FORMAT = "mp3_44100_128"
 const AUDIO_CONTENT_TYPES: Record<TtsOutputFormat, string> = {
   mp3: "audio/mpeg",
 }
-const DEFAULT_TTS_MODEL_ID = "eleven_multilingual_v2"
+const DEFAULT_TTS_MODEL_ID = "eleven_flash_v2_5"
 const DEFAULT_TTS_OUTPUT_FORMAT: TtsOutputFormat = "mp3"
 const TTS_VOICE_ID_ENV_VAR_NAMES: Record<SupportedTtsLocale, string> = {
   "en-US": "ELEVENLABS_VOICE_ID_EN_US",
