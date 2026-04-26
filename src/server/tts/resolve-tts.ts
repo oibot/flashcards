@@ -101,19 +101,6 @@ export async function resolveTts({
   )
   const contentSide = resolveCardContentSide(card.variant, visibleSide)
   const selectedTtsAsset = getSelectedTtsAsset(cardSet, contentSide)
-  const selectedTtsAssetFileUrl = getReadyFileUrl(selectedTtsAsset)
-
-  if (selectedTtsAsset && selectedTtsAssetFileUrl) {
-    logTtsInfo("Resolved audio from cardSet sound association", {
-      userId,
-      cardId,
-      visibleSide,
-      contentSide,
-      assetId: selectedTtsAsset.id,
-    })
-
-    return toReadyResponse(selectedTtsAsset, contentSide, true)
-  }
 
   const html =
     visibleSide === "front" ? visibleContent.frontHtml : visibleContent.backHtml
@@ -198,6 +185,25 @@ export async function resolveTts({
         cacheHit: true,
       }
     }
+
+    logTtsWarn("Selected cardSet audio asset is missing a ready file", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      assetId: selectedTtsAsset.id,
+      cacheKey: summarizeCacheKey(cacheKey),
+    })
+  } else if (selectedTtsAsset) {
+    logTtsInfo("Selected cardSet audio asset is stale for current text", {
+      userId,
+      cardId,
+      visibleSide,
+      contentSide,
+      assetId: selectedTtsAsset.id,
+      selectedAssetCacheKey: summarizeCacheKey(selectedTtsAsset.cacheKey),
+      currentCacheKey: summarizeCacheKey(cacheKey),
+    })
   }
 
   const sharedAsset = await querySharedTtsAsset(cacheKey)
