@@ -6,6 +6,7 @@ import {
 import { useEffect, useRef, useState } from "react"
 
 export type PlayAudioResult = { ok: true } | { message: string; ok: false }
+const AUDIO_LOAD_TIMEOUT_MS = 8000
 
 type UseFileAudioPlayerOptions = {
   resetKey?: string
@@ -23,6 +24,20 @@ export function useFileAudioPlayer({
   const currentSourceUrlRef = useRef<string | null>(null)
   const [isLoadingSource, setIsLoadingSource] = useState(false)
   const [shouldPlayWhenLoaded, setShouldPlayWhenLoaded] = useState(false)
+  const pendingPlayResultRef = useRef<{
+    resolve: (result: PlayAudioResult) => void
+  } | null>(null)
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const finishPendingPlay = (result: PlayAudioResult) => {
+    pendingPlayResultRef.current?.resolve(result)
+    pendingPlayResultRef.current = null
+
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+      loadTimeoutRef.current = null
+    }
+  }
 
   useEffect(() => {
     const configureAudioMode = async () => {
@@ -43,7 +58,36 @@ export function useFileAudioPlayer({
     currentSourceUrlRef.current = null
     setIsLoadingSource(false)
     setShouldPlayWhenLoaded(false)
+    finishPendingPlay({ message: "Audio unavailable", ok: false })
   }, [player, resetKey])
+
+  useEffect(() => {
+    return () => {
+      finishPendingPlay({ message: "Audio unavailable", ok: false })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!shouldPlayWhenLoaded) {
+      return
+    }
+
+    loadTimeoutRef.current = setTimeout(() => {
+      currentSourceUrlRef.current = null
+      player.pause()
+      setIsLoadingSource(false)
+      setShouldPlayWhenLoaded(false)
+      console.error("Timed out while loading audio source.")
+      finishPendingPlay({ message: "Audio unavailable", ok: false })
+    }, AUDIO_LOAD_TIMEOUT_MS)
+
+    return () => {
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current)
+        loadTimeoutRef.current = null
+      }
+    }
+  }, [player, shouldPlayWhenLoaded])
 
   useEffect(() => {
     if (!shouldPlayWhenLoaded || !playerStatus.isLoaded) {
@@ -54,10 +98,12 @@ export function useFileAudioPlayer({
       try {
         await player.seekTo(0)
         player.play()
+        finishPendingPlay({ ok: true })
       } catch (error) {
         currentSourceUrlRef.current = null
         player.pause()
         console.error("Failed to start file audio playback.", error)
+        finishPendingPlay({ message: "Audio unavailable", ok: false })
       } finally {
         setIsLoadingSource(false)
         setShouldPlayWhenLoaded(false)
@@ -91,12 +137,15 @@ export function useFileAudioPlayer({
 
     try {
       player.replace(nextSourceUrl)
-      return { ok: true }
+      return await new Promise<PlayAudioResult>((resolve) => {
+        pendingPlayResultRef.current = { resolve }
+      })
     } catch (error) {
       currentSourceUrlRef.current = null
       player.pause()
       setIsLoadingSource(false)
       setShouldPlayWhenLoaded(false)
+      finishPendingPlay({ message: "Audio unavailable", ok: false })
       console.error("Failed to load file audio source.", error)
       return { message: "Audio unavailable", ok: false }
     }

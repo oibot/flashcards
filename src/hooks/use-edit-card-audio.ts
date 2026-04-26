@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
@@ -111,11 +111,25 @@ export function useEditCardAudio({
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { status, user } = useAuthSession()
   const audioSelectionDraft = useAudioSelectionDraft()
+  const [resolvedPersistedFileUrls, setResolvedPersistedFileUrls] = useState<
+    Record<VisibleCardSide, string | null>
+  >({
+    front: null,
+    back: null,
+  })
   const frontAudioPreview = useFileAudioPlayer({
-    sourceUrl: audioSelectionDraft.front.fileUrl,
+    sourceUrl:
+      audioSelectionDraft.front.fileUrl ??
+      (!audioSelectionDraft.front.isDirty
+        ? resolvedPersistedFileUrls.front
+        : null),
   })
   const backAudioPreview = useFileAudioPlayer({
-    sourceUrl: audioSelectionDraft.back.fileUrl,
+    sourceUrl:
+      audioSelectionDraft.back.fileUrl ??
+      (!audioSelectionDraft.back.isDirty
+        ? resolvedPersistedFileUrls.back
+        : null),
   })
   const pendingDraftRequestKeyRef = useRef<
     Record<VisibleCardSide, string | null>
@@ -126,17 +140,23 @@ export function useEditCardAudio({
 
   useEffect(() => {
     resetAudioSelectionDraft()
+    setResolvedPersistedFileUrls({
+      front: null,
+      back: null,
+    })
     setAudioSelectionDraftHtml("front", initialCard?.frontHtml ?? "")
     setAudioSelectionDraftHtml("back", initialCard?.backHtml ?? "")
     hydrateAudioSelectionDraftSide("front", {
       locale: initialCard?.frontTtsLocale ?? null,
       assetId: null,
-      fileUrl: initialCard?.frontTtsFileUrl ?? null,
+      fileUrl: null,
+      hasAudio: initialCard?.frontHasSound ?? false,
     })
     hydrateAudioSelectionDraftSide("back", {
       locale: initialCard?.backTtsLocale ?? null,
       assetId: null,
-      fileUrl: initialCard?.backTtsFileUrl ?? null,
+      fileUrl: null,
+      hasAudio: initialCard?.backHasSound ?? false,
     })
 
     return () => {
@@ -144,10 +164,10 @@ export function useEditCardAudio({
     }
   }, [
     initialCard?.backHtml,
-    initialCard?.backTtsFileUrl,
+    initialCard?.backHasSound,
     initialCard?.backTtsLocale,
     initialCard?.frontHtml,
-    initialCard?.frontTtsFileUrl,
+    initialCard?.frontHasSound,
     initialCard?.frontTtsLocale,
   ])
 
@@ -258,11 +278,16 @@ export function useEditCardAudio({
 
   const createSideState = (side: VisibleCardSide): EditCardAudioSideState => {
     const sideDraft = audioSelectionDraft[side]
+    const resolvedPersistedFileUrl = sideDraft.isDirty
+      ? null
+      : resolvedPersistedFileUrls[side]
     const audioPreview = side === "front" ? frontAudioPreview : backAudioPreview
     const hasMeaningfulContent = hasMeaningfulHtmlContent(sideDraft.html)
     const canResolvePersistedAudio =
       initialCard?.id != null &&
-      sideDraft.locale != null &&
+      (side === "front"
+        ? initialCard.frontHasSound
+        : initialCard.backHasSound) &&
       !sideDraft.isDirty &&
       sideDraft.status !== "stale"
 
@@ -274,6 +299,7 @@ export function useEditCardAudio({
       isPreviewDisabled:
         !hasMeaningfulContent ||
         (sideDraft.fileUrl == null &&
+          resolvedPersistedFileUrl == null &&
           sideDraft.status !== "stale" &&
           !canResolvePersistedAudio) ||
         sideDraft.status === "creating",
@@ -281,7 +307,7 @@ export function useEditCardAudio({
         sideDraft.status === "creating" || audioPreview.isLoading,
       previewState: !sideDraft.locale
         ? "none"
-        : sideDraft.fileUrl
+        : sideDraft.fileUrl || resolvedPersistedFileUrl
           ? "ready"
           : sideDraft.status === "stale"
             ? "stale"
@@ -297,6 +323,7 @@ export function useEditCardAudio({
 
         if (
           sideDraft.fileUrl == null &&
+          resolvedPersistedFileUrl == null &&
           canResolvePersistedAudio &&
           status === "signed-in" &&
           user?.refreshToken
@@ -324,6 +351,11 @@ export function useEditCardAudio({
               assetId: payload.assetId,
               fileUrl: payload.fileUrl,
             })
+
+            setResolvedPersistedFileUrls((currentValue) => ({
+              ...currentValue,
+              [side]: payload.fileUrl,
+            }))
 
             const result = await audioPreview.playAudio(payload.fileUrl)
 

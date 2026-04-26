@@ -50,24 +50,6 @@ function toOptionalTtsLocale(value: unknown) {
   return isSupportedTtsLocale(value) ? value : undefined
 }
 
-function getReadyTtsFileUrl(
-  asset:
-    | {
-        status?: unknown
-        file?: {
-          url?: unknown
-        } | null
-      }
-    | null
-    | undefined,
-) {
-  if (!asset || asset.status !== "ready" || !asset.file) {
-    return undefined
-  }
-
-  return typeof asset.file.url === "string" ? asset.file.url : undefined
-}
-
 export function toTimestamp(value: number | string) {
   if (typeof value === "number") return value
 
@@ -113,8 +95,6 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
     card.variant === "forward" ? cardSet.sideATtsLocale : cardSet.sideBTtsLocale
   const backTtsLocale =
     card.variant === "forward" ? cardSet.sideBTtsLocale : cardSet.sideATtsLocale
-  const sideATtsFileUrl = getReadyTtsFileUrl(card.cardSet.sideATtsAsset)
-  const sideBTtsFileUrl = getReadyTtsFileUrl(card.cardSet.sideBTtsAsset)
   const sideAHasSound =
     cardSet.sideATtsLocale !== undefined || card.cardSet.sideATtsAsset != null
   const sideBHasSound =
@@ -127,10 +107,6 @@ export function toCard(card: InstantCardWithCardSetRecord): Card {
     tags: cardSet.tags,
     frontTtsLocale,
     backTtsLocale,
-    frontTtsFileUrl:
-      card.variant === "forward" ? sideATtsFileUrl : sideBTtsFileUrl,
-    backTtsFileUrl:
-      card.variant === "forward" ? sideBTtsFileUrl : sideATtsFileUrl,
     frontHtml: resolvedContent.frontHtml,
     backHtml: resolvedContent.backHtml,
     frontHasSound: card.variant === "forward" ? sideAHasSound : sideBHasSound,

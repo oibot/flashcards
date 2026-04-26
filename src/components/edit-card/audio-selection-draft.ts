@@ -27,7 +27,9 @@ type AudioSelectionDraft = Record<VisibleCardSide, AudioSelectionDraftSide>
 type AudioSelectionDraftSideHydration = Pick<
   AudioSelectionDraftSide,
   "locale" | "assetId" | "fileUrl"
->
+> & {
+  hasAudio?: boolean
+}
 
 function createEmptySideDraft(): AudioSelectionDraftSide {
   return {
@@ -133,7 +135,7 @@ export function hydrateAudioSelectionDraftSide(
     assetId: value.assetId,
     fileUrl: value.fileUrl,
     audioText:
-      value.assetId != null || value.fileUrl != null
+      value.hasAudio === true || value.assetId != null || value.fileUrl != null
         ? toNormalizedAudioText(currentSide.html)
         : null,
     isDirty: false,
