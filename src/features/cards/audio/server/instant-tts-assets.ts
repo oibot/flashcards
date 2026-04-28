@@ -6,7 +6,7 @@ import type {
   CardSetTtsSelectionPatch,
   SupportedTtsLocale,
   TtsConfig,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import { adminDb } from "@/features/cards/data/instant/admin"
 import type { AppSchema } from "@/features/cards/data/instant/instant.schema"
 import { hasOwn } from "@/shared/lib/object"

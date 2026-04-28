@@ -3,7 +3,7 @@ import type { InstaQLEntity } from "@instantdb/react-native"
 import {
   type CardSetTtsLocaleSelection,
   isSupportedTtsLocale,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import type { AppSchema } from "@/features/cards/data/instant/instant.schema"
 import {
   type CanonicalCardContent,

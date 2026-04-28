@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { useAuthSession } from "@/features/auth/use-auth-session"
-import type { TtsResolveReadyResponse } from "@/features/cards/audio/card-audio"
-import { useFileAudioPlayer } from "@/features/cards/audio/use-file-audio-player"
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
+import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
+import type { TtsResolveReadyResponse } from "@/features/cards/audio/model/card-audio"
 import type { VisibleCardSide } from "@/features/cards/model/card"
 
 type UseReviewCardAudioOptions = {

@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Pressable, Text } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import AuthField from "@/features/auth/auth-field"
+import AuthField from "@/features/auth/components/auth-field"
 
 type AuthEmailStepProps = {
   email: string

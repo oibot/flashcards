@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
-import { useEditCardEditors } from "@/features/cards/edit/use-edit-card-editors"
-import { useEditCardTags } from "@/features/cards/edit/use-edit-card-tags"
+import { useEditCardEditors } from "@/features/cards/edit/hooks/use-edit-card-editors"
+import { useEditCardTags } from "@/features/cards/edit/hooks/use-edit-card-tags"
 import type { Card } from "@/features/cards/model/card"
 import { normalizeHtmlForComparison } from "@/shared/lib/html"
 

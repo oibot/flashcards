@@ -10,8 +10,8 @@ import {
 } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { setPendingReviewSessionSeed } from "@/features/cards/review/review-session-seed-store"
-import { useReviewPrepCards } from "@/features/cards/review/use-review-prep-cards"
+import { useReviewPrepCards } from "@/features/cards/review/hooks/use-review-prep-cards"
+import { setPendingReviewSessionSeed } from "@/features/cards/review/lib/review-session-seed-store"
 import { IconButtonPlus } from "@/shared/ui/icon-button"
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
   onReviewStart: () => void
 }
 
-export default function ReviewPrepScene({
+export default function ReviewPrepScreen({
   onNewCard,
   onReviewAllStart,
   onReviewStart,

@@ -1,4 +1,4 @@
-import type { SupportedTtsLocale } from "@/features/cards/audio/card-audio"
+import type { SupportedTtsLocale } from "@/features/cards/audio/model/card-audio"
 
 export const TTS_LANGUAGE_NATIVE_LABELS = {
   "en-US": "English",

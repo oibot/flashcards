@@ -8,10 +8,13 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet } from "react-native-unistyles"
 
-import { useEditCardAudio } from "@/features/cards/audio/use-edit-card-audio"
-import { useEditCard } from "@/features/cards/edit/use-edit-card"
-import type { EditCardDraft } from "@/features/cards/edit/use-edit-card-form"
-import { useEditCardForm } from "@/features/cards/edit/use-edit-card-form"
+import { useEditCardAudio } from "@/features/cards/audio/hooks/use-edit-card-audio"
+import CardSideField from "@/features/cards/edit/components/card-side-field"
+import EditCardHeader from "@/features/cards/edit/components/edit-card-header"
+import OppositeDirectionToggle from "@/features/cards/edit/components/opposite-direction-toggle"
+import { useEditCard } from "@/features/cards/edit/hooks/use-edit-card"
+import type { EditCardDraft } from "@/features/cards/edit/hooks/use-edit-card-form"
+import { useEditCardForm } from "@/features/cards/edit/hooks/use-edit-card-form"
 import type {
   Card,
   CardVariants,
@@ -23,10 +26,6 @@ import { TagInput } from "@/shared/ui/tag-input"
 import TagsMenu from "@/shared/ui/tags-menu"
 import Toolbar from "@/shared/ui/toolbar"
 
-import CardSideField from "./card-side-field"
-import EditCardHeader from "./edit-card-header"
-import OppositeDirectionToggle from "./opposite-direction-toggle"
-
 type EditCardProps = {
   initialCard?: Card
   onClose: () => void
@@ -34,7 +33,10 @@ type EditCardProps = {
 
 type FocusedField = "tags" | "front" | "back"
 
-export default function EditCard({ initialCard, onClose }: EditCardProps) {
+export default function EditCardScreen({
+  initialCard,
+  onClose,
+}: EditCardProps) {
   const { push } = useRouter()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { addCard, updateCard } = useEditCard(initialCard?.id)

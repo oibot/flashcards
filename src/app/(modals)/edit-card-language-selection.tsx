@@ -1,5 +1,1 @@
-import LanguageSelection from "@/features/cards/edit/language-selection"
-
-export default function Page() {
-  return <LanguageSelection />
-}
+export { default } from "@/features/cards/edit/routes/language-selection-route"

@@ -1,5 +1,1 @@
-import SettingsScene from "@/features/settings/settings-scene"
-
-export default function Page() {
-  return <SettingsScene />
-}
+export { default } from "@/features/settings/screens/settings-screen"

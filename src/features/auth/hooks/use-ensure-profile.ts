@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 
-import type { AuthSession } from "@/features/auth/auth-types"
+import type { AuthSession } from "@/features/auth/api/auth-types"
 import { db } from "@/features/cards/data/instant/db"
 
 type EnsureProfileInput = Pick<AuthSession, "status" | "user">

@@ -1,4 +1,4 @@
-import { authClient } from "@/features/auth/auth-client"
+import { authClient } from "@/features/auth/api/auth-client"
 
 const authActions = {
   requestCode: authClient.requestCode,

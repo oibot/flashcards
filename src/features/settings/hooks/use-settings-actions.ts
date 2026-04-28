@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
-import { useAuthActions } from "@/features/auth/use-auth-actions"
+import { useAuthActions } from "@/features/auth/hooks/use-auth-actions"
 import { useDb } from "@/features/cards/data/db-context"
 import {
   getCardBackupCardCount,

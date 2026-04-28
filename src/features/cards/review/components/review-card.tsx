@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Alert, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { useReviewCardAudio } from "@/features/cards/audio/use-review-card-audio"
+import { useReviewCardAudio } from "@/features/cards/audio/hooks/use-review-card-audio"
 import { IconButtonAudio } from "@/shared/ui/icon-button"
 
 import ReviewCardContent from "./review-card-content"

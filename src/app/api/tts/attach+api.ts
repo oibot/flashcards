@@ -1,4 +1,4 @@
-import type { CardSetTtsSelectionPatch } from "@/features/cards/audio/card-audio"
+import type { CardSetTtsSelectionPatch } from "@/features/cards/audio/model/card-audio"
 import { TtsResolveError } from "@/features/cards/audio/server/errors"
 import {
   loadOwnedCardSetForTts,

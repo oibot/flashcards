@@ -1,7 +1,7 @@
 import type {
   SupportedTtsLocale,
   VisibleCardTtsSelectionPatch,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import type { CardState } from "@/features/cards/model/card-state"
 import { normalizeWhitespace } from "@/shared/lib/html"
 

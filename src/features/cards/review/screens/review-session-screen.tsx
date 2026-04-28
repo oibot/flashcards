@@ -3,21 +3,21 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import ActiveReviewState from "@/features/cards/review/active-review-state"
-import CompletedReviewState from "@/features/cards/review/completed-review-state"
-import ReviewSessionHeader from "@/features/cards/review/review-session-header"
-import { consumePendingReviewSessionSeed } from "@/features/cards/review/review-session-seed-store"
-import { useReviewSession } from "@/features/cards/review/use-review-session"
+import ActiveReviewState from "@/features/cards/review/components/active-review-state"
+import CompletedReviewState from "@/features/cards/review/components/completed-review-state"
+import ReviewSessionHeader from "@/features/cards/review/components/review-session-header"
+import { useReviewSession } from "@/features/cards/review/hooks/use-review-session"
+import { consumePendingReviewSessionSeed } from "@/features/cards/review/lib/review-session-seed-store"
 
-type ReviewSessionSceneProps = {
+type ReviewSessionScreenProps = {
   onClose: () => void
   onEditCard: (cardId: string) => void
 }
 
-export default function ReviewSessionScene({
+export default function ReviewSessionScreen({
   onClose,
   onEditCard,
-}: ReviewSessionSceneProps) {
+}: ReviewSessionScreenProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
   const [initialSeed] = useState(() => consumePendingReviewSessionSeed())

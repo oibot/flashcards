@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
-import { useAuthSession } from "@/features/auth/use-auth-session"
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
+import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
 import {
   hydrateAudioSelectionDraftSide,
   resetAudioSelectionDraft,
@@ -11,15 +12,14 @@ import {
   setAudioSelectionDraftHtml,
   setAudioSelectionDraftReady,
   useAudioSelectionDraft,
-} from "@/features/cards/audio/audio-selection-draft"
+} from "@/features/cards/audio/lib/audio-selection-draft"
 import type {
   CardSetTtsSelectionPatch,
   SupportedTtsLocale,
   TtsResolveReadyResponse,
   VisibleCardTtsSelectionPatch,
-} from "@/features/cards/audio/card-audio"
-import { toCanonicalCardTtsSelectionPatch } from "@/features/cards/audio/card-audio"
-import { useFileAudioPlayer } from "@/features/cards/audio/use-file-audio-player"
+} from "@/features/cards/audio/model/card-audio"
+import { toCanonicalCardTtsSelectionPatch } from "@/features/cards/audio/model/card-audio"
 import type { Card, VisibleCardSide } from "@/features/cards/model/card"
 import { hasMeaningfulHtmlContent } from "@/shared/lib/html"
 

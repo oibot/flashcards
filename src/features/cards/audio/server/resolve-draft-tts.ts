@@ -3,7 +3,7 @@ import {
   extractNormalizedTtsTextFromHtml,
   extractTtsSourceTextFromHtml,
   type SupportedTtsLocale,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import {
   generateElevenLabsAudio,
   getTtsAudioContentType,

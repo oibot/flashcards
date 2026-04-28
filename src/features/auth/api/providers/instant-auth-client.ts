@@ -4,7 +4,7 @@ import type {
   AuthUser,
   RequestCodeInput,
   SignInWithCodeInput,
-} from "@/features/auth/auth-types"
+} from "@/features/auth/api/auth-types"
 import { db } from "@/features/cards/data/instant/db"
 
 function normalizeAuthError(error: unknown) {

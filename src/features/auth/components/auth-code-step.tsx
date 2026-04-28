@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Pressable, Text } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import AuthField from "@/features/auth/auth-field"
+import AuthField from "@/features/auth/components/auth-field"
 
 type AuthCodeStepProps = {
   code: string

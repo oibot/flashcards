@@ -5,11 +5,11 @@ import { Text, View } from "react-native"
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller"
 import { StyleSheet } from "react-native-unistyles"
 
-import AuthCodeStep from "@/features/auth/auth-code-step"
-import AuthEmailStep from "@/features/auth/auth-email-step"
-import { useAuthActions } from "@/features/auth/use-auth-actions"
+import AuthCodeStep from "@/features/auth/components/auth-code-step"
+import AuthEmailStep from "@/features/auth/components/auth-email-step"
+import { useAuthActions } from "@/features/auth/hooks/use-auth-actions"
 
-export default function AuthScene() {
+export default function AuthScreen() {
   const { t } = useTranslation("common", { keyPrefix: "auth" })
   const { requestCode, signInWithCode } = useAuthActions()
   const [email, setEmail] = useState("")

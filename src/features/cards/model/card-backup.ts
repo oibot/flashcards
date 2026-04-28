@@ -1,7 +1,7 @@
 import {
   isSupportedTtsLocale,
   type SupportedTtsLocale,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import {
   type Card,
   type CardId,

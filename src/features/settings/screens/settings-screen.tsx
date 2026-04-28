@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next"
 import { ActivityIndicator, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { useSettingsActions } from "@/features/settings/use-settings-actions"
+import { useSettingsActions } from "@/features/settings/hooks/use-settings-actions"
 
-export default function SettingsScene() {
+export default function SettingsScreen() {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "settings" })
   const {

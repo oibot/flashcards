@@ -12,16 +12,16 @@ import {
 } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { TTS_LANGUAGE_NATIVE_LABELS } from "@/features/cards/audio/audio-labels"
+import { TTS_LANGUAGE_NATIVE_LABELS } from "@/features/cards/audio/components/audio-labels"
 import {
   clearAudioSelectionDraftSide,
   setAudioSelectionDraftCreating,
   useAudioSelectionDraft,
-} from "@/features/cards/audio/audio-selection-draft"
+} from "@/features/cards/audio/lib/audio-selection-draft"
 import {
   SUPPORTED_TTS_LOCALES,
   type SupportedTtsLocale,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import type { VisibleCardSide } from "@/features/cards/model/card"
 import AndroidHeader from "@/shared/ui/android-header"
 
@@ -31,7 +31,7 @@ function isVisibleCardSide(value: unknown): value is VisibleCardSide {
   return value === "front" || value === "back"
 }
 
-export default function LanguageSelection() {
+export default function LanguageSelectionScreen() {
   const { dismiss } = useRouter()
   const { theme } = useUnistyles()
   const { t: tSoundSheet, i18n } = useTranslation("common", {

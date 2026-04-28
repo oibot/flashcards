@@ -1,10 +1,10 @@
 import { id, lookup } from "@instantdb/react-native"
 
-import { useAuthSession } from "@/features/auth/use-auth-session"
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
 import {
   type CardSetTtsPatch,
   toCanonicalCardTtsPatch,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import type {
   CardSaveResult,
   CardStore,

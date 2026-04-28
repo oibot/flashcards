@@ -4,7 +4,7 @@ import {
   type SupportedTtsLocale,
   type TtsConfig,
   type TtsOutputFormat,
-} from "@/features/cards/audio/card-audio"
+} from "@/features/cards/audio/model/card-audio"
 import { TtsResolveError } from "@/features/cards/audio/server/errors"
 import {
   logTtsError,
