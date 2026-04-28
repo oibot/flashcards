@@ -1,10 +1,10 @@
+import type { CardBackupEnvelope } from "@/features/cards/backup/model/card-backup"
 import type {
   Card,
   CardId,
   NewCardInput,
   UpdateCardInput,
 } from "@/features/cards/model/card"
-import type { CardBackupEnvelope } from "@/features/cards/model/card-backup"
 import type { ReviewGrade } from "@/features/cards/model/review-scheduler"
 
 export type CardsQueryState = {

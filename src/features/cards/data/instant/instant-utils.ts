@@ -4,6 +4,10 @@ import {
   type CardSetTtsLocaleSelection,
   isSupportedTtsLocale,
 } from "@/features/cards/audio/model/card-audio"
+import type {
+  CardBackupCard,
+  CardBackupCardSet,
+} from "@/features/cards/backup/model/card-backup"
 import type { AppSchema } from "@/features/cards/data/instant/instant.schema"
 import {
   type CanonicalCardContent,
@@ -11,10 +15,6 @@ import {
   isCardVariant,
   resolveCardContent,
 } from "@/features/cards/model/card"
-import type {
-  CardBackupCard,
-  CardBackupCardSet,
-} from "@/features/cards/model/card-backup"
 import { parseCardState } from "@/features/cards/model/card-state"
 
 type EmptyRelations = Record<never, never>

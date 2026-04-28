@@ -5,6 +5,12 @@ import {
   type CardSetTtsPatch,
   toCanonicalCardTtsPatch,
 } from "@/features/cards/audio/model/card-audio"
+import {
+  CARD_BACKUP_APP,
+  type CardBackupCard,
+  type CardBackupCardSet,
+  type CardBackupEnvelope,
+} from "@/features/cards/backup/model/card-backup"
 import type {
   CardSaveResult,
   CardStore,
@@ -25,12 +31,6 @@ import {
   toCanonicalCardContent,
   type UpdateCardInput,
 } from "@/features/cards/model/card"
-import {
-  CARD_BACKUP_APP,
-  type CardBackupCard,
-  type CardBackupCardSet,
-  type CardBackupEnvelope,
-} from "@/features/cards/model/card-backup"
 import {
   createInitialSchedule,
   type ReviewGrade,
