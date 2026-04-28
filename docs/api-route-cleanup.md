@@ -81,6 +81,7 @@ Pseudo-shape:
 ```ts
 export async function POST(request: Request) {
   const authenticatedUser = await requireAuthenticatedUser(request, {
+    logWarning: logTtsWarn,
     invalidTokenLog: "...",
     missingTokenLog: "...",
   })
@@ -90,10 +91,11 @@ export async function POST(request: Request) {
   }
 
   const body = await readJsonBody(request, isRequestBody, {
+    logWarning: logTtsWarn,
     invalidJsonLog: "...",
     invalidBodyLog: "...",
     invalidBodyMessage: "...",
-    userId: authenticatedUser.id,
+    context: { userId: authenticatedUser.id },
   })
 
   if (body instanceof Response) {
@@ -111,6 +113,7 @@ export async function POST(request: Request) {
     return handleTtsRouteError(error, {
       expectedMessage: "...",
       unexpectedMessage: "...",
+      unknownMessage: "...",
       fallbackMessage: "...",
     })
   }
@@ -145,9 +148,14 @@ When we return to this:
 3. keep each route’s request guard and success path local
 4. verify that logs and response messages stay unchanged
 
-## Decision
+## Status
 
-Defer this refactor for now.
+Implemented.
 
-The current route code is repetitive but still readable. The cleanup is worth
-doing, but it is not on the critical path for the current audio feature work.
+The shared helpers now live in:
+
+- [src/server/api-utils.ts](/Users/tobi/Code/flashcards/src/server/api-utils.ts)
+- [src/server/tts/route-utils.ts](/Users/tobi/Code/flashcards/src/server/tts/route-utils.ts)
+
+The four TTS routes now use the smaller helpers while keeping their request
+guards and success paths local.

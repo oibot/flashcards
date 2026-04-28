@@ -1,12 +1,11 @@
-import { adminDb } from "@/db/instant/admin"
 import {
   isSupportedTtsLocale,
   type SupportedTtsLocale,
 } from "@/domain/card-audio"
-import { getBearerToken, jsonError } from "@/server/api-utils"
-import { TtsResolveError } from "@/server/tts/errors"
-import { logTtsError, logTtsWarn } from "@/server/tts/log"
+import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
+import { logTtsWarn } from "@/server/tts/log"
 import { resolveDraftTts } from "@/server/tts/resolve-draft-tts"
+import { handleTtsRouteError } from "@/server/tts/route-utils"
 
 type DraftTtsRequestBody = {
   html: string
@@ -25,39 +24,29 @@ function isDraftTtsRequestBody(value: unknown): value is DraftTtsRequestBody {
 }
 
 export async function POST(request: Request) {
+  const authenticatedUser = await requireAuthenticatedUser(request, {
+    logWarning: logTtsWarn,
+    missingTokenLog: "Rejected draft TTS request without bearer token",
+    invalidTokenLog: "Rejected draft TTS request with invalid bearer token",
+  })
+
+  if (authenticatedUser instanceof Response) {
+    return authenticatedUser
+  }
+
+  const body = await readJsonBody(request, isDraftTtsRequestBody, {
+    logWarning: logTtsWarn,
+    invalidJsonLog: "Rejected draft TTS request with invalid JSON body",
+    invalidBodyLog: "Rejected draft TTS request with invalid payload shape",
+    invalidBodyMessage: "Request body must include html and locale.",
+    context: { userId: authenticatedUser.id },
+  })
+
+  if (body instanceof Response) {
+    return body
+  }
+
   try {
-    const token = getBearerToken(request)
-
-    if (!token) {
-      logTtsWarn("Rejected draft TTS request without bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    const authenticatedUser = await adminDb.auth.verifyToken(token)
-
-    if (!authenticatedUser) {
-      logTtsWarn("Rejected draft TTS request with invalid bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    let body: unknown
-
-    try {
-      body = await request.json()
-    } catch {
-      logTtsWarn("Rejected draft TTS request with invalid JSON body", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError("Request body must be valid JSON.", 400)
-    }
-
-    if (!isDraftTtsRequestBody(body)) {
-      logTtsWarn("Rejected draft TTS request with invalid payload shape", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError("Request body must include html and locale.", 400)
-    }
-
     return Response.json(
       await resolveDraftTts({
         userId: authenticatedUser.id,
@@ -66,22 +55,11 @@ export async function POST(request: Request) {
       }),
     )
   } catch (error) {
-    if (error instanceof TtsResolveError) {
-      logTtsError("Draft TTS request failed", {
-        status: error.status,
-        error: error.message,
-      })
-      return jsonError(error.message, error.status)
-    }
-
-    if (error instanceof Error) {
-      logTtsError("Unexpected draft TTS request error", {
-        error: error.message,
-      })
-      return jsonError(error.message, 500)
-    }
-
-    logTtsError("Unknown draft TTS request error")
-    return jsonError("TTS resolve failed.", 500)
+    return handleTtsRouteError(error, {
+      expectedMessage: "Draft TTS request failed",
+      unexpectedMessage: "Unexpected draft TTS request error",
+      unknownMessage: "Unknown draft TTS request error",
+      fallbackMessage: "TTS resolve failed.",
+    })
   }
 }

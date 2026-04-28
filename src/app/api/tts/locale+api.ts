@@ -1,16 +1,16 @@
-import { adminDb } from "@/db/instant/admin"
 import type { CardContentSide } from "@/domain/card"
 import {
   isSupportedTtsLocale,
   type SupportedTtsLocale,
 } from "@/domain/card-audio"
-import { getBearerToken, jsonError } from "@/server/api-utils"
+import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
 import { TtsResolveError } from "@/server/tts/errors"
 import {
   loadCardForTts,
   updateCardSetTtsLocale,
 } from "@/server/tts/instant-tts-assets"
-import { logTtsError, logTtsWarn } from "@/server/tts/log"
+import { logTtsWarn } from "@/server/tts/log"
+import { handleTtsRouteError } from "@/server/tts/route-utils"
 
 type SetTtsLocaleRequestBody = {
   cardId: string
@@ -38,42 +38,30 @@ function isSetTtsLocaleRequestBody(
 }
 
 export async function POST(request: Request) {
+  const authenticatedUser = await requireAuthenticatedUser(request, {
+    logWarning: logTtsWarn,
+    missingTokenLog: "Rejected TTS locale request without bearer token",
+    invalidTokenLog: "Rejected TTS locale request with invalid bearer token",
+  })
+
+  if (authenticatedUser instanceof Response) {
+    return authenticatedUser
+  }
+
+  const body = await readJsonBody(request, isSetTtsLocaleRequestBody, {
+    logWarning: logTtsWarn,
+    invalidJsonLog: "Rejected TTS locale request with invalid JSON body",
+    invalidBodyLog: "Rejected TTS locale request with invalid payload shape",
+    invalidBodyMessage:
+      "Request body must include cardId, contentSide, and locale.",
+    context: { userId: authenticatedUser.id },
+  })
+
+  if (body instanceof Response) {
+    return body
+  }
+
   try {
-    const token = getBearerToken(request)
-
-    if (!token) {
-      logTtsWarn("Rejected TTS locale request without bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    const authenticatedUser = await adminDb.auth.verifyToken(token)
-
-    if (!authenticatedUser) {
-      logTtsWarn("Rejected TTS locale request with invalid bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    let body: unknown
-
-    try {
-      body = await request.json()
-    } catch {
-      logTtsWarn("Rejected TTS locale request with invalid JSON body", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError("Request body must be valid JSON.", 400)
-    }
-
-    if (!isSetTtsLocaleRequestBody(body)) {
-      logTtsWarn("Rejected TTS locale request with invalid payload shape", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError(
-        "Request body must include cardId, contentSide, and locale.",
-        400,
-      )
-    }
-
     const card = await loadCardForTts(authenticatedUser.id, body.cardId)
 
     if (!card?.cardSet) {
@@ -88,22 +76,11 @@ export async function POST(request: Request) {
       status: "saved",
     })
   } catch (error) {
-    if (error instanceof TtsResolveError) {
-      logTtsError("TTS locale request failed", {
-        status: error.status,
-        error: error.message,
-      })
-      return jsonError(error.message, error.status)
-    }
-
-    if (error instanceof Error) {
-      logTtsError("Unexpected TTS locale request error", {
-        error: error.message,
-      })
-      return jsonError(error.message, 500)
-    }
-
-    logTtsError("Unknown TTS locale request error")
-    return jsonError("TTS locale save failed.", 500)
+    return handleTtsRouteError(error, {
+      expectedMessage: "TTS locale request failed",
+      unexpectedMessage: "Unexpected TTS locale request error",
+      unknownMessage: "Unknown TTS locale request error",
+      fallbackMessage: "TTS locale save failed.",
+    })
   }
 }

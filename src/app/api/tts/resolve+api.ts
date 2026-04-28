@@ -1,9 +1,8 @@
-import { adminDb } from "@/db/instant/admin"
 import type { VisibleCardSide } from "@/domain/card"
-import { getBearerToken, jsonError } from "@/server/api-utils"
-import { TtsResolveError } from "@/server/tts/errors"
-import { logTtsError, logTtsWarn } from "@/server/tts/log"
+import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
+import { logTtsWarn } from "@/server/tts/log"
 import { resolveTts } from "@/server/tts/resolve-tts"
+import { handleTtsRouteError } from "@/server/tts/route-utils"
 
 type ResolveTtsRequestBody = {
   cardId: string
@@ -28,39 +27,29 @@ function isResolveTtsRequestBody(
 }
 
 export async function POST(request: Request) {
+  const authenticatedUser = await requireAuthenticatedUser(request, {
+    logWarning: logTtsWarn,
+    missingTokenLog: "Rejected TTS resolve request without bearer token",
+    invalidTokenLog: "Rejected TTS resolve request with invalid bearer token",
+  })
+
+  if (authenticatedUser instanceof Response) {
+    return authenticatedUser
+  }
+
+  const body = await readJsonBody(request, isResolveTtsRequestBody, {
+    logWarning: logTtsWarn,
+    invalidJsonLog: "Rejected TTS resolve request with invalid JSON body",
+    invalidBodyLog: "Rejected TTS resolve request with invalid payload shape",
+    invalidBodyMessage: "Request body must include cardId and visibleSide.",
+    context: { userId: authenticatedUser.id },
+  })
+
+  if (body instanceof Response) {
+    return body
+  }
+
   try {
-    const token = getBearerToken(request)
-
-    if (!token) {
-      logTtsWarn("Rejected TTS resolve request without bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    const authenticatedUser = await adminDb.auth.verifyToken(token)
-
-    if (!authenticatedUser) {
-      logTtsWarn("Rejected TTS resolve request with invalid bearer token")
-      return jsonError("Unauthorized", 401)
-    }
-
-    let body: unknown
-
-    try {
-      body = await request.json()
-    } catch {
-      logTtsWarn("Rejected TTS resolve request with invalid JSON body", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError("Request body must be valid JSON.", 400)
-    }
-
-    if (!isResolveTtsRequestBody(body)) {
-      logTtsWarn("Rejected TTS resolve request with invalid payload shape", {
-        userId: authenticatedUser.id,
-      })
-      return jsonError("Request body must include cardId and visibleSide.", 400)
-    }
-
     return Response.json(
       await resolveTts({
         userId: authenticatedUser.id,
@@ -69,22 +58,11 @@ export async function POST(request: Request) {
       }),
     )
   } catch (error) {
-    if (error instanceof TtsResolveError) {
-      logTtsError("TTS resolve request failed", {
-        status: error.status,
-        error: error.message,
-      })
-      return jsonError(error.message, error.status)
-    }
-
-    if (error instanceof Error) {
-      logTtsError("Unexpected TTS resolve request error", {
-        error: error.message,
-      })
-      return jsonError(error.message, 500)
-    }
-
-    logTtsError("Unknown TTS resolve request error")
-    return jsonError("TTS resolve failed.", 500)
+    return handleTtsRouteError(error, {
+      expectedMessage: "TTS resolve request failed",
+      unexpectedMessage: "Unexpected TTS resolve request error",
+      unknownMessage: "Unknown TTS resolve request error",
+      fallbackMessage: "TTS resolve failed.",
+    })
   }
 }
