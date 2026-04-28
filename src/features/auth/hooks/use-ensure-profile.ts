@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 
 import type { AuthSession } from "@/features/auth/api/auth-types"
+import { shouldEnsureProfile } from "@/features/auth/hooks/use-ensure-profile-guard"
 import { db } from "@/features/cards/data/instant/db"
 
 type EnsureProfileInput = Pick<AuthSession, "status" | "user">
@@ -24,12 +25,24 @@ export function useEnsureProfile({ status, user }: EnsureProfileInput) {
   const hasProfile = !!data?.$users[0]?.profile
 
   useEffect(() => {
-    if (status !== "signed-in" || !user || isLoading || error || hasProfile) {
+    if (
+      !shouldEnsureProfile({
+        status,
+        user,
+        isLoading,
+        error,
+        hasProfile,
+      })
+    ) {
       isCreatingProfileRef.current = false
       return
     }
 
     if (isCreatingProfileRef.current) {
+      return
+    }
+
+    if (!user) {
       return
     }
 
