@@ -103,7 +103,6 @@ export default function EditCardScreen({
 
     return {
       id: initialCard.id,
-      previousTags: initialCard.tags,
       tags: draft.tags,
       frontHtml: draft.frontHtml,
       backHtml: draft.backHtml,

@@ -1,10 +1,7 @@
 import { id, lookup } from "@instantdb/react-native"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
-import {
-  type CardSetTtsPatch,
-  toCanonicalCardTtsPatch,
-} from "@/features/cards/audio/model/card-audio"
+import { toCanonicalCardTtsPatch } from "@/features/cards/audio/model/card-audio"
 import {
   CARD_BACKUP_APP,
   type CardBackupCard,
@@ -18,6 +15,11 @@ import type {
 } from "@/features/cards/data/card-store"
 import { db } from "@/features/cards/data/instant/db"
 import {
+  buildCardSetTtsUpdateData,
+  diffTags,
+  planUpdateCard,
+} from "@/features/cards/data/instant/instant-card-store-update-plan"
+import {
   normalizeError,
   toCard,
   toCardBackupCardSet,
@@ -28,7 +30,6 @@ import {
   type NewCardInput,
   normalizeTagTitle,
   parseTags,
-  toCanonicalCardContent,
   type UpdateCardInput,
 } from "@/features/cards/model/card"
 import {
@@ -36,7 +37,6 @@ import {
   type ReviewGrade,
   scheduleCardReview,
 } from "@/features/cards/model/review-scheduler"
-import { hasOwn } from "@/shared/lib/object"
 
 async function requireCurrentUser() {
   const user = await db.getAuth()
@@ -64,27 +64,6 @@ function createEnsureTagTransactions(userId: string, tags: string[]) {
       })
       .link({ owner: userId }),
   )
-}
-
-function diffTags(previousTags: string[], nextTags: string[]) {
-  const previousTagSet = new Set(previousTags)
-  const nextTagSet = new Set(nextTags)
-
-  return {
-    tagsToLink: nextTags.filter((tag) => !previousTagSet.has(tag)),
-    tagsToUnlink: previousTags.filter((tag) => !nextTagSet.has(tag)),
-  }
-}
-
-function buildCardSetTtsUpdateData(ttsPatch: CardSetTtsPatch) {
-  return {
-    ...(hasOwn(ttsPatch, "sideATtsLocale")
-      ? { sideATtsLocale: ttsPatch.sideATtsLocale ?? null }
-      : {}),
-    ...(hasOwn(ttsPatch, "sideBTtsLocale")
-      ? { sideBTtsLocale: ttsPatch.sideBTtsLocale ?? null }
-      : {}),
-  }
 }
 
 function createImportedCardSetTransaction(
@@ -418,54 +397,42 @@ export const createInstantCardStore = (): CardStore => {
     }
 
     const currentCard = toCard(currentCardRecord)
-    const tags = parseTags(input.tags)
-    const previousTags = parseTags(input.previousTags)
     const now = Date.now()
-    const { sideAHtml, sideBHtml } = toCanonicalCardContent(
-      {
-        frontHtml: input.frontHtml,
-        backHtml: input.backHtml,
-      },
-      currentCard.variant,
-    )
-    const ttsPatch = toCanonicalCardTtsPatch(
-      input.tts ?? {},
-      currentCard.variant,
-    )
-    const { tagsToLink, tagsToUnlink } = diffTags(previousTags, tags)
-
-    let cardSetTransaction = db.tx.cardSets[currentCard.cardSetId].update({
-      sideAHtml,
-      sideBHtml,
-      ...buildCardSetTtsUpdateData(ttsPatch),
-      updatedAt: now,
+    const plan = planUpdateCard({
+      currentCard,
+      input,
+      now,
     })
 
-    if (tagsToLink.length === 0 && tagsToUnlink.length === 0) {
+    let cardSetTransaction = db.tx.cardSets[plan.cardSetId].update(
+      plan.cardSetUpdate,
+    )
+
+    if (plan.tagsToLink.length === 0 && plan.tagsToUnlink.length === 0) {
       await db.transact(cardSetTransaction)
-      return { cardSetId: currentCard.cardSetId }
+      return { cardSetId: plan.cardSetId }
     }
 
     const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
-      tagsToLink,
+      plan.tagsToLink,
     )
 
-    if (tagsToUnlink.length > 0) {
+    if (plan.tagsToUnlink.length > 0) {
       cardSetTransaction = cardSetTransaction.unlink({
-        tags: toTagLookups(currentUser.id, tagsToUnlink),
+        tags: toTagLookups(currentUser.id, plan.tagsToUnlink),
       })
     }
 
-    if (tagsToLink.length > 0) {
+    if (plan.tagsToLink.length > 0) {
       cardSetTransaction = cardSetTransaction.link({
-        tags: toTagLookups(currentUser.id, tagsToLink),
+        tags: toTagLookups(currentUser.id, plan.tagsToLink),
       })
     }
 
     await db.transact([...createTagTransactions, cardSetTransaction])
 
-    return { cardSetId: currentCard.cardSetId }
+    return { cardSetId: plan.cardSetId }
   }
 
   const reviewCard = async (
