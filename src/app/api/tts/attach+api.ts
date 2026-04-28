@@ -1,13 +1,16 @@
-import type { CardSetTtsSelectionPatch } from "@/domain/card-audio"
-import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
-import { TtsResolveError } from "@/server/tts/errors"
+import type { CardSetTtsSelectionPatch } from "@/features/cards/audio/card-audio"
+import { TtsResolveError } from "@/features/cards/audio/server/errors"
 import {
   loadOwnedCardSetForTts,
   updateCardSetTtsSelection,
-} from "@/server/tts/instant-tts-assets"
-import { logTtsWarn } from "@/server/tts/log"
-import { handleTtsRouteError } from "@/server/tts/route-utils"
-import { hasOwn } from "@/utils/object"
+} from "@/features/cards/audio/server/instant-tts-assets"
+import { logTtsWarn } from "@/features/cards/audio/server/log"
+import { handleTtsRouteError } from "@/features/cards/audio/server/route-utils"
+import { hasOwn } from "@/shared/lib/object"
+import {
+  readJsonBody,
+  requireAuthenticatedUser,
+} from "@/shared/server/api-utils"
 
 type AttachTtsRequestBody = {
   cardSetId: string

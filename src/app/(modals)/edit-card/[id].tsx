@@ -2,9 +2,9 @@ import { useLocalSearchParams, useRouter } from "expo-router"
 import { Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import EditCard from "@/components/edit-card/edit-card"
-import LoadingScreen from "@/components/UI/loading-screen"
-import { useCard } from "@/hooks/use-card"
+import EditCard from "@/features/cards/edit/edit-card"
+import { useCard } from "@/features/cards/queries/use-card"
+import LoadingScreen from "@/shared/ui/loading-screen"
 
 export default function Page() {
   const { id } = useLocalSearchParams<{ id: string }>()

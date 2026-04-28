@@ -1,8 +1,11 @@
-import type { VisibleCardSide } from "@/domain/card"
-import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
-import { logTtsWarn } from "@/server/tts/log"
-import { resolveTts } from "@/server/tts/resolve-tts"
-import { handleTtsRouteError } from "@/server/tts/route-utils"
+import { logTtsWarn } from "@/features/cards/audio/server/log"
+import { resolveTts } from "@/features/cards/audio/server/resolve-tts"
+import { handleTtsRouteError } from "@/features/cards/audio/server/route-utils"
+import type { VisibleCardSide } from "@/features/cards/model/card"
+import {
+  readJsonBody,
+  requireAuthenticatedUser,
+} from "@/shared/server/api-utils"
 
 type ResolveTtsRequestBody = {
   cardId: string

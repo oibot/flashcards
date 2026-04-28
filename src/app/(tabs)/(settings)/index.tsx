@@ -1,4 +1,4 @@
-import SettingsScene from "@/components/settings/settings-scene"
+import SettingsScene from "@/features/settings/settings-scene"
 
 export default function Page() {
   return <SettingsScene />

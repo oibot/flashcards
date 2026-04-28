@@ -1,3 +1,3 @@
 import "expo-dev-client"
-import "./src/styles/unistyles"
+import "./src/shared/styles/unistyles"
 import "expo-router/entry"

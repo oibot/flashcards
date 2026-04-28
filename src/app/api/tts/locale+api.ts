@@ -1,16 +1,19 @@
-import type { CardContentSide } from "@/domain/card"
 import {
   isSupportedTtsLocale,
   type SupportedTtsLocale,
-} from "@/domain/card-audio"
-import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
-import { TtsResolveError } from "@/server/tts/errors"
+} from "@/features/cards/audio/card-audio"
+import { TtsResolveError } from "@/features/cards/audio/server/errors"
 import {
   loadCardForTts,
   updateCardSetTtsLocale,
-} from "@/server/tts/instant-tts-assets"
-import { logTtsWarn } from "@/server/tts/log"
-import { handleTtsRouteError } from "@/server/tts/route-utils"
+} from "@/features/cards/audio/server/instant-tts-assets"
+import { logTtsWarn } from "@/features/cards/audio/server/log"
+import { handleTtsRouteError } from "@/features/cards/audio/server/route-utils"
+import type { CardContentSide } from "@/features/cards/model/card"
+import {
+  readJsonBody,
+  requireAuthenticatedUser,
+} from "@/shared/server/api-utils"
 
 type SetTtsLocaleRequestBody = {
   cardId: string

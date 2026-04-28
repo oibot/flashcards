@@ -1,11 +1,14 @@
 import {
   isSupportedTtsLocale,
   type SupportedTtsLocale,
-} from "@/domain/card-audio"
-import { readJsonBody, requireAuthenticatedUser } from "@/server/api-utils"
-import { logTtsWarn } from "@/server/tts/log"
-import { resolveDraftTts } from "@/server/tts/resolve-draft-tts"
-import { handleTtsRouteError } from "@/server/tts/route-utils"
+} from "@/features/cards/audio/card-audio"
+import { logTtsWarn } from "@/features/cards/audio/server/log"
+import { resolveDraftTts } from "@/features/cards/audio/server/resolve-draft-tts"
+import { handleTtsRouteError } from "@/features/cards/audio/server/route-utils"
+import {
+  readJsonBody,
+  requireAuthenticatedUser,
+} from "@/shared/server/api-utils"
 
 type DraftTtsRequestBody = {
   html: string

@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router"
 
-import ReviewSessionScene from "@/components/review/review-session-scene"
+import ReviewSessionScene from "@/features/cards/review/review-session-scene"
 
 export default function Page() {
   const { dismiss, push } = useRouter()

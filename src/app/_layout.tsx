@@ -1,15 +1,15 @@
-import "@/locales/i18n"
+import "@/shared/i18n/i18n"
 
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { useUnistyles } from "react-native-unistyles"
 
-import { useAuthSession } from "@/auth/use-auth-session"
-import { useEnsureProfile } from "@/auth/use-ensure-profile"
-import LoadingScreen from "@/components/UI/loading-screen"
-import NavigationThemeProvider from "@/components/UI/navigation-theme-provider"
-import { DbProvider } from "@/db/db-context"
+import { useAuthSession } from "@/features/auth/use-auth-session"
+import { useEnsureProfile } from "@/features/auth/use-ensure-profile"
+import { DbProvider } from "@/features/cards/data/db-context"
+import LoadingScreen from "@/shared/ui/loading-screen"
+import NavigationThemeProvider from "@/shared/ui/navigation-theme-provider"
 
 export default function Layout() {
   const { rt } = useUnistyles()

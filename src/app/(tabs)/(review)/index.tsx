@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router"
 
-import ReviewPrepScene from "@/components/review/review-prep-scene"
+import ReviewPrepScene from "@/features/cards/review/review-prep-scene"
 
 export default function Page() {
   const { push } = useRouter()
