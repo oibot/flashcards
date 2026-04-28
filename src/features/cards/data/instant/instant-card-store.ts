@@ -1,11 +1,8 @@
 import { id, lookup } from "@instantdb/react-native"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
-import { toCanonicalCardTtsPatch } from "@/features/cards/audio/model/card-audio"
 import {
   CARD_BACKUP_APP,
-  type CardBackupCard,
-  type CardBackupCardSet,
   type CardBackupEnvelope,
 } from "@/features/cards/backup/model/card-backup"
 import type {
@@ -15,8 +12,11 @@ import type {
 } from "@/features/cards/data/card-store"
 import { db } from "@/features/cards/data/instant/db"
 import {
-  buildCardSetTtsUpdateData,
   diffTags,
+  type ImportedCardPlan,
+  type ImportedCardSetPlan,
+  planAddCard,
+  planImportCards,
   planUpdateCard,
 } from "@/features/cards/data/instant/instant-card-store-update-plan"
 import {
@@ -29,11 +29,9 @@ import {
   type Card,
   type NewCardInput,
   normalizeTagTitle,
-  parseTags,
   type UpdateCardInput,
 } from "@/features/cards/model/card"
 import {
-  createInitialSchedule,
   type ReviewGrade,
   scheduleCardReview,
 } from "@/features/cards/model/review-scheduler"
@@ -68,8 +66,7 @@ function createEnsureTagTransactions(userId: string, tags: string[]) {
 
 function createImportedCardSetTransaction(
   userId: string,
-  cardSet: CardBackupCardSet,
-  previousTags: string[],
+  cardSet: ImportedCardSetPlan,
 ) {
   const localeSelection = {
     sideATtsLocale: cardSet.sideATtsLocale ?? null,
@@ -85,7 +82,10 @@ function createImportedCardSetTransaction(
     })
     .link({ owner: userId })
 
-  const { tagsToLink, tagsToUnlink } = diffTags(previousTags, cardSet.tags)
+  const { tagsToLink, tagsToUnlink } = diffTags(
+    cardSet.previousTags,
+    cardSet.tags,
+  )
 
   if (tagsToUnlink.length > 0) {
     cardSetTransaction = cardSetTransaction.unlink({
@@ -102,11 +102,7 @@ function createImportedCardSetTransaction(
   return cardSetTransaction
 }
 
-function createImportedCardTransaction(
-  userId: string,
-  cardSetId: string,
-  card: CardBackupCard,
-) {
+function createImportedCardTransaction(userId: string, card: ImportedCardPlan) {
   return db.tx.cards[card.id]
     .update({
       variant: card.variant,
@@ -122,7 +118,7 @@ function createImportedCardTransaction(
     })
     .link({
       owner: userId,
-      cardSet: cardSetId,
+      cardSet: card.cardSetId,
     })
 }
 
@@ -258,18 +254,7 @@ export const createInstantCardStore = (): CardStore => {
       return
     }
 
-    const importedCardSets = backup.cardSets.map((cardSet) => ({
-      ...cardSet,
-      tags: parseTags(cardSet.tags),
-    }))
-    const importedCardSetIds = importedCardSets.map((cardSet) => cardSet.id)
-    const importedTags = [
-      ...new Set(importedCardSets.flatMap((cardSet) => cardSet.tags)),
-    ]
-    const createTagTransactions = createEnsureTagTransactions(
-      currentUser.id,
-      importedTags,
-    )
+    const importedCardSetIds = backup.cardSets.map((cardSet) => cardSet.id)
     const existingCardSetsQuery = {
       $users: {
         $: {
@@ -291,20 +276,19 @@ export const createInstantCardStore = (): CardStore => {
     const existingCardSets = (
       (await db.queryOnce(existingCardSetsQuery)).data.$users[0]?.cardSets ?? []
     ).map(toStoredCardSet)
-    const existingTagsByCardSetId = new Map(
-      existingCardSets.map((cardSet) => [cardSet.id, cardSet.tags]),
+    const plan = planImportCards({
+      backup,
+      existingCardSets,
+    })
+    const createTagTransactions = createEnsureTagTransactions(
+      currentUser.id,
+      plan.importedTags,
     )
-    const cardSetTransactions = importedCardSets.map((cardSet) =>
-      createImportedCardSetTransaction(
-        currentUser.id,
-        cardSet,
-        existingTagsByCardSetId.get(cardSet.id) ?? [],
-      ),
+    const cardSetTransactions = plan.cardSets.map((cardSet) =>
+      createImportedCardSetTransaction(currentUser.id, cardSet),
     )
-    const cardTransactions = importedCardSets.flatMap((cardSet) =>
-      cardSet.cards.map((card) =>
-        createImportedCardTransaction(currentUser.id, cardSet.id, card),
-      ),
+    const cardTransactions = plan.cards.map((card) =>
+      createImportedCardTransaction(currentUser.id, card),
     )
 
     await db.transact([
@@ -316,42 +300,47 @@ export const createInstantCardStore = (): CardStore => {
 
   const addCard = async (input: NewCardInput): Promise<CardSaveResult> => {
     const currentUser = await requireCurrentUser()
-    const tags = parseTags(input.tags)
     const cardSetId = id()
+    const cardIds = input.variants.map(() => id())
     const now = Date.now()
-    const ttsPatch = toCanonicalCardTtsPatch(input.tts ?? {}, "forward")
+    const plan = planAddCard({
+      input,
+      now,
+      cardSetId,
+      cardIds,
+    })
     const createTagTransactions = createEnsureTagTransactions(
       currentUser.id,
-      tags,
+      plan.tags,
     )
 
-    let cardSetTransaction = db.tx.cardSets[cardSetId]
-      .update({
-        sideAHtml: input.frontHtml,
-        sideBHtml: input.backHtml,
-        ...buildCardSetTtsUpdateData(ttsPatch),
-        createdAt: now,
-        updatedAt: now,
-      })
+    let cardSetTransaction = db.tx.cardSets[plan.cardSetId]
+      .update(plan.cardSetUpdate)
       .link({ owner: currentUser.id })
 
-    if (tags.length > 0) {
+    if (plan.tags.length > 0) {
       cardSetTransaction = cardSetTransaction.link({
-        tags: toTagLookups(currentUser.id, tags),
+        tags: toTagLookups(currentUser.id, plan.tags),
       })
     }
 
-    const cardTransactions = input.variants.map((variant) =>
-      db.tx.cards[id()]
+    const cardTransactions = plan.cards.map((card) =>
+      db.tx.cards[card.id]
         .update({
-          variant,
-          createdAt: now,
-          updatedAt: now,
-          ...createInitialSchedule(now),
+          variant: card.variant,
+          createdAt: card.createdAt,
+          updatedAt: card.updatedAt,
+          dueAt: card.dueAt,
+          lastReviewedAt: card.lastReviewedAt,
+          intervalDays: card.intervalDays,
+          easeFactor: card.easeFactor,
+          repetition: card.repetition,
+          lapses: card.lapses,
+          state: card.state,
         })
         .link({
           owner: currentUser.id,
-          cardSet: cardSetId,
+          cardSet: plan.cardSetId,
         }),
     )
 
@@ -361,7 +350,7 @@ export const createInstantCardStore = (): CardStore => {
       ...cardTransactions,
     ])
 
-    return { cardSetId }
+    return { cardSetId: plan.cardSetId }
   }
 
   const updateCard = async (
