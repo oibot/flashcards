@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
 import {
-  getCardBackupCardCount,
-  validateCardBackup,
-} from "@/features/cards/backup/model/card-backup"
+  createCardBackupFileName,
+  parseCardBackupImport,
+} from "@/features/cards/backup/lib/card-backup-transfer"
 import { useDb } from "@/features/cards/data/db-context"
 
 function isFilePickerCancellationError(error: unknown) {
@@ -85,7 +85,7 @@ export function useCardBackupActions() {
 
     try {
       const backup = await cardStore.exportCards()
-      const fileName = `flashcards-export-${backup.exportedAt.slice(0, 10)}.json`
+      const fileName = createCardBackupFileName(backup.exportedAt)
 
       await shareJsonFile(fileName, t("exportDialogTitle"), backup)
     } catch (error) {
@@ -107,28 +107,17 @@ export function useCardBackupActions() {
       )
       const file = Array.isArray(selectedFile) ? selectedFile[0] : selectedFile
       const fileContents = await file.text()
-      let parsedBackup: unknown
-
-      try {
-        parsedBackup = JSON.parse(fileContents) as unknown
-      } catch {
-        throw new Error(t("invalidBackupError"))
-      }
-
-      const validationResult = validateCardBackup(parsedBackup)
-
-      if (!validationResult.isValid) {
-        throw new Error(validationResult.message)
-      }
-
-      const cardCount = getCardBackupCardCount(validationResult.backup)
+      const { backup, cardCount } = parseCardBackupImport(
+        fileContents,
+        t("invalidBackupError"),
+      )
       const shouldImport = await confirmImport(cardCount)
 
       if (!shouldImport) {
         return
       }
 
-      await cardStore.importCards(validationResult.backup)
+      await cardStore.importCards(backup)
       showSuccessAlert(t("importSuccess", { count: cardCount }))
     } catch (error) {
       if (isFilePickerCancellationError(error)) {
