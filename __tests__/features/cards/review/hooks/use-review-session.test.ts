@@ -33,8 +33,6 @@ import { Alert } from "react-native"
 import type { Card } from "@/features/cards/model/card"
 import { useReviewSession } from "@/features/cards/review/hooks/use-review-session"
 
-import { createReviewCard } from "../test-utils"
-
 type CardsState = {
   cards: Card[]
   error: Error | null
@@ -50,6 +48,31 @@ function createCardsState(overrides: Partial<CardsState> = {}): CardsState {
     isLoading: false,
     removeCard: jest.fn().mockResolvedValue(undefined),
     reviewCard: jest.fn().mockResolvedValue(undefined),
+    ...overrides,
+  }
+}
+
+function createReviewCard(overrides: Partial<Card> = {}): Card {
+  return {
+    id: "card-1",
+    cardSetId: "set-1",
+    variant: "forward",
+    tags: ["German"],
+    frontHtml: "<p>Hallo</p>",
+    backHtml: "<p>Hello</p>",
+    frontTtsLocale: undefined,
+    backTtsLocale: undefined,
+    frontHasSound: false,
+    backHasSound: false,
+    createdAt: 1,
+    updatedAt: 2,
+    dueAt: 3,
+    lastReviewedAt: 4,
+    intervalDays: 5,
+    easeFactor: 2.5,
+    repetition: 1,
+    lapses: 0,
+    state: "review",
     ...overrides,
   }
 }
