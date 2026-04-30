@@ -4,6 +4,18 @@ const mockUseFileAudioPlayer = jest.fn()
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
+      if (key === "audioRequestFailed") {
+        return "Audio request failed."
+      }
+
+      if (key === "audioSignInRequired") {
+        return "Please sign in again to load audio."
+      }
+
+      if (key === "audioUnexpectedResponse") {
+        return "The audio endpoint returned an unexpected response."
+      }
+
       if (key === "audioUnavailable") {
         return "Audio unavailable"
       }
@@ -25,10 +37,12 @@ jest.mock("@/features/cards/audio/hooks/use-file-audio-player", () => ({
   useFileAudioPlayer: (...args: unknown[]) => mockUseFileAudioPlayer(...args),
 }))
 
-import { Alert } from "react-native"
 import { act, renderHook, waitFor } from "@testing-library/react-native"
 
-import { useEditCardAudio } from "@/features/cards/audio/hooks/use-edit-card-audio"
+import {
+  type EditCardAudioActionResult,
+  useEditCardAudio,
+} from "@/features/cards/audio/hooks/use-edit-card-audio"
 import { resetAudioSelectionDraft } from "@/features/cards/audio/lib/audio-selection-draft"
 import type { Card } from "@/features/cards/model/card"
 
@@ -81,7 +95,6 @@ describe("useEditCardAudio", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.spyOn(Alert, "alert").mockImplementation(jest.fn())
     globalThis.fetch = mockFetch as unknown as typeof fetch
     mockUseAuthSession.mockReturnValue({
       status: "signed-in",
@@ -207,5 +220,117 @@ describe("useEditCardAudio", () => {
 
     expect(result.current.front.previewState).toBe("ready")
     expect(result.current.front.isPreviewDisabled).toBe(false)
+  })
+
+  it("returns a preview failure when persisted audio cannot be resolved", async () => {
+    mockFetch.mockResolvedValue(
+      createFetchResponse({ error: "Unauthorized" }, false, 401),
+    )
+
+    const { result } = renderHook(() =>
+      useEditCardAudio({
+        initialCard: createInitialCard(),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.front.previewState).toBe("selected")
+    })
+
+    let previewResult: EditCardAudioActionResult | null = null
+
+    await act(async () => {
+      previewResult = await result.current.front.playPreview()
+    })
+
+    expect(previewResult).toEqual({
+      ok: false,
+      message: "HTTP 401: Unauthorized",
+    })
+    expect(frontAudioPlayer.playAudio).not.toHaveBeenCalled()
+  })
+
+  it("publishes background draft failures as hook error data", async () => {
+    mockFetch.mockResolvedValue(
+      createFetchResponse({ error: "TTS provider failed" }, false, 502),
+    )
+
+    const { result } = renderHook(() =>
+      useEditCardAudio({
+        initialCard: createInitialCard(),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.front.previewState).toBe("selected")
+    })
+
+    act(() => {
+      result.current.front.setHtml("<p>Hello there</p>")
+    })
+
+    await act(async () => {
+      await result.current.front.playPreview()
+    })
+
+    await waitFor(() => {
+      expect(result.current.error).toEqual({
+        id: expect.any(Number),
+        message: "HTTP 502: TTS provider failed",
+      })
+    })
+
+    act(() => {
+      result.current.clearError()
+    })
+
+    expect(result.current.error).toBeNull()
+  })
+
+  it("returns a persistence failure when attaching generated audio fails", async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        createFetchResponse({
+          status: "ready",
+          assetId: "asset-draft",
+          fileUrl: "https://audio.example/draft.mp3",
+        }),
+      )
+      .mockResolvedValueOnce(
+        createFetchResponse({ error: "Attach failed" }, false, 500),
+      )
+
+    const { result } = renderHook(() =>
+      useEditCardAudio({
+        initialCard: createInitialCard(),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.front.previewState).toBe("selected")
+    })
+
+    act(() => {
+      result.current.front.setHtml("<p>Hello there</p>")
+    })
+
+    await act(async () => {
+      await result.current.front.playPreview()
+    })
+
+    await waitFor(() => {
+      expect(result.current.front.previewState).toBe("ready")
+    })
+
+    let persistResult: EditCardAudioActionResult | null = null
+
+    await act(async () => {
+      persistResult = await result.current.persistCardAudio("set-1")
+    })
+
+    expect(persistResult).toEqual({
+      ok: false,
+      message: "HTTP 500: Attach failed",
+    })
   })
 })

@@ -4,6 +4,18 @@ const mockUseFileAudioPlayer = jest.fn()
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
+      if (key === "audioRequestFailed") {
+        return "Audio request failed."
+      }
+
+      if (key === "audioSignInRequired") {
+        return "Please sign in again to load audio."
+      }
+
+      if (key === "audioUnexpectedResponse") {
+        return "The audio endpoint returned an unexpected response."
+      }
+
       if (key === "audioUnavailable") {
         return "Audio unavailable"
       }
@@ -75,10 +87,28 @@ describe("useReviewCardAudio", () => {
 
     await expect(result.current.playAudio()).resolves.toEqual({
       ok: false,
-      message: "Audio unavailable",
+      message: "Please sign in again to load audio.",
     })
 
     expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it("returns the server error message when resolving audio fails", async () => {
+    mockFetch.mockResolvedValue(
+      createFetchResponse({ error: "Unauthorized" }, false, 401),
+    )
+
+    const { result } = renderHook(() =>
+      useReviewCardAudio({
+        cardId: "card-1",
+        visibleSide: "front",
+      }),
+    )
+
+    await expect(result.current.playAudio()).resolves.toEqual({
+      ok: false,
+      message: "HTTP 401: Unauthorized",
+    })
   })
 
   it("resolves audio once and then reuses the cached URL on later plays", async () => {

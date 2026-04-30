@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
 import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
+import {
+  formatTtsHttpError,
+  formatUnexpectedTtsResponse,
+  getErrorMessage,
+} from "@/features/cards/audio/lib/tts-client-errors"
 import type { TtsResolveReadyResponse } from "@/features/cards/audio/model/card-audio"
 import type { VisibleCardSide } from "@/features/cards/model/card"
 
@@ -12,10 +17,6 @@ type UseReviewCardAudioOptions = {
 }
 
 type PlayAudioResult = { ok: true } | { message: string; ok: false }
-
-type ResolveTtsErrorResponse = {
-  error: string
-}
 
 function isResolveTtsReadyResponse(
   value: unknown,
@@ -27,17 +28,6 @@ function isResolveTtsReadyResponse(
     value.status === "ready" &&
     "fileUrl" in value &&
     typeof value.fileUrl === "string"
-  )
-}
-
-function isResolveTtsErrorResponse(
-  value: unknown,
-): value is ResolveTtsErrorResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "error" in value &&
-    typeof value.error === "string"
   )
 }
 
@@ -69,7 +59,7 @@ export function useReviewCardAudio({
     }
 
     if (status !== "signed-in" || !user?.refreshToken) {
-      return { message: t("audioUnavailable"), ok: false }
+      return { message: t("audioSignInRequired"), ok: false }
     }
 
     setIsResolving(true)
@@ -103,14 +93,14 @@ export function useReviewCardAudio({
 
       if (!response.ok) {
         throw new Error(
-          isResolveTtsErrorResponse(payload)
-            ? payload.error
-            : t("audioUnavailable"),
+          formatTtsHttpError(response, payload, t("audioRequestFailed")),
         )
       }
 
       if (!isResolveTtsReadyResponse(payload)) {
-        throw new Error(t("audioUnavailable"))
+        throw new Error(
+          formatUnexpectedTtsResponse(response, t("audioUnexpectedResponse")),
+        )
       }
 
       setResolvedFileUrl(payload.fileUrl)
@@ -118,7 +108,10 @@ export function useReviewCardAudio({
     } catch (error) {
       setResolvedFileUrl(null)
       console.error("Review card audio playback failed.", error)
-      return { message: t("audioUnavailable"), ok: false }
+      return {
+        message: getErrorMessage(error, t("audioUnavailable")),
+        ok: false,
+      }
     } finally {
       setIsResolving(false)
     }

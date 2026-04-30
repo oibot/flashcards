@@ -24,6 +24,9 @@
     "backLabel": "Rückseite",
     "cancel": "Abbrechen",
     "cancelAccessibilityLabel": "Abbrechen",
+    "audioRequestFailed": "Audio-Anfrage fehlgeschlagen.",
+    "audioSignInRequired": "Melde dich erneut an, um Audio zu laden.",
+    "audioUnexpectedResponse": "Der Audio-Endpunkt hat eine unerwartete Antwort zurückgegeben.",
     "audioUnavailable": "Audio nicht verfügbar",
     "discard": {
       "cancel": "Weiter bearbeiten",
@@ -105,6 +108,9 @@
     "active": {
       "again": "Nochmal",
       "audioLoading": "Audio wird geladen...",
+      "audioRequestFailed": "Audio-Anfrage fehlgeschlagen.",
+      "audioSignInRequired": "Melde dich erneut an, um Audio zu laden.",
+      "audioUnexpectedResponse": "Der Audio-Endpunkt hat eine unerwartete Antwort zurückgegeben.",
       "audioUnavailable": "Audio nicht verfügbar",
       "back": "Rückseite",
       "front": "Vorderseite",

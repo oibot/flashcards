@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Alert } from "react-native"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
 import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
@@ -13,6 +12,11 @@ import {
   setAudioSelectionDraftReady,
   useAudioSelectionDraft,
 } from "@/features/cards/audio/lib/audio-selection-draft"
+import {
+  formatTtsHttpError,
+  formatUnexpectedTtsResponse,
+  getErrorMessage,
+} from "@/features/cards/audio/lib/tts-client-errors"
 import type {
   CardSetTtsSelectionPatch,
   SupportedTtsLocale,
@@ -29,11 +33,21 @@ type DraftTtsReadyResponse = {
   fileUrl: string
 }
 
-type DraftTtsErrorResponse = {
-  error: string
-}
-
 type AudioPreviewState = "none" | "selected" | "stale" | "ready"
+
+export type EditCardAudioActionResult =
+  | {
+      ok: true
+    }
+  | {
+      message: string
+      ok: false
+    }
+
+export type EditCardAudioErrorEvent = {
+  id: number
+  message: string
+}
 
 type EditCardAudioSideState = {
   valueLabel: string
@@ -42,11 +56,7 @@ type EditCardAudioSideState = {
   isPreviewLoading: boolean
   previewState: AudioPreviewState
   setHtml: (html: string) => void
-  playPreview: () => Promise<void>
-}
-
-type AttachTtsErrorResponse = {
-  error: string
+  playPreview: () => Promise<EditCardAudioActionResult>
 }
 
 type UseEditCardAudioOptions = {
@@ -68,28 +78,6 @@ function isDraftTtsReadyResponse(
   )
 }
 
-function isDraftTtsErrorResponse(
-  value: unknown,
-): value is DraftTtsErrorResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "error" in value &&
-    typeof value.error === "string"
-  )
-}
-
-function isAttachTtsErrorResponse(
-  value: unknown,
-): value is AttachTtsErrorResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "error" in value &&
-    typeof value.error === "string"
-  )
-}
-
 function isResolveTtsReadyResponse(
   value: unknown,
 ): value is TtsResolveReadyResponse {
@@ -103,6 +91,14 @@ function isResolveTtsReadyResponse(
     "fileUrl" in value &&
     typeof value.fileUrl === "string"
   )
+}
+
+function audioSuccess(): EditCardAudioActionResult {
+  return { ok: true }
+}
+
+function audioFailure(message: string): EditCardAudioActionResult {
+  return { message, ok: false }
 }
 
 export function useEditCardAudio({
@@ -137,9 +133,12 @@ export function useEditCardAudio({
     front: null,
     back: null,
   })
+  const [error, setError] = useState<EditCardAudioErrorEvent | null>(null)
+  const nextErrorIdRef = useRef(0)
 
   useEffect(() => {
     resetAudioSelectionDraft()
+    setError(null)
     setResolvedPersistedFileUrls({
       front: null,
       back: null,
@@ -172,6 +171,14 @@ export function useEditCardAudio({
   ])
 
   useEffect(() => {
+    const reportError = (message: string) => {
+      nextErrorIdRef.current += 1
+      setError({
+        id: nextErrorIdRef.current,
+        message,
+      })
+    }
+
     const createDraftAudio = async (
       side: VisibleCardSide,
       locale: SupportedTtsLocale,
@@ -182,7 +189,7 @@ export function useEditCardAudio({
 
       if (status !== "signed-in" || !user?.refreshToken) {
         setAudioSelectionDraftError(side, locale)
-        Alert.alert(t("audioUnavailable"))
+        reportError(t("audioSignInRequired"))
         return
       }
 
@@ -206,14 +213,14 @@ export function useEditCardAudio({
 
         if (!response.ok) {
           throw new Error(
-            isDraftTtsErrorResponse(payload)
-              ? payload.error
-              : t("audioUnavailable"),
+            formatTtsHttpError(response, payload, t("audioRequestFailed")),
           )
         }
 
         if (!isDraftTtsReadyResponse(payload)) {
-          throw new Error(t("audioUnavailable"))
+          throw new Error(
+            formatUnexpectedTtsResponse(response, t("audioUnexpectedResponse")),
+          )
         }
 
         setAudioSelectionDraftReady(
@@ -227,7 +234,7 @@ export function useEditCardAudio({
         const playResult = await preview.playAudio(payload.fileUrl)
 
         if (!playResult.ok) {
-          Alert.alert(playResult.message)
+          reportError(playResult.message)
         }
       } catch (error) {
         if (pendingDraftRequestKeyRef.current[side] !== requestKey) {
@@ -235,9 +242,7 @@ export function useEditCardAudio({
         }
 
         setAudioSelectionDraftError(side, locale)
-        Alert.alert(
-          error instanceof Error ? error.message : t("audioUnavailable"),
-        )
+        reportError(getErrorMessage(error, t("audioUnavailable")))
       }
     }
 
@@ -318,7 +323,16 @@ export function useEditCardAudio({
       playPreview: async () => {
         if (sideDraft.status === "stale" && sideDraft.locale) {
           setAudioSelectionDraftCreating(side, sideDraft.locale)
-          return
+          return audioSuccess()
+        }
+
+        if (
+          sideDraft.fileUrl == null &&
+          resolvedPersistedFileUrl == null &&
+          canResolvePersistedAudio &&
+          (status !== "signed-in" || !user?.refreshToken)
+        ) {
+          return audioFailure(t("audioSignInRequired"))
         }
 
         if (
@@ -342,8 +356,19 @@ export function useEditCardAudio({
             })
             const payload: unknown = await response.json().catch(() => null)
 
-            if (!response.ok || !isResolveTtsReadyResponse(payload)) {
-              throw new Error(t("audioUnavailable"))
+            if (!response.ok) {
+              throw new Error(
+                formatTtsHttpError(response, payload, t("audioRequestFailed")),
+              )
+            }
+
+            if (!isResolveTtsReadyResponse(payload)) {
+              throw new Error(
+                formatUnexpectedTtsResponse(
+                  response,
+                  t("audioUnexpectedResponse"),
+                ),
+              )
             }
 
             hydrateAudioSelectionDraftSide(side, {
@@ -360,21 +385,22 @@ export function useEditCardAudio({
             const result = await audioPreview.playAudio(payload.fileUrl)
 
             if (!result.ok) {
-              Alert.alert(t("audioUnavailable"))
+              return result
             }
 
-            return
-          } catch {
-            Alert.alert(t("audioUnavailable"))
-            return
+            return audioSuccess()
+          } catch (error) {
+            return audioFailure(getErrorMessage(error, t("audioUnavailable")))
           }
         }
 
         const result = await audioPreview.playAudio()
 
         if (!result.ok) {
-          Alert.alert(t("audioUnavailable"))
+          return result
         }
+
+        return audioSuccess()
       },
     }
   }
@@ -408,17 +434,20 @@ export function useEditCardAudio({
   return {
     front: createSideState("front"),
     back: createSideState("back"),
+    error,
+    clearError: () => {
+      setError(null)
+    },
     getPersistedSelection: getVisibleCardTtsSelection,
     persistCardAudio: async (cardSetId: string) => {
       const tts = getCanonicalTtsSelection()
 
       if (Object.keys(tts).length === 0) {
-        return
+        return audioSuccess()
       }
 
       if (status !== "signed-in" || !user?.refreshToken) {
-        Alert.alert(t("audioUnavailable"))
-        return
+        return audioFailure(t("audioSignInRequired"))
       }
 
       try {
@@ -437,15 +466,13 @@ export function useEditCardAudio({
 
         if (!response.ok) {
           throw new Error(
-            isAttachTtsErrorResponse(payload)
-              ? payload.error
-              : t("audioUnavailable"),
+            formatTtsHttpError(response, payload, t("audioRequestFailed")),
           )
         }
+
+        return audioSuccess()
       } catch (error) {
-        Alert.alert(
-          error instanceof Error ? error.message : t("audioUnavailable"),
-        )
+        return audioFailure(getErrorMessage(error, t("audioUnavailable")))
       }
     },
     resetDraft: resetAudioSelectionDraft,

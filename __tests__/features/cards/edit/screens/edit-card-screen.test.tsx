@@ -161,10 +161,12 @@ jest.mock("@/features/cards/edit/components/card-side-field", () => {
     label,
     onFocus,
     onPressAudioAction,
+    onPressAudioPreview,
   }: {
     label: string
     onFocus: () => void
     onPressAudioAction?: () => void
+    onPressAudioPreview?: () => void
   }) {
     return (
       <View>
@@ -183,6 +185,15 @@ jest.mock("@/features/cards/edit/components/card-side-field", () => {
             onPress={onPressAudioAction}
           >
             <Text>{label}-audio-action</Text>
+          </Pressable>
+        ) : null}
+        {onPressAudioPreview ? (
+          <Pressable
+            accessibilityLabel={`${label}-audio-preview`}
+            accessibilityRole="button"
+            onPress={onPressAudioPreview}
+          >
+            <Text>{label}-audio-preview</Text>
           </Pressable>
         ) : null}
       </View>
@@ -292,7 +303,7 @@ function createAudioMock() {
       isActionDisabled: false,
       isPreviewDisabled: true,
       isPreviewLoading: false,
-      playPreview: jest.fn(),
+      playPreview: jest.fn().mockResolvedValue({ ok: true }),
       previewState: "none" as const,
       setHtml: jest.fn(),
       valueLabel: "None",
@@ -301,18 +312,20 @@ function createAudioMock() {
       isActionDisabled: false,
       isPreviewDisabled: true,
       isPreviewLoading: false,
-      playPreview: jest.fn(),
+      playPreview: jest.fn().mockResolvedValue({ ok: true }),
       previewState: "none" as const,
       setHtml: jest.fn(),
       valueLabel: "None",
     },
+    clearError: jest.fn(),
+    error: null as { id: number; message: string } | null,
     getPersistedSelection: jest.fn().mockReturnValue({
       front: {
         locale: "de-DE",
         assetId: "asset-front",
       },
     }),
-    persistCardAudio: jest.fn().mockResolvedValue(undefined),
+    persistCardAudio: jest.fn().mockResolvedValue({ ok: true }),
     resetDraft: jest.fn(),
   }
 }
@@ -453,6 +466,61 @@ describe("EditCardScreen", () => {
     expect(audioMock.resetDraft).toHaveBeenCalledTimes(1)
     expect(formMock.resetForm).toHaveBeenCalledTimes(1)
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it("shows an alert when audio persistence fails after saving", async () => {
+    audioMock.persistCardAudio.mockResolvedValue({
+      ok: false,
+      message: "HTTP 500: Attach failed",
+    })
+    jest.spyOn(Alert, "alert").mockImplementation(jest.fn())
+
+    render(<EditCardScreen onClose={onClose} />)
+
+    fireEvent.press(screen.getByLabelText("save-card"))
+
+    await waitFor(() => {
+      expect(addCard).toHaveBeenCalledTimes(1)
+    })
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith("HTTP 500: Attach failed")
+    })
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it("shows an alert when an audio preview action returns a failure", async () => {
+    audioMock.front.playPreview.mockResolvedValue({
+      ok: false,
+      message: "HTTP 401: Unauthorized",
+    })
+    jest.spyOn(Alert, "alert").mockImplementation(jest.fn())
+
+    render(<EditCardScreen onClose={onClose} />)
+
+    fireEvent.press(screen.getByLabelText("Front-audio-preview"))
+
+    await waitFor(() => {
+      expect(audioMock.front.playPreview).toHaveBeenCalledTimes(1)
+    })
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith("HTTP 401: Unauthorized")
+    })
+  })
+
+  it("shows and clears background audio errors from the hook", async () => {
+    audioMock.error = {
+      id: 1,
+      message: "HTTP 502: TTS provider failed",
+    }
+    jest.spyOn(Alert, "alert").mockImplementation(jest.fn())
+
+    render(<EditCardScreen onClose={onClose} />)
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith("HTTP 502: TTS provider failed")
+    })
+    expect(audioMock.clearError).toHaveBeenCalledTimes(1)
   })
 
   it("ignores invalid save attempts when either card side has no meaningful html", async () => {

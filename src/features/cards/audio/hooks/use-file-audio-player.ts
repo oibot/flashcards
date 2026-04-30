@@ -7,6 +7,11 @@ import { useEffect, useRef, useState } from "react"
 
 export type PlayAudioResult = { ok: true } | { message: string; ok: false }
 const AUDIO_LOAD_TIMEOUT_MS = 8000
+const interruptedMessage = "Audio playback was interrupted."
+const missingSourceMessage = "No audio file URL is available."
+const startPlaybackMessage = "Could not start audio playback."
+const timeoutMessage = "Audio file took too long to load."
+const loadSourceMessage = "Could not load audio file."
 
 type UseFileAudioPlayerOptions = {
   resetKey?: string
@@ -58,12 +63,12 @@ export function useFileAudioPlayer({
     currentSourceUrlRef.current = null
     setIsLoadingSource(false)
     setShouldPlayWhenLoaded(false)
-    finishPendingPlay({ message: "Audio unavailable", ok: false })
+    finishPendingPlay({ message: interruptedMessage, ok: false })
   }, [player, resetKey])
 
   useEffect(() => {
     return () => {
-      finishPendingPlay({ message: "Audio unavailable", ok: false })
+      finishPendingPlay({ message: interruptedMessage, ok: false })
     }
   }, [])
 
@@ -78,7 +83,7 @@ export function useFileAudioPlayer({
       setIsLoadingSource(false)
       setShouldPlayWhenLoaded(false)
       console.error("Timed out while loading audio source.")
-      finishPendingPlay({ message: "Audio unavailable", ok: false })
+      finishPendingPlay({ message: timeoutMessage, ok: false })
     }, AUDIO_LOAD_TIMEOUT_MS)
 
     return () => {
@@ -103,7 +108,7 @@ export function useFileAudioPlayer({
         currentSourceUrlRef.current = null
         player.pause()
         console.error("Failed to start file audio playback.", error)
-        finishPendingPlay({ message: "Audio unavailable", ok: false })
+        finishPendingPlay({ message: startPlaybackMessage, ok: false })
       } finally {
         setIsLoadingSource(false)
         setShouldPlayWhenLoaded(false)
@@ -119,7 +124,7 @@ export function useFileAudioPlayer({
     const nextSourceUrl = sourceUrlOverride ?? sourceUrl
 
     if (!nextSourceUrl) {
-      return { message: "Audio unavailable", ok: false }
+      return { message: missingSourceMessage, ok: false }
     }
 
     if (
@@ -145,9 +150,9 @@ export function useFileAudioPlayer({
       player.pause()
       setIsLoadingSource(false)
       setShouldPlayWhenLoaded(false)
-      finishPendingPlay({ message: "Audio unavailable", ok: false })
+      finishPendingPlay({ message: loadSourceMessage, ok: false })
       console.error("Failed to load file audio source.", error)
-      return { message: "Audio unavailable", ok: false }
+      return { message: loadSourceMessage, ok: false }
     }
   }
 

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, Keyboard, View } from "react-native"
 import {
@@ -8,7 +8,10 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet } from "react-native-unistyles"
 
-import { useEditCardAudio } from "@/features/cards/audio/hooks/use-edit-card-audio"
+import {
+  type EditCardAudioActionResult,
+  useEditCardAudio,
+} from "@/features/cards/audio/hooks/use-edit-card-audio"
 import CardSideField from "@/features/cards/edit/components/card-side-field"
 import EditCardHeader from "@/features/cards/edit/components/edit-card-header"
 import OppositeDirectionToggle from "@/features/cards/edit/components/opposite-direction-toggle"
@@ -64,6 +67,17 @@ export default function EditCardScreen({
   } = useEditCardForm({ initialCard })
   const isEditorToolbarEnabled =
     focusedField === "front" || focusedField === "back"
+  const audioError = audio.error
+  const clearAudioError = audio.clearError
+
+  useEffect(() => {
+    if (!audioError) {
+      return
+    }
+
+    Alert.alert(audioError.message)
+    clearAudioError()
+  }, [audioError, clearAudioError])
 
   const createBlurHandler = (field: FocusedField) => () => {
     setFocusedField((currentField) =>
@@ -129,6 +143,16 @@ export default function EditCardScreen({
     ])
   }
 
+  const showAudioResult = async (
+    resultPromise: Promise<EditCardAudioActionResult>,
+  ) => {
+    const result = await resultPromise
+
+    if (!result.ok) {
+      Alert.alert(result.message)
+    }
+  }
+
   const handleSave = async () => {
     const draft = await getValidatedDraft()
     if (!draft) {
@@ -137,13 +161,13 @@ export default function EditCardScreen({
 
     if (initialCard) {
       const result = await updateCard(createUpdateCardInput(draft))
-      await audio.persistCardAudio(result.cardSetId)
+      await showAudioResult(audio.persistCardAudio(result.cardSetId))
       onClose()
       return
     }
 
     const result = await addCard(createNewCardInput(draft))
-    await audio.persistCardAudio(result.cardSetId)
+    await showAudioResult(audio.persistCardAudio(result.cardSetId))
     onClose()
   }
 
@@ -152,7 +176,7 @@ export default function EditCardScreen({
     if (!draft) return
 
     const result = await addCard(createNewCardInput(draft))
-    await audio.persistCardAudio(result.cardSetId)
+    await showAudioResult(audio.persistCardAudio(result.cardSetId))
     audio.resetDraft()
     resetForm()
   }
@@ -218,7 +242,9 @@ export default function EditCardScreen({
             onPressAudioAction={() => {
               openLanguagePicker("front")
             }}
-            onPressAudioPreview={audio.front.playPreview}
+            onPressAudioPreview={() => {
+              void showAudioResult(audio.front.playPreview())
+            }}
             onStateChange={(nextState) =>
               handleEditorStateChange("front", nextState)
             }
@@ -242,7 +268,9 @@ export default function EditCardScreen({
             onPressAudioAction={() => {
               openLanguagePicker("back")
             }}
-            onPressAudioPreview={audio.back.playPreview}
+            onPressAudioPreview={() => {
+              void showAudioResult(audio.back.playPreview())
+            }}
             onStateChange={(nextState) =>
               handleEditorStateChange("back", nextState)
             }

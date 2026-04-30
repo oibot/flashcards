@@ -24,6 +24,9 @@
     "backLabel": "Back",
     "cancel": "Cancel",
     "cancelAccessibilityLabel": "Cancel",
+    "audioRequestFailed": "Audio request failed.",
+    "audioSignInRequired": "Please sign in again to load audio.",
+    "audioUnexpectedResponse": "The audio endpoint returned an unexpected response.",
     "audioUnavailable": "Audio unavailable",
     "discard": {
       "cancel": "Keep editing",
@@ -105,6 +108,9 @@
     "active": {
       "again": "Again",
       "audioLoading": "Loading audio...",
+      "audioRequestFailed": "Audio request failed.",
+      "audioSignInRequired": "Please sign in again to load audio.",
+      "audioUnexpectedResponse": "The audio endpoint returned an unexpected response.",
       "audioUnavailable": "Audio unavailable",
       "back": "Back",
       "front": "Front",
