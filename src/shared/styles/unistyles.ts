@@ -1,4 +1,4 @@
-import type { TextStyle } from "react-native"
+import { Platform, type TextStyle } from "react-native"
 import type {
   AndroidContentSizeCategory,
   IOSContentSizeCategory,
@@ -124,9 +124,14 @@ const otherTheme = {
   typography,
 }
 
-const settings = {
-  adaptiveThemes: true,
-}
+const settings =
+  Platform.OS === "web" && typeof document === "undefined"
+    ? {
+        initialTheme: "light" as const,
+      }
+    : {
+        adaptiveThemes: true,
+      }
 
 const appThemes = {
   light: lightTheme,

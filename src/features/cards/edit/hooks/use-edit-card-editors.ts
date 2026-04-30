@@ -1,9 +1,9 @@
 import { type RefObject, useRef, useState } from "react"
-import type {
-  EnrichedTextInputInstance,
-  OnChangeStateEvent,
-} from "react-native-enriched"
 
+import type {
+  RichTextEditorHandle,
+  RichTextEditorState,
+} from "@/features/cards/edit/lib/rich-text-editor"
 import {
   type SharedToolbarState,
   stateKeyByItemName,
@@ -24,7 +24,7 @@ const DEFAULT_SHARED_STYLES: SharedToolbarState = {
 }
 
 const toggleEditorStyle = (
-  editorRef: RefObject<EnrichedTextInputInstance | null>,
+  editorRef: RefObject<RichTextEditorHandle | null>,
   styleKey: ToolbarStyleKey,
 ) => {
   const editor = editorRef.current
@@ -56,7 +56,7 @@ const toggleEditorStyle = (
 }
 
 const getSharedStylesFromState = (
-  stylesState: OnChangeStateEvent | null,
+  stylesState: RichTextEditorState | null,
 ): SharedToolbarState => {
   if (!stylesState) return DEFAULT_SHARED_STYLES
 
@@ -72,11 +72,11 @@ const getSharedStylesFromState = (
 }
 
 export function useEditCardEditors() {
-  const frontRef = useRef<EnrichedTextInputInstance>(null)
-  const backRef = useRef<EnrichedTextInputInstance>(null)
+  const frontRef = useRef<RichTextEditorHandle | null>(null)
+  const backRef = useRef<RichTextEditorHandle | null>(null)
   const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
   const [currentStylesState, setCurrentStylesState] =
-    useState<OnChangeStateEvent | null>(null)
+    useState<RichTextEditorState | null>(null)
 
   const handleEditorFocus = (editor: EditorSide) => {
     setFocusedEditor(editor)
@@ -84,7 +84,7 @@ export function useEditCardEditors() {
 
   const handleEditorStateChange = (
     editor: EditorSide,
-    nextState: OnChangeStateEvent,
+    nextState: RichTextEditorState,
   ) => {
     if (focusedEditor === null || focusedEditor === editor) {
       setCurrentStylesState(nextState)

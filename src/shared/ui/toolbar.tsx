@@ -1,6 +1,7 @@
 import { ScrollView, View } from "react-native"
-import type { OnChangeStateEvent } from "react-native-enriched"
 import { StyleSheet } from "react-native-unistyles"
+
+import type { RichTextEditorState } from "@/features/cards/edit/lib/rich-text-editor"
 
 import ToolbarButton from "./toolbar-button"
 
@@ -49,7 +50,7 @@ export type SharedToolbarState = Record<ToolbarStyleKey, boolean>
 
 export type ToolbarProps = {
   activeStyles: SharedToolbarState
-  stylesState: OnChangeStateEvent | null
+  stylesState: RichTextEditorState | null
   onToggleStyle: (item: ToolbarItem) => void
 }
 
