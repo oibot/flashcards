@@ -454,7 +454,10 @@ Expected server environment:
 - `EXPO_PUBLIC_INSTANT_APP_ID`
 - `INSTANT_APP_ADMIN_TOKEN`
 - `ELEVENLABS_API_KEY`
-- optional TTS defaults such as voice and model IDs
+- optional `ELEVENLABS_MODEL_ID`
+
+Locale-to-voice mapping should live in a server-only typed config module rather
+than per-locale environment variables.
 
 Only `EXPO_PUBLIC_*` values may be used on the client. The ElevenLabs key and
 Instant admin token must stay server-only.

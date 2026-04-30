@@ -30,69 +30,88 @@ describe("ElevenLabs TTS helpers", () => {
     jest.resetModules()
   })
 
-  it("discovers configured locales and resolves the base TTS config", () => {
+  it("discovers configured locales from the server-only config", () => {
     const elevenlabs = requireElevenLabs({
       ELEVENLABS_MODEL_ID: "model-123",
-      ELEVENLABS_VOICE_ID_EN_US: "voice-en",
-      ELEVENLABS_VOICE_ID_DE_DE: "voice-de",
     })
 
     expect(elevenlabs.getTtsAudioContentType("mp3")).toBe("audio/mpeg")
-    expect(elevenlabs.getConfiguredTtsLocales()).toEqual(["en-US", "de-DE"])
+    expect(elevenlabs.getConfiguredTtsLocales()).toEqual([
+      "en-US",
+      "de-DE",
+      "es-ES",
+      "fr-FR",
+      "pt-BR",
+      "ja-JP",
+      "zh-CN",
+      "ru-RU",
+    ])
     expect(elevenlabs.getConfiguredTtsVoiceProfiles()).toEqual([
       {
         locale: "en-US",
-        voiceId: "voice-en",
+        voiceId: "2vbhUP8zyKg4dEZaTWGn",
       },
       {
         locale: "de-DE",
-        voiceId: "voice-de",
+        voiceId: "JiW03c2Gt43XNUQAumRP",
+      },
+      {
+        locale: "es-ES",
+        voiceId: "ODO4sbmD3pTjhgRVVRP6",
+      },
+      {
+        locale: "fr-FR",
+        voiceId: "fMikjf4u2qBd4gPl7yuw",
+      },
+      {
+        locale: "pt-BR",
+        voiceId: "7iqXtOF3wl3pomwXFY7G",
+      },
+      {
+        locale: "ja-JP",
+        voiceId: "GxhGYQesaQaYKePCZDEC",
+      },
+      {
+        locale: "zh-CN",
+        voiceId: "BqljjWyTnrioXPCNkCd4",
+      },
+      {
+        locale: "ru-RU",
+        voiceId: "KpX1OoMT6Br64YtIpgRI",
       },
     ])
     expect(elevenlabs.resolveTtsConfig("en-US")).toEqual({
       provider: "elevenlabs",
       locale: "en-US",
-      voiceId: "voice-en",
+      voiceId: "2vbhUP8zyKg4dEZaTWGn",
       modelId: "model-123",
       outputFormat: "mp3",
     })
   })
 
-  it("falls back to the legacy voice profile when the configured locale matches", () => {
-    const elevenlabs = requireElevenLabs({
-      ELEVENLABS_TTS_LOCALE: "ja-JP",
-      ELEVENLABS_VOICE_ID: "legacy-voice",
-    })
+  it("resolves a checked-in voice profile for a locale", () => {
+    const elevenlabs = requireElevenLabs()
 
     expect(elevenlabs.getTtsVoiceProfile("ja-JP")).toEqual({
       locale: "ja-JP",
-      voiceId: "legacy-voice",
+      voiceId: "GxhGYQesaQaYKePCZDEC",
     })
-    expect(elevenlabs.getTtsConfig()).toEqual({
+    expect(elevenlabs.resolveTtsConfig("ja-JP")).toEqual({
       provider: "elevenlabs",
       locale: "ja-JP",
-      voiceId: "legacy-voice",
+      voiceId: "GxhGYQesaQaYKePCZDEC",
       modelId: "eleven_flash_v2_5",
       outputFormat: "mp3",
     })
   })
 
-  it("throws when resolving a locale without a configured voice profile", () => {
+  it("uses the default model id when no env override is provided", () => {
     const elevenlabs = requireElevenLabs()
 
-    expect(() => elevenlabs.resolveTtsConfig("fr-FR")).toThrow(
-      "Missing ELEVENLABS_VOICE_ID_FR_FR.",
-    )
-  })
-
-  it("throws for an unsupported legacy locale configuration", () => {
-    const elevenlabs = requireElevenLabs({
-      ELEVENLABS_TTS_LOCALE: "sv-SE",
-      ELEVENLABS_VOICE_ID: "legacy-voice",
+    expect(elevenlabs.getTtsBaseConfig()).toEqual({
+      provider: "elevenlabs",
+      modelId: "eleven_flash_v2_5",
+      outputFormat: "mp3",
     })
-
-    expect(() => elevenlabs.getTtsConfig()).toThrow(
-      "Unsupported ELEVENLABS_TTS_LOCALE.",
-    )
   })
 })

@@ -111,8 +111,9 @@ This keeps the decision explicit and reviewable.
 
 The voice catalog can be backed by:
 
-- a static map in code for supported locales
-- environment variables for the actual `voiceId` values
+- a server-only typed config module for supported locales and `voiceId` values
+- environment variables only for actual secrets or operational overrides such as
+  the API key or optional model id
 
 Model and output format should remain global server settings, not per-locale
 settings.
@@ -120,16 +121,10 @@ settings.
 Example shape:
 
 ```ts
-const TTS_VOICE_PROFILES = {
-  "en-US": {
-    locale: "en-US",
-    voiceId: process.env.ELEVENLABS_VOICE_ID_EN_US!,
-  },
-  "de-DE": {
-    locale: "de-DE",
-    voiceId: process.env.ELEVENLABS_VOICE_ID_DE_DE!,
-  },
-}
+const TTS_VOICE_IDS_BY_LOCALE = {
+  "en-US": "2vbhUP8zyKg4dEZaTWGn",
+  "de-DE": "JiW03c2Gt43XNUQAumRP",
+} satisfies Record<SupportedTtsLocale, string>
 ```
 
 Suggested config split:
@@ -171,7 +166,7 @@ Supported locales:
 These locales should define:
 
 - which languages appear in the picker
-- which `voiceId` values must be configured on the server
+- which `voiceId` values are defined in the server-only TTS config
 - which locale values are accepted by the locale persistence route
 
 If a locale does not have a configured voice, it should not appear in the
@@ -482,19 +477,12 @@ Recommended implementation order:
 Compile-safe sequencing note:
 
 - Step 1 should compile on its own.
-- Step 2 should be additive. Introduce the locale map and a new
-  `resolveTtsConfig(locale)` helper without deleting the current global
-  `getTtsConfig()` path yet.
-- During this additive step, it is acceptable to keep a temporary legacy
-  compatibility path that translates the old global environment variables
-  (`ELEVENLABS_VOICE_ID` and `ELEVENLABS_TTS_LOCALE`) into the new
-  locale-based voice-profile shape. This shim exists only to keep the
-  intermediate implementation compiling and non-breaking while the resolve flow
-  still uses the old entry point.
-- Step 3 can then switch `resolve-tts` to the new locale-based config and
-  return `needs-locale`.
-- After the switch-over is complete, remove the temporary legacy shim and rely
-  only on the locale-based voice mapping.
+- Step 2 should be additive. Introduce the server-only `tts-config` locale map
+  and a new `resolveTtsConfig(locale)` helper.
+- Step 3 can then switch `resolve-tts` to the locale-based config and return
+  `needs-locale`.
+- After the switch-over is complete, rely only on the locale-based voice
+  mapping.
 - Step 4 should compile on its own after Step 1.
 - Step 5 depends on Steps 3 and 4 being present.
 - Steps 6 and 7 do not introduce new type coupling.

@@ -1,6 +1,4 @@
 import {
-  isSupportedTtsLocale,
-  SUPPORTED_TTS_LOCALES,
   type SupportedTtsLocale,
   type TtsConfig,
   type TtsOutputFormat,
@@ -11,44 +9,18 @@ import {
   logTtsInfo,
   summarizeText,
 } from "@/features/cards/audio/server/log"
+import {
+  getConfiguredTtsLocales as getConfiguredTtsLocalesFromConfig,
+  getConfiguredTtsVoiceProfiles as getConfiguredTtsVoiceProfilesFromConfig,
+  getTtsVoiceProfile as getTtsVoiceProfileFromConfig,
+  TTS_BASE_CONFIG,
+  type TtsBaseConfig,
+  type TtsVoiceProfile,
+} from "@/features/cards/audio/server/tts-config"
 
 const ELEVENLABS_OUTPUT_FORMAT = "mp3_44100_128"
 const AUDIO_CONTENT_TYPES: Record<TtsOutputFormat, string> = {
   mp3: "audio/mpeg",
-}
-const DEFAULT_TTS_MODEL_ID = "eleven_flash_v2_5"
-const DEFAULT_TTS_OUTPUT_FORMAT: TtsOutputFormat = "mp3"
-const TTS_VOICE_ID_ENV_VAR_NAMES: Record<SupportedTtsLocale, string> = {
-  "en-US": "ELEVENLABS_VOICE_ID_EN_US",
-  "de-DE": "ELEVENLABS_VOICE_ID_DE_DE",
-  "es-ES": "ELEVENLABS_VOICE_ID_ES_ES",
-  "fr-FR": "ELEVENLABS_VOICE_ID_FR_FR",
-  "pt-BR": "ELEVENLABS_VOICE_ID_PT_BR",
-  "ja-JP": "ELEVENLABS_VOICE_ID_JA_JP",
-  "zh-CN": "ELEVENLABS_VOICE_ID_ZH_CN",
-  "ru-RU": "ELEVENLABS_VOICE_ID_RU_RU",
-}
-const TTS_VOICE_IDS_BY_LOCALE: Record<SupportedTtsLocale, string | undefined> =
-  {
-    "en-US": process.env.ELEVENLABS_VOICE_ID_EN_US,
-    "de-DE": process.env.ELEVENLABS_VOICE_ID_DE_DE,
-    "es-ES": process.env.ELEVENLABS_VOICE_ID_ES_ES,
-    "fr-FR": process.env.ELEVENLABS_VOICE_ID_FR_FR,
-    "pt-BR": process.env.ELEVENLABS_VOICE_ID_PT_BR,
-    "ja-JP": process.env.ELEVENLABS_VOICE_ID_JA_JP,
-    "zh-CN": process.env.ELEVENLABS_VOICE_ID_ZH_CN,
-    "ru-RU": process.env.ELEVENLABS_VOICE_ID_RU_RU,
-  }
-
-export type TtsBaseConfig = {
-  provider: "elevenlabs"
-  modelId: string
-  outputFormat: TtsOutputFormat
-}
-
-export type TtsVoiceProfile = {
-  locale: SupportedTtsLocale
-  voiceId: string
 }
 
 function toLanguageCode(locale: string) {
@@ -63,101 +35,32 @@ export function getTtsAudioContentType(outputFormat: TtsOutputFormat) {
 
 export function getTtsBaseConfig(): TtsBaseConfig {
   return {
-    provider: "elevenlabs",
-    modelId: process.env.ELEVENLABS_MODEL_ID ?? DEFAULT_TTS_MODEL_ID,
-    outputFormat: DEFAULT_TTS_OUTPUT_FORMAT,
-  }
-}
-
-export function getTtsVoiceIdEnvVarName(locale: SupportedTtsLocale) {
-  return TTS_VOICE_ID_ENV_VAR_NAMES[locale]
-}
-
-function getLegacyTtsLocale() {
-  const locale = process.env.ELEVENLABS_TTS_LOCALE ?? "en-US"
-
-  if (!isSupportedTtsLocale(locale)) {
-    throw new TtsResolveError("Unsupported ELEVENLABS_TTS_LOCALE.", 500)
-  }
-
-  return locale
-}
-
-function getLegacyTtsVoiceProfile(): TtsVoiceProfile | null {
-  const voiceId = process.env.ELEVENLABS_VOICE_ID
-
-  if (!voiceId) {
-    return null
-  }
-
-  return {
-    locale: getLegacyTtsLocale(),
-    voiceId,
+    ...TTS_BASE_CONFIG,
+    modelId: process.env.ELEVENLABS_MODEL_ID ?? TTS_BASE_CONFIG.modelId,
   }
 }
 
 export function getTtsVoiceProfile(
   locale: SupportedTtsLocale,
-): TtsVoiceProfile | null {
-  const voiceId = TTS_VOICE_IDS_BY_LOCALE[locale]
-
-  if (voiceId) {
-    return {
-      locale,
-      voiceId,
-    }
-  }
-
-  const legacyProfile = getLegacyTtsVoiceProfile()
-
-  if (legacyProfile?.locale === locale) {
-    return legacyProfile
-  }
-
-  return null
+): TtsVoiceProfile {
+  return getTtsVoiceProfileFromConfig(locale)
 }
 
 export function getConfiguredTtsLocales() {
-  return SUPPORTED_TTS_LOCALES.filter(
-    (locale): locale is SupportedTtsLocale =>
-      getTtsVoiceProfile(locale) !== null,
-  )
+  return getConfiguredTtsLocalesFromConfig()
 }
 
 export function getConfiguredTtsVoiceProfiles() {
-  return getConfiguredTtsLocales()
-    .map((locale) => getTtsVoiceProfile(locale))
-    .filter((profile): profile is TtsVoiceProfile => profile !== null)
+  return getConfiguredTtsVoiceProfilesFromConfig()
 }
 
 export function resolveTtsConfig(locale: SupportedTtsLocale): TtsConfig {
   const voiceProfile = getTtsVoiceProfile(locale)
 
-  if (!voiceProfile) {
-    throw new TtsResolveError(
-      `Missing ${getTtsVoiceIdEnvVarName(locale)}.`,
-      500,
-    )
-  }
-
   return {
     ...getTtsBaseConfig(),
     locale: voiceProfile.locale,
     voiceId: voiceProfile.voiceId,
-  }
-}
-
-export function getTtsConfig(): TtsConfig {
-  const voiceId = process.env.ELEVENLABS_VOICE_ID
-
-  if (!voiceId) {
-    return resolveTtsConfig(getLegacyTtsLocale())
-  }
-
-  return {
-    ...getTtsBaseConfig(),
-    locale: getLegacyTtsLocale(),
-    voiceId,
   }
 }
 
@@ -230,3 +133,5 @@ export async function generateElevenLabsAudio(text: string, config: TtsConfig) {
 
   return audioBytes
 }
+
+export type { TtsBaseConfig, TtsVoiceProfile }
