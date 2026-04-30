@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest --watch --coverage=false --changedSince=origin/main",
     "testDebug": "jest -o --watch --coverage=false",
-    "testFinal": "jest"
+    "testFinal": "jest --coverage=false"
   },
   "dependencies": {
     "@expo/ui": "~55.0.12",
@@ -21,7 +21,7 @@
     "@instantdb/react-native-mmkv": "^0.22.145",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "11.5.2",
-    "expo": "~55.0.17",
+    "expo": "~55.0.18",
     "expo-asset": "~55.0.16",
     "expo-audio": "~55.0.14",
     "expo-constants": "~55.0.15",
