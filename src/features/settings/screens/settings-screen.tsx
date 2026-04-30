@@ -9,14 +9,16 @@ export default function SettingsScreen() {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "settings" })
   const {
+    isCheckingHealth,
     isExporting,
     isImporting,
     isSigningOut,
+    onCheckHealth,
     onExport,
     onImport,
     onSignOut,
   } = useSettingsActions()
-  const isBusy = isExporting || isImporting || isSigningOut
+  const isBusy = isCheckingHealth || isExporting || isImporting || isSigningOut
 
   return (
     <>
@@ -54,6 +56,23 @@ export default function SettingsScreen() {
             <ActivityIndicator color={theme.colors.background} />
           ) : (
             <Text style={styles.buttonLabel}>{t("import")}</Text>
+          )}
+        </Pressable>
+        <Pressable
+          accessibilityLabel={t("healthAccessibilityLabel")}
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onCheckHealth}
+          style={[
+            styles.button,
+            styles.primaryButton,
+            isBusy ? styles.buttonDisabled : null,
+          ]}
+        >
+          {isCheckingHealth ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.buttonLabel}>{t("health")}</Text>
           )}
         </Pressable>
         <Pressable
