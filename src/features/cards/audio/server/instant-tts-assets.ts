@@ -7,7 +7,7 @@ import type {
   SupportedTtsLocale,
   TtsConfig,
 } from "@/features/cards/audio/model/card-audio"
-import { adminDb } from "@/features/cards/data/instant/admin"
+import { getAdminDb } from "@/features/cards/data/instant/admin"
 import type { AppSchema } from "@/features/cards/data/instant/instant.schema"
 import { hasOwn } from "@/shared/lib/object"
 
@@ -64,6 +64,7 @@ export function getReadyFileUrl(asset: TtsAssetRecord | null | undefined) {
 }
 
 export async function loadCardForTts(userId: string, cardId: string) {
+  const adminDb = getAdminDb()
   const data = await adminDb.query({
     $users: {
       $: {
@@ -97,6 +98,8 @@ export async function updateCardSetTtsReference(
   contentSide: CardContentSide,
   assetId: string,
 ) {
+  const adminDb = getAdminDb()
+
   if (contentSide === "sideA") {
     await adminDb.transact(
       adminDb.tx.cardSets[cardSetId].link({ sideATtsAsset: assetId }),
@@ -113,6 +116,7 @@ export async function loadOwnedCardSetForTts(
   userId: string,
   cardSetId: string,
 ) {
+  const adminDb = getAdminDb()
   const data = await adminDb.query({
     $users: {
       $: {
@@ -139,6 +143,7 @@ export async function updateCardSetTtsSelection(
   cardSet: OwnedCardSetRecord,
   selectionPatch: CardSetTtsSelectionPatch,
 ) {
+  const adminDb = getAdminDb()
   const transactions = []
 
   if (hasOwn(selectionPatch, "sideATtsAssetId")) {
@@ -205,6 +210,8 @@ export async function updateCardSetTtsLocale(
   contentSide: CardContentSide,
   locale: SupportedTtsLocale,
 ) {
+  const adminDb = getAdminDb()
+
   if (contentSide === "sideA") {
     await adminDb.transact(
       adminDb.tx.cardSets[cardSetId].update({ sideATtsLocale: locale }),
@@ -218,6 +225,7 @@ export async function updateCardSetTtsLocale(
 }
 
 export async function querySharedTtsAsset(cacheKey: string) {
+  const adminDb = getAdminDb()
   const sharedAssetData = await adminDb.query({
     ttsAssets: {
       $: {
@@ -237,6 +245,8 @@ export async function uploadGeneratedAudio(
   audioBytes: Uint8Array,
   contentType: string,
 ) {
+  const adminDb = getAdminDb()
+
   return adminDb.storage.uploadFile(`tts/${cacheKey}.mp3`, audioBytes, {
     contentType,
   })
@@ -259,6 +269,7 @@ export async function persistGeneratedTtsAsset({
   config,
   fileId,
 }: PersistGeneratedTtsAssetInput) {
+  const adminDb = getAdminDb()
   const assetId = existingAsset?.id ?? id()
   const now = new Date()
 

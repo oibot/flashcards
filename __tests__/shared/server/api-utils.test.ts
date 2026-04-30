@@ -27,11 +27,11 @@ jest.mock("@instantdb/admin", () => {
 })
 
 jest.mock("@/features/cards/data/instant/admin", () => ({
-  adminDb: {
+  getAdminDb: () => ({
     auth: {
       verifyToken: (...args: unknown[]) => mockVerifyToken(...args),
     },
-  },
+  }),
 }))
 
 import { InstantAPIError } from "@instantdb/admin"

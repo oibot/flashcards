@@ -1,6 +1,6 @@
 import { InstantAPIError } from "@instantdb/admin"
 
-import { adminDb } from "@/features/cards/data/instant/admin"
+import { getAdminDb } from "@/features/cards/data/instant/admin"
 
 export function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status })
@@ -40,7 +40,7 @@ function isAuthenticationFailure(error: unknown) {
 }
 
 export type AuthenticatedUser = Awaited<
-  ReturnType<typeof adminDb.auth.verifyToken>
+  ReturnType<ReturnType<typeof getAdminDb>["auth"]["verifyToken"]>
 >
 
 export async function requireAuthenticatedUser(
@@ -55,6 +55,7 @@ export async function requireAuthenticatedUser(
   }
 
   try {
+    const adminDb = getAdminDb()
     const authenticatedUser = await adminDb.auth.verifyToken(token)
 
     if (!authenticatedUser) {
