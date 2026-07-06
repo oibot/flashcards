@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
@@ -37,17 +37,23 @@ export function useReviewCardAudio({
 }: UseReviewCardAudioOptions) {
   const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
   const { status, user } = useAuthSession()
-  const [resolvedFileUrl, setResolvedFileUrl] = useState<string | null>(null)
+  const requestKey = `${cardId}:${visibleSide}`
+  const [resolvedAudio, setResolvedAudio] = useState<{
+    fileUrl: string | null
+    key: string
+  }>(() => ({ fileUrl: null, key: requestKey }))
+  const [resolvingAudio, setResolvingAudio] = useState<{
+    isResolving: boolean
+    key: string
+  }>(() => ({ isResolving: false, key: requestKey }))
+  const resolvedFileUrl =
+    resolvedAudio.key === requestKey ? resolvedAudio.fileUrl : null
+  const isResolving =
+    resolvingAudio.key === requestKey && resolvingAudio.isResolving
   const fileAudioPlayer = useFileAudioPlayer({
-    resetKey: `${cardId}:${visibleSide}`,
+    resetKey: requestKey,
     sourceUrl: resolvedFileUrl,
   })
-  const [isResolving, setIsResolving] = useState(false)
-
-  useEffect(() => {
-    setResolvedFileUrl(null)
-    setIsResolving(false)
-  }, [cardId, visibleSide])
 
   const playAudio = async (): Promise<PlayAudioResult> => {
     if (isResolving || fileAudioPlayer.isLoading) {
@@ -62,7 +68,7 @@ export function useReviewCardAudio({
       return { message: t("audioSignInRequired"), ok: false }
     }
 
-    setIsResolving(true)
+    setResolvingAudio({ isResolving: true, key: requestKey })
 
     try {
       console.log("Requesting review card audio.", {
@@ -103,17 +109,17 @@ export function useReviewCardAudio({
         )
       }
 
-      setResolvedFileUrl(payload.fileUrl)
+      setResolvedAudio({ fileUrl: payload.fileUrl, key: requestKey })
       return fileAudioPlayer.playAudio(payload.fileUrl)
     } catch (error) {
-      setResolvedFileUrl(null)
+      setResolvedAudio({ fileUrl: null, key: requestKey })
       console.error("Review card audio playback failed.", error)
       return {
         message: getErrorMessage(error, t("audioUnavailable")),
         ok: false,
       }
     } finally {
-      setIsResolving(false)
+      setResolvingAudio({ isResolving: false, key: requestKey })
     }
   }
 

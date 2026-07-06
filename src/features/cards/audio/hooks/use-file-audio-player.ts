@@ -3,7 +3,7 @@ import {
   useAudioPlayer,
   useAudioPlayerStatus,
 } from "expo-audio"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useReducer, useRef } from "react"
 
 export type PlayAudioResult = { ok: true } | { message: string; ok: false }
 const AUDIO_LOAD_TIMEOUT_MS = 8000
@@ -18,6 +18,25 @@ type UseFileAudioPlayerOptions = {
   sourceUrl: string | null
 }
 
+type AudioLoadState = {
+  isLoadingSource: boolean
+  shouldPlayWhenLoaded: boolean
+}
+
+type AudioLoadAction = { type: "reset" } | { type: "start-loading" }
+
+function audioLoadReducer(
+  _state: AudioLoadState,
+  action: AudioLoadAction,
+): AudioLoadState {
+  switch (action.type) {
+    case "start-loading":
+      return { isLoadingSource: true, shouldPlayWhenLoaded: true }
+    case "reset":
+      return { isLoadingSource: false, shouldPlayWhenLoaded: false }
+  }
+}
+
 export function useFileAudioPlayer({
   resetKey,
   sourceUrl,
@@ -27,8 +46,11 @@ export function useFileAudioPlayer({
   })
   const playerStatus = useAudioPlayerStatus(player)
   const currentSourceUrlRef = useRef<string | null>(null)
-  const [isLoadingSource, setIsLoadingSource] = useState(false)
-  const [shouldPlayWhenLoaded, setShouldPlayWhenLoaded] = useState(false)
+  const [{ isLoadingSource, shouldPlayWhenLoaded }, dispatchAudioLoad] =
+    useReducer(audioLoadReducer, {
+      isLoadingSource: false,
+      shouldPlayWhenLoaded: false,
+    })
   const pendingPlayResultRef = useRef<{
     resolve: (result: PlayAudioResult) => void
   } | null>(null)
@@ -61,8 +83,7 @@ export function useFileAudioPlayer({
   useEffect(() => {
     player.pause()
     currentSourceUrlRef.current = null
-    setIsLoadingSource(false)
-    setShouldPlayWhenLoaded(false)
+    dispatchAudioLoad({ type: "reset" })
     finishPendingPlay({ message: interruptedMessage, ok: false })
   }, [player, resetKey])
 
@@ -80,8 +101,7 @@ export function useFileAudioPlayer({
     loadTimeoutRef.current = setTimeout(() => {
       currentSourceUrlRef.current = null
       player.pause()
-      setIsLoadingSource(false)
-      setShouldPlayWhenLoaded(false)
+      dispatchAudioLoad({ type: "reset" })
       console.error("Timed out while loading audio source.")
       finishPendingPlay({ message: timeoutMessage, ok: false })
     }, AUDIO_LOAD_TIMEOUT_MS)
@@ -110,8 +130,7 @@ export function useFileAudioPlayer({
         console.error("Failed to start file audio playback.", error)
         finishPendingPlay({ message: startPlaybackMessage, ok: false })
       } finally {
-        setIsLoadingSource(false)
-        setShouldPlayWhenLoaded(false)
+        dispatchAudioLoad({ type: "reset" })
       }
     }
 
@@ -136,8 +155,7 @@ export function useFileAudioPlayer({
       return { ok: true }
     }
 
-    setIsLoadingSource(true)
-    setShouldPlayWhenLoaded(true)
+    dispatchAudioLoad({ type: "start-loading" })
     currentSourceUrlRef.current = nextSourceUrl
 
     try {
@@ -148,8 +166,7 @@ export function useFileAudioPlayer({
     } catch (error) {
       currentSourceUrlRef.current = null
       player.pause()
-      setIsLoadingSource(false)
-      setShouldPlayWhenLoaded(false)
+      dispatchAudioLoad({ type: "reset" })
       finishPendingPlay({ message: loadSourceMessage, ok: false })
       console.error("Failed to load file audio source.", error)
       return { message: loadSourceMessage, ok: false }

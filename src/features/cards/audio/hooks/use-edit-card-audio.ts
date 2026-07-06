@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useReducer, useRef } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
@@ -63,6 +63,48 @@ type UseEditCardAudioOptions = {
   initialCard?: Card
 }
 
+type ResolvedPersistedFileUrls = Record<VisibleCardSide, string | null>
+
+type ResolvedPersistedFileUrlsAction =
+  | { type: "reset" }
+  | { fileUrl: string; side: VisibleCardSide; type: "set" }
+
+function resolvedPersistedFileUrlsReducer(
+  state: ResolvedPersistedFileUrls,
+  action: ResolvedPersistedFileUrlsAction,
+): ResolvedPersistedFileUrls {
+  switch (action.type) {
+    case "reset":
+      return { front: null, back: null }
+    case "set":
+      return { ...state, [action.side]: action.fileUrl }
+  }
+}
+
+type ErrorState = {
+  current: EditCardAudioErrorEvent | null
+  nextId: number
+}
+
+type ErrorAction = { type: "clear" } | { message: string; type: "report" }
+
+function errorReducer(state: ErrorState, action: ErrorAction): ErrorState {
+  switch (action.type) {
+    case "clear":
+      return { ...state, current: null }
+    case "report": {
+      const nextId = state.nextId + 1
+      return {
+        current: {
+          id: nextId,
+          message: action.message,
+        },
+        nextId,
+      }
+    }
+  }
+}
+
 function isDraftTtsReadyResponse(
   value: unknown,
 ): value is DraftTtsReadyResponse {
@@ -107,12 +149,11 @@ export function useEditCardAudio({
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const { status, user } = useAuthSession()
   const audioSelectionDraft = useAudioSelectionDraft()
-  const [resolvedPersistedFileUrls, setResolvedPersistedFileUrls] = useState<
-    Record<VisibleCardSide, string | null>
-  >({
-    front: null,
-    back: null,
-  })
+  const [resolvedPersistedFileUrls, dispatchResolvedPersistedFileUrls] =
+    useReducer(resolvedPersistedFileUrlsReducer, {
+      front: null,
+      back: null,
+    })
   const frontAudioPreview = useFileAudioPlayer({
     sourceUrl:
       audioSelectionDraft.front.fileUrl ??
@@ -133,16 +174,16 @@ export function useEditCardAudio({
     front: null,
     back: null,
   })
-  const [error, setError] = useState<EditCardAudioErrorEvent | null>(null)
-  const nextErrorIdRef = useRef(0)
+  const [errorState, dispatchError] = useReducer(errorReducer, {
+    current: null,
+    nextId: 0,
+  })
+  const error = errorState.current
 
   useEffect(() => {
     resetAudioSelectionDraft()
-    setError(null)
-    setResolvedPersistedFileUrls({
-      front: null,
-      back: null,
-    })
+    dispatchError({ type: "clear" })
+    dispatchResolvedPersistedFileUrls({ type: "reset" })
     setAudioSelectionDraftHtml("front", initialCard?.frontHtml ?? "")
     setAudioSelectionDraftHtml("back", initialCard?.backHtml ?? "")
     hydrateAudioSelectionDraftSide("front", {
@@ -172,11 +213,7 @@ export function useEditCardAudio({
 
   useEffect(() => {
     const reportError = (message: string) => {
-      nextErrorIdRef.current += 1
-      setError({
-        id: nextErrorIdRef.current,
-        message,
-      })
+      dispatchError({ message, type: "report" })
     }
 
     const createDraftAudio = async (
@@ -377,10 +414,11 @@ export function useEditCardAudio({
               fileUrl: payload.fileUrl,
             })
 
-            setResolvedPersistedFileUrls((currentValue) => ({
-              ...currentValue,
-              [side]: payload.fileUrl,
-            }))
+            dispatchResolvedPersistedFileUrls({
+              fileUrl: payload.fileUrl,
+              side,
+              type: "set",
+            })
 
             const result = await audioPreview.playAudio(payload.fileUrl)
 
@@ -436,7 +474,7 @@ export function useEditCardAudio({
     back: createSideState("back"),
     error,
     clearError: () => {
-      setError(null)
+      dispatchError({ type: "clear" })
     },
     getPersistedSelection: getVisibleCardTtsSelection,
     persistCardAudio: async (cardSetId: string) => {

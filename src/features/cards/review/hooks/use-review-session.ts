@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useReducer, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert } from "react-native"
 
@@ -9,6 +9,37 @@ import { useCards } from "@/features/cards/queries/use-cards"
 
 type UseReviewSessionOptions = {
   initialSeed?: ReviewSessionSeed
+}
+
+type SessionCardsAction =
+  | { cards: Card[]; type: "initialize" }
+  | { cards: Card[]; type: "replace" }
+  | { liveCardById: Map<string, Card>; type: "sync-live" }
+
+function sessionCardsReducer(
+  sessionCards: Card[],
+  action: SessionCardsAction,
+): Card[] {
+  switch (action.type) {
+    case "initialize":
+    case "replace":
+      return action.cards
+    case "sync-live": {
+      let didChange = false
+      const nextSessionCards = sessionCards.map((card) => {
+        const liveCard = action.liveCardById.get(card.id)
+
+        if (!liveCard || areCardsEquivalent(liveCard, card)) {
+          return card
+        }
+
+        didChange = true
+        return liveCard
+      })
+
+      return didChange ? nextSessionCards : sessionCards
+    }
+  }
 }
 
 const areCardsEquivalent = (left: Card, right: Card) => {
@@ -37,7 +68,10 @@ export function useReviewSession({
     removeCard,
     reviewCard,
   } = useCards()
-  const [sessionCards, setSessionCards] = useState<Card[]>([])
+  const [sessionCards, dispatchSessionCards] = useReducer(
+    sessionCardsReducer,
+    [],
+  )
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isBackVisible, setIsBackVisible] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
@@ -77,7 +111,7 @@ export function useReviewSession({
       return
     }
 
-    setSessionCards(initialCards)
+    dispatchSessionCards({ cards: initialCards, type: "initialize" })
   }, [
     areCardsLoading,
     cardsError,
@@ -92,21 +126,7 @@ export function useReviewSession({
       return
     }
 
-    setSessionCards((currentSessionCards) => {
-      let didChange = false
-      const nextSessionCards = currentSessionCards.map((card) => {
-        const liveCard = liveCardById.get(card.id)
-
-        if (!liveCard || areCardsEquivalent(liveCard, card)) {
-          return card
-        }
-
-        didChange = true
-        return liveCard
-      })
-
-      return didChange ? nextSessionCards : currentSessionCards
-    })
+    dispatchSessionCards({ liveCardById, type: "sync-live" })
   }, [liveCardById, sessionCards.length])
 
   const reveal = () => {
@@ -161,7 +181,7 @@ export function useReviewSession({
         (card) => card.cardSetId !== currentCard.cardSetId,
       )
 
-      setSessionCards(nextSessionCards)
+      dispatchSessionCards({ cards: nextSessionCards, type: "replace" })
       setCurrentIndex(
         nextSessionCards.length === 0
           ? 0
