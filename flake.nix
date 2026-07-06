@@ -54,7 +54,13 @@
                 export PATH="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin:$DEVELOPER_DIR/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
                 # Remove env vars that force non-Apple toolchains
-                unset CC CXX CPP LD AR NM RANLIB LIBTOOL PKG_CONFIG PKG_CONFIG_PATH CPATH LIBRARY_PATH SDKROOT CFLAGS CXXFLAGS LDFLAGS
+                unset CC CXX CPP LD AR NM RANLIB LIBTOOL PKG_CONFIG PKG_CONFIG_PATH CPATH LIBRARY_PATH CFLAGS CXXFLAGS LDFLAGS
+
+                ${pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+                  # Some CocoaPods scripts invoke clang directly instead of xcrun.
+                  # Supplying SDKROOT lets Apple's clang find libSystem in the SDK.
+                  export SDKROOT="$(/usr/bin/xcrun --sdk macosx --show-sdk-path)"
+                ''}
               '';
             };
         });
