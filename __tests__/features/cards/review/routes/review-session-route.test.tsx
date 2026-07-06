@@ -12,7 +12,7 @@ jest.mock("@/features/cards/review/screens/review-session-screen", () => {
     onClose,
     onEditCard,
   }: {
-    onClose: () => void
+    onClose: (event?: unknown) => void
     onEditCard: (cardId: string) => void
   }) {
     return (
@@ -20,7 +20,7 @@ jest.mock("@/features/cards/review/screens/review-session-screen", () => {
         <Pressable
           accessibilityLabel="close-review-session"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={() => onClose({ nativeEvent: {} })}
         >
           <Text>close-review-session</Text>
         </Pressable>
@@ -56,6 +56,7 @@ describe("ReviewSessionRoute", () => {
     fireEvent.press(screen.getByLabelText("edit-review-card"))
 
     expect(dismiss).toHaveBeenCalledTimes(1)
+    expect(dismiss).toHaveBeenCalledWith()
     expect(push).toHaveBeenCalledWith({
       pathname: "/edit-card/[id]",
       params: {

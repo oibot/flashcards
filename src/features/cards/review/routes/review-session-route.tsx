@@ -5,9 +5,13 @@ import ReviewSessionScreen from "@/features/cards/review/screens/review-session-
 export default function ReviewSessionRoute() {
   const { dismiss, push } = useRouter()
 
+  const handleClose = () => {
+    dismiss()
+  }
+
   return (
     <ReviewSessionScreen
-      onClose={dismiss}
+      onClose={handleClose}
       onEditCard={(cardId) => {
         push({
           pathname: "/edit-card/[id]",
