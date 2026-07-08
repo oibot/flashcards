@@ -16,6 +16,9 @@
       }
     },
     "preview": {
+      "env": {
+        "EXPO_PUBLIC_API_ORIGIN": "https://tobio-flashcards--preview.expo.app"
+      },
       "distribution": "internal",
       "ios": {
         "buildConfiguration": "Release",

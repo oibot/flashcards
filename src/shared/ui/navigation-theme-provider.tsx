@@ -2,7 +2,7 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native"
+} from "expo-router/react-navigation"
 import type { PropsWithChildren } from "react"
 import { useUnistyles } from "react-native-unistyles"
 

@@ -23,7 +23,12 @@ export function useSettingsActions() {
     setIsCheckingHealth(true)
 
     try {
-      const response = await fetch("/api/health")
+      const requestUrl = "/api/health"
+      const resolvedRequestUrl =
+        typeof window !== "undefined" && window.location?.origin
+          ? new URL(requestUrl, window.location.origin).toString()
+          : requestUrl
+      const response = await fetch(requestUrl)
       const body = await response.text()
       let responseBody = body || t("healthEmpty")
 
@@ -33,7 +38,11 @@ export function useSettingsActions() {
         // Keep non-JSON responses readable when the endpoint fails upstream.
       }
 
-      const message = [`HTTP ${response.status}`, responseBody].join("\n\n")
+      const message = [
+        `Request URL: ${resolvedRequestUrl}`,
+        `HTTP ${response.status}`,
+        responseBody,
+      ].join("\n\n")
 
       Alert.alert(t("healthResultTitle"), message)
     } catch (error) {

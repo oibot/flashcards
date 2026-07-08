@@ -1,5 +1,5 @@
-import type { NativeStackHeaderItem } from "@react-navigation/native-stack"
 import { Stack } from "expo-router"
+import type { ComponentProps } from "react"
 import { useTranslation } from "react-i18next"
 import { Platform } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -20,6 +20,14 @@ type Props = {
   visibleSide?: "front" | "back"
   onShowFront?: () => void
 }
+
+type StackScreenOptions = Exclude<
+  NonNullable<ComponentProps<typeof Stack.Screen>["options"]>,
+  (...args: never[]) => unknown
+>
+type NativeStackHeaderItem = ReturnType<
+  NonNullable<StackScreenOptions["unstable_headerRightItems"]>
+>[number]
 
 export default function ReviewSessionHeader({
   isComplete,

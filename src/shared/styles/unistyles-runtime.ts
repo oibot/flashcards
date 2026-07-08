@@ -1,3 +1,3 @@
 import "./unistyles"
 
-export { StyleSheet, useUnistyles } from "react-native-unistyles"
+export { StyleSheet, useUnistyles, withUnistyles } from "react-native-unistyles"

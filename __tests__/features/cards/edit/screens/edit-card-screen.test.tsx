@@ -81,6 +81,7 @@ jest.mock("react-native-keyboard-controller", () => {
 })
 
 jest.mock("react-native-unistyles", () => ({
+  withUnistyles: (Component: unknown) => Component,
   StyleSheet: {
     create: (styles: unknown) =>
       typeof styles === "function"

@@ -35,7 +35,7 @@ jest.mock("@/features/cards/edit/screens/edit-card-screen", () => {
     onClose,
   }: {
     initialCard: { id: string }
-    onClose: () => void
+    onClose: (event?: unknown) => void
   }) {
     return (
       <View>
@@ -43,7 +43,7 @@ jest.mock("@/features/cards/edit/screens/edit-card-screen", () => {
         <Pressable
           accessibilityLabel="close-edit-screen"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={() => onClose({ nativeEvent: {} })}
         >
           <Text>close-edit-screen</Text>
         </Pressable>
@@ -111,7 +111,7 @@ describe("EditCardRoute", () => {
     expect(screen.getByText("Could not load card.")).toBeTruthy()
   })
 
-  it("renders the hydrated edit screen and passes dismiss through onClose", () => {
+  it("renders the hydrated edit screen and closes without passing press events to dismiss", () => {
     mockUseCard.mockReturnValue({
       card: { id: "card-1" },
       isLoading: false,
@@ -125,5 +125,6 @@ describe("EditCardRoute", () => {
     fireEvent.press(screen.getByLabelText("close-edit-screen"))
 
     expect(dismiss).toHaveBeenCalledTimes(1)
+    expect(dismiss).toHaveBeenCalledWith()
   })
 })

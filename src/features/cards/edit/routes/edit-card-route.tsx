@@ -11,6 +11,10 @@ export default function EditCardRoute() {
   const { dismiss } = useRouter()
   const { card, isLoading, error } = useCard(id)
 
+  const handleClose = () => {
+    dismiss()
+  }
+
   if (isLoading) {
     return <LoadingScreen />
   }
@@ -25,7 +29,7 @@ export default function EditCardRoute() {
     )
   }
 
-  return <EditCardScreen initialCard={card} onClose={dismiss} />
+  return <EditCardScreen initialCard={card} onClose={handleClose} />
 }
 
 const styles = StyleSheet.create((theme) => ({

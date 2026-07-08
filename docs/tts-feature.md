@@ -451,7 +451,7 @@ Suggested `app.json` change:
 
 Expected server environment:
 
-- `EXPO_PUBLIC_INSTANT_APP_ID`
+- `INSTANT_APP_ID`
 - `INSTANT_APP_ADMIN_TOKEN`
 - `ELEVENLABS_API_KEY`
 - optional `ELEVENLABS_MODEL_ID`

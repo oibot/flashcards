@@ -3,10 +3,10 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Alert, Keyboard, View } from "react-native"
 import {
-  KeyboardAwareScrollView,
+  KeyboardAwareScrollView as BaseKeyboardAwareScrollView,
   KeyboardToolbar,
 } from "react-native-keyboard-controller"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, withUnistyles } from "react-native-unistyles"
 
 import {
   type EditCardAudioActionResult,
@@ -35,6 +35,10 @@ type EditCardProps = {
 }
 
 type FocusedField = "tags" | "front" | "back"
+
+// TODO: Remove this wrapper after upgrading past the Reanimated 4.5.0 issue
+// where Unistyles metadata keys are rejected as invalid empty-object styles.
+const KeyboardAwareScrollView = withUnistyles(BaseKeyboardAwareScrollView)
 
 export default function EditCardScreen({
   initialCard,

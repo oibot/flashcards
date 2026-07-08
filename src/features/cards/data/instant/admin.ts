@@ -7,11 +7,11 @@ import schema, {
 let adminDb: ReturnType<typeof init<AppSchema, true>> | null = null
 
 function requireInstantAdminEnv() {
-  const appId = process.env.EXPO_PUBLIC_INSTANT_APP_ID
+  const appId = process.env.INSTANT_APP_ID
   const adminToken = process.env.INSTANT_APP_ADMIN_TOKEN
 
   if (!appId) {
-    throw new Error("Missing EXPO_PUBLIC_INSTANT_APP_ID")
+    throw new Error("Missing INSTANT_APP_ID")
   }
 
   if (!adminToken) {
