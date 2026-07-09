@@ -424,17 +424,25 @@ export const createInstantCardStore = (): CardStore => {
     return { cardSetId: plan.cardSetId }
   }
 
-  const reviewCard = async (
+  const reviewCard = (
     card: Card,
     grade: ReviewGrade,
     reviewedAt = Date.now(),
   ) => {
-    await db.transact(
-      db.tx.cards[card.id].update({
-        ...scheduleCardReview(card, grade, reviewedAt),
-        updatedAt: reviewedAt,
-      }),
-    )
+    const persistReview = async () => {
+      try {
+        await db.transact(
+          db.tx.cards[card.id].update({
+            ...scheduleCardReview(card, grade, reviewedAt),
+            updatedAt: reviewedAt,
+          }),
+        )
+      } catch (error) {
+        console.error("Failed to persist card review.", error)
+      }
+    }
+
+    void persistReview()
   }
 
   const removeCard = async (cardId: string) => {

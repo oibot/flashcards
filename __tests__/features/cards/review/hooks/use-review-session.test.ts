@@ -47,7 +47,7 @@ function createCardsState(overrides: Partial<CardsState> = {}): CardsState {
     error: null,
     isLoading: false,
     removeCard: jest.fn().mockResolvedValue(undefined),
-    reviewCard: jest.fn().mockResolvedValue(undefined),
+    reviewCard: jest.fn(),
     ...overrides,
   }
 }
@@ -196,69 +196,36 @@ describe("useReviewSession", () => {
     expect(result.current.visibleSide).toBe("front")
   })
 
-  it("reports grade failures without advancing", async () => {
-    const card = createReviewCard({ id: "card-1" })
-    cardsState = createCardsState({
-      cards: [card],
-      reviewCard: jest.fn().mockRejectedValue(new Error("Review crashed.")),
-    })
-    const { result } = renderHook(() =>
-      useReviewSession({ initialSeed: { cards: [card] } }),
-    )
-
-    await waitFor(() => {
-      expect(result.current.currentCard?.id).toBe("card-1")
-    })
-
-    await act(async () => {
-      await result.current.grade("again")
-    })
-
-    expect(result.current.currentCard?.id).toBe("card-1")
-    expect(result.current.isComplete).toBe(false)
-    expect(result.current.isMutatingCard).toBe(false)
-    expect(result.current.mutationError).toBe("Review crashed.")
-  })
-
-  it("ignores grade and delete actions while a review mutation is pending", async () => {
-    const card = createReviewCard({ id: "card-1" })
+  it("advances immediately while a review mutation is pending", async () => {
+    const firstCard = createReviewCard({ id: "first-card" })
+    const secondCard = createReviewCard({ id: "second-card" })
     let resolveReview: () => void = () => undefined
     const pendingReview = new Promise<void>((resolve) => {
       resolveReview = resolve
     })
     cardsState = createCardsState({
-      cards: [card],
+      cards: [firstCard, secondCard],
       reviewCard: jest.fn().mockReturnValue(pendingReview),
     })
     const { result } = renderHook(() =>
-      useReviewSession({ initialSeed: { cards: [card] } }),
+      useReviewSession({ initialSeed: { cards: [firstCard, secondCard] } }),
     )
 
     await waitFor(() => {
-      expect(result.current.currentCard?.id).toBe("card-1")
-    })
-
-    let gradePromise: Promise<void> = Promise.resolve()
-
-    act(() => {
-      gradePromise = result.current.grade("good")
-    })
-
-    await waitFor(() => {
-      expect(result.current.isMutatingCard).toBe(true)
+      expect(result.current.currentCard?.id).toBe("first-card")
     })
 
     act(() => {
-      void result.current.grade("hard")
-      result.current.deleteCurrent()
+      result.current.grade("good")
     })
 
-    expect(cardsState.reviewCard).toHaveBeenCalledTimes(1)
-    expect(alertSpy).not.toHaveBeenCalled()
+    expect(cardsState.reviewCard).toHaveBeenCalledWith(firstCard, "good")
+    expect(result.current.currentCard?.id).toBe("second-card")
+    expect(result.current.isMutatingCard).toBe(false)
 
     await act(async () => {
       resolveReview()
-      await gradePromise
+      await pendingReview
     })
   })
 

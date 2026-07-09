@@ -31,10 +31,6 @@ export type CardStore = {
   importCards: (backup: CardBackupEnvelope) => Promise<void>
   addCard: (input: NewCardInput) => Promise<CardSaveResult>
   updateCard: (input: UpdateCardInput) => Promise<CardSaveResult>
-  reviewCard: (
-    card: Card,
-    grade: ReviewGrade,
-    reviewedAt?: number,
-  ) => Promise<void>
+  reviewCard: (card: Card, grade: ReviewGrade, reviewedAt?: number) => void
   removeCard: (id: CardId) => Promise<void>
 }

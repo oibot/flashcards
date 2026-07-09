@@ -76,7 +76,6 @@ export function useReviewSession({
   const [isBackVisible, setIsBackVisible] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [reviewedCount, setReviewedCount] = useState(0)
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [isDeletingCard, setIsDeletingCard] = useState(false)
   const [mutationError, setMutationError] = useState<string | null>(null)
 
@@ -84,7 +83,7 @@ export function useReviewSession({
   const initialCards = initialSeed?.cards ?? liveCards
   const currentCard = sessionCards[currentIndex] ?? null
   const isLastCard = currentIndex === sessionCards.length - 1
-  const isMutatingCard = isSubmittingReview || isDeletingCard
+  const isMutatingCard = isDeletingCard
   const progressLabel =
     sessionCards.length > 0
       ? `${currentIndex + 1} / ${sessionCards.length}`
@@ -139,33 +138,21 @@ export function useReviewSession({
     setIsBackVisible(false)
   }
 
-  const grade = async (reviewGrade: ReviewGrade) => {
+  const grade = (reviewGrade: ReviewGrade) => {
     if (!currentCard || isMutatingCard) return
 
-    setIsSubmittingReview(true)
+    reviewCard(currentCard, reviewGrade)
     setMutationError(null)
+    setReviewedCount((count) => count + 1)
 
-    try {
-      await reviewCard(currentCard, reviewGrade)
-      setReviewedCount((count) => count + 1)
-
-      if (isLastCard) {
-        setIsSessionComplete(true)
-        setIsBackVisible(false)
-        return
-      }
-
-      setCurrentIndex((index) => index + 1)
+    if (isLastCard) {
+      setIsSessionComplete(true)
       setIsBackVisible(false)
-    } catch (reviewMutationError) {
-      setMutationError(
-        reviewMutationError instanceof Error
-          ? reviewMutationError.message
-          : t("saveErrorTitle"),
-      )
-    } finally {
-      setIsSubmittingReview(false)
+      return
     }
+
+    setCurrentIndex((index) => index + 1)
+    setIsBackVisible(false)
   }
 
   const deleteCurrentConfirmed = async () => {
