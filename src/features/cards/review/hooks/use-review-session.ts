@@ -76,14 +76,12 @@ export function useReviewSession({
   const [isBackVisible, setIsBackVisible] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [reviewedCount, setReviewedCount] = useState(0)
-  const [isDeletingCard, setIsDeletingCard] = useState(false)
-  const [mutationError, setMutationError] = useState<string | null>(null)
 
   const hasInitialSeed = initialSeed !== undefined
   const initialCards = initialSeed?.cards ?? liveCards
   const currentCard = sessionCards[currentIndex] ?? null
   const isLastCard = currentIndex === sessionCards.length - 1
-  const isMutatingCard = isDeletingCard
+  const isMutatingCard = false
   const progressLabel =
     sessionCards.length > 0
       ? `${currentIndex + 1} / ${sessionCards.length}`
@@ -142,7 +140,6 @@ export function useReviewSession({
     if (!currentCard || isMutatingCard) return
 
     reviewCard(currentCard, reviewGrade)
-    setMutationError(null)
     setReviewedCount((count) => count + 1)
 
     if (isLastCard) {
@@ -155,38 +152,25 @@ export function useReviewSession({
     setIsBackVisible(false)
   }
 
-  const deleteCurrentConfirmed = async () => {
-    if (!currentCard || isMutatingCard) return
+  const deleteCurrentConfirmed = () => {
+    if (!currentCard) return
 
-    setIsDeletingCard(true)
-    setMutationError(null)
+    removeCard(currentCard)
 
-    try {
-      await removeCard(currentCard.id)
+    const nextSessionCards = sessionCards.filter(
+      (card) => card.cardSetId !== currentCard.cardSetId,
+    )
 
-      const nextSessionCards = sessionCards.filter(
-        (card) => card.cardSetId !== currentCard.cardSetId,
-      )
+    dispatchSessionCards({ cards: nextSessionCards, type: "replace" })
+    setCurrentIndex(
+      nextSessionCards.length === 0
+        ? 0
+        : Math.min(currentIndex, nextSessionCards.length - 1),
+    )
+    setIsBackVisible(false)
 
-      dispatchSessionCards({ cards: nextSessionCards, type: "replace" })
-      setCurrentIndex(
-        nextSessionCards.length === 0
-          ? 0
-          : Math.min(currentIndex, nextSessionCards.length - 1),
-      )
-      setIsBackVisible(false)
-
-      if (nextSessionCards.length === 0) {
-        setIsSessionComplete(true)
-      }
-    } catch (removeCardError) {
-      setMutationError(
-        removeCardError instanceof Error
-          ? removeCardError.message
-          : t("delete.error"),
-      )
-    } finally {
-      setIsDeletingCard(false)
+    if (nextSessionCards.length === 0) {
+      setIsSessionComplete(true)
     }
   }
 
@@ -202,7 +186,7 @@ export function useReviewSession({
         text: t("delete.confirm"),
         style: "destructive",
         onPress: () => {
-          void deleteCurrentConfirmed()
+          deleteCurrentConfirmed()
         },
       },
     ])
@@ -219,7 +203,7 @@ export function useReviewSession({
         !isSessionComplete &&
         sessionCards.length === 0),
     isMutatingCard,
-    mutationError,
+    mutationError: null,
     progressLabel,
     reviewedCount,
     shouldClose:

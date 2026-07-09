@@ -1,7 +1,6 @@
 import type { CardBackupEnvelope } from "@/features/cards/backup/model/card-backup"
 import type {
   Card,
-  CardId,
   NewCardInput,
   UpdateCardInput,
 } from "@/features/cards/model/card"
@@ -33,5 +32,5 @@ export type CardStore = {
   addCard: (input: NewCardInput) => CardSaveResult
   updateCard: (input: UpdateCardInput) => CardSaveResult
   reviewCard: (card: Card, grade: ReviewGrade, reviewedAt?: number) => void
-  removeCard: (id: CardId) => Promise<void>
+  removeCard: (card: Card) => void
 }

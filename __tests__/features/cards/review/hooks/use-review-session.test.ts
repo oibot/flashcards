@@ -46,7 +46,7 @@ function createCardsState(overrides: Partial<CardsState> = {}): CardsState {
     cards: [],
     error: null,
     isLoading: false,
-    removeCard: jest.fn().mockResolvedValue(undefined),
+    removeCard: jest.fn(),
     reviewCard: jest.fn(),
     ...overrides,
   }
@@ -256,7 +256,7 @@ describe("useReviewSession", () => {
     expect(result.current.currentCard?.id).toBe("card-1")
   })
 
-  it("deletes the current card set and adjusts the session index", async () => {
+  it("optimistically deletes the current card set and adjusts the session index", async () => {
     const firstForward = createReviewCard({
       id: "first-forward",
       cardSetId: "set-1",
@@ -287,15 +287,12 @@ describe("useReviewSession", () => {
       result.current.deleteCurrent()
     })
 
-    await act(async () => {
+    act(() => {
       alertButtons?.[1]?.onPress?.()
-      await Promise.resolve()
     })
 
-    await waitFor(() => {
-      expect(result.current.currentCard?.id).toBe("second")
-    })
-    expect(cardsState.removeCard).toHaveBeenCalledWith("first-forward")
+    expect(result.current.currentCard?.id).toBe("second")
+    expect(cardsState.removeCard).toHaveBeenCalledWith(firstForward)
     expect(result.current.progressLabel).toBe("1 / 1")
     expect(result.current.isComplete).toBe(false)
   })
@@ -317,45 +314,40 @@ describe("useReviewSession", () => {
       result.current.deleteCurrent()
     })
 
-    await act(async () => {
+    act(() => {
       alertButtons?.[1]?.onPress?.()
-      await Promise.resolve()
     })
 
-    await waitFor(() => {
-      expect(result.current.isComplete).toBe(true)
-    })
+    expect(result.current.isComplete).toBe(true)
     expect(result.current.currentCard).toBeNull()
   })
 
-  it("reports delete failures without removing the current card", async () => {
-    const card = createReviewCard({ id: "card-1" })
+  it("does not wait for delete persistence", async () => {
+    const firstCard = createReviewCard({ id: "first-card", cardSetId: "set-1" })
+    const secondCard = createReviewCard({
+      id: "second-card",
+      cardSetId: "set-2",
+    })
     cardsState = createCardsState({
-      cards: [card],
-      removeCard: jest.fn().mockRejectedValue(new Error("Delete crashed.")),
+      cards: [firstCard, secondCard],
     })
     const { result } = renderHook(() =>
-      useReviewSession({ initialSeed: { cards: [card] } }),
+      useReviewSession({ initialSeed: { cards: [firstCard, secondCard] } }),
     )
 
     await waitFor(() => {
-      expect(result.current.currentCard?.id).toBe("card-1")
+      expect(result.current.currentCard?.id).toBe("first-card")
     })
 
     act(() => {
       result.current.deleteCurrent()
-    })
-
-    await act(async () => {
       alertButtons?.[1]?.onPress?.()
-      await Promise.resolve()
     })
 
-    await waitFor(() => {
-      expect(result.current.mutationError).toBe("Delete crashed.")
-    })
-    expect(result.current.currentCard?.id).toBe("card-1")
+    expect(cardsState.removeCard).toHaveBeenCalledWith(firstCard)
+    expect(result.current.currentCard?.id).toBe("second-card")
     expect(result.current.isMutatingCard).toBe(false)
+    expect(result.current.mutationError).toBeNull()
   })
 
   it("syncs changed live card data into an active session", async () => {

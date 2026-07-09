@@ -1,5 +1,6 @@
 const mockGetAuth = jest.fn()
 const mockId = jest.fn(() => "generated-id")
+const mockDelete = jest.fn(() => ({ type: "delete" }))
 const mockLink = jest.fn()
 const mockTransact = jest.fn()
 const mockUnlink = jest.fn()
@@ -31,6 +32,7 @@ jest.mock("@/features/cards/data/instant/db", () => ({
         {},
         {
           get: () => ({
+            delete: mockDelete,
             update: mockUpdate,
           }),
         },
@@ -220,6 +222,34 @@ describe("createInstantCardStore", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Failed to persist card metadata.",
+      error,
+    )
+  })
+
+  it("removes cards in the background by card set id", async () => {
+    const store = createInstantCardStore()
+
+    store.removeCard(createReviewCard({ cardSetId: "set-1" }))
+
+    expect(mockDelete).toHaveBeenCalledTimes(1)
+    expect(mockTransact).toHaveBeenCalledWith({ type: "delete" })
+
+    await Promise.resolve()
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
+  })
+
+  it("logs background card removal failures", async () => {
+    const error = new Error("Delete sync failed.")
+    mockTransact.mockRejectedValue(error)
+    const store = createInstantCardStore()
+
+    store.removeCard(createReviewCard({ cardSetId: "set-1" }))
+
+    await Promise.resolve()
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Failed to remove card.",
       error,
     )
   })

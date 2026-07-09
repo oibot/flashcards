@@ -430,33 +430,16 @@ export const createInstantCardStore = (): CardStore => {
     void persistReview()
   }
 
-  const removeCard = async (cardId: string) => {
-    const currentUser = await requireCurrentUser()
-    const query = {
-      $users: {
-        $: {
-          where: {
-            id: currentUser.id,
-          },
-        },
-        cards: {
-          $: {
-            where: {
-              id: cardId,
-            },
-          },
-          cardSet: {},
-        },
-      },
-    }
-    const card = (await db.queryOnce(query)).data.$users[0]?.cards?.[0]
-    const cardSetId = card?.cardSet?.id
-
-    if (!cardSetId) {
-      throw new Error("Card not found.")
+  const removeCard = (card: Card) => {
+    const persistDelete = async () => {
+      try {
+        await db.transact(db.tx.cardSets[card.cardSetId].delete())
+      } catch (error) {
+        console.error("Failed to remove card.", error)
+      }
     }
 
-    await db.transact(db.tx.cardSets[cardSetId].delete())
+    void persistDelete()
   }
 
   return {
