@@ -13,46 +13,7 @@ This document lists other places where UI and data-layer responsibilities are cu
 
 ## Separation Leaks
 
-### 1. Auth profile ensure hook directly imports Instant DB
-
-File:
-
-- `src/features/auth/hooks/use-ensure-profile.ts`
-
-Current behavior:
-
-```ts
-import { db } from "@/features/cards/data/instant/db"
-```
-
-The auth hook directly uses:
-
-```ts
-db.useQuery(...)
-await db.transact(...)
-```
-
-This hook is in the auth feature but knows Instant query shape and transaction details. It already handles persistence failure in the preferred background style:
-
-```ts
-console.error("Failed to ensure profile", profileError)
-```
-
-Potential cleanup:
-
-- Introduce a profile/auth data layer, for example:
-
-```ts
-profileStore.useProfileQuery(user.id)
-profileStore.ensureProfile(user.id)
-```
-
-- Keep the hook responsible only for deciding when a profile should be ensured.
-- Keep Instant query/transaction details inside the store.
-
-Priority: medium.
-
-### 2. Audio hooks contain API/client logic
+### 1. Audio hooks contain API/client logic
 
 Files:
 
@@ -89,7 +50,7 @@ Priority: medium.
 
 ## Probably Acceptable For Now
 
-### 3. Backup import/export awaits store actions
+### 2. Backup import/export awaits store actions
 
 File:
 
@@ -106,7 +67,7 @@ This is acceptable because import/export are explicit long-running user actions.
 
 Priority: low.
 
-### 4. Auth screen awaits auth actions
+### 3. Auth screen awaits auth actions
 
 File:
 
@@ -123,7 +84,7 @@ This is acceptable because authentication is inherently remote and user-facing e
 
 Priority: low.
 
-### 5. Review delete awaits remove action
+### 4. Review delete awaits remove action
 
 File:
 
@@ -141,4 +102,4 @@ Priority: low to medium.
 
 ## Recommendation
 
-Next cleanup target: auth profile data-layer extraction or TTS client extraction.
+Next cleanup target: TTS client extraction.

@@ -1,28 +1,16 @@
 import { useEffect, useRef } from "react"
 
 import type { AuthSession } from "@/features/auth/api/auth-types"
+import { instantProfileStore } from "@/features/auth/data/instant-profile-store"
 import { shouldEnsureProfile } from "@/features/auth/hooks/use-ensure-profile-guard"
-import { db } from "@/features/cards/data/instant/db"
 
 type EnsureProfileInput = Pick<AuthSession, "status" | "user">
 
 export function useEnsureProfile({ status, user }: EnsureProfileInput) {
   const isCreatingProfileRef = useRef(false)
-  const query =
-    user !== null
-      ? {
-          $users: {
-            $: {
-              where: {
-                id: user.id,
-              },
-            },
-            profile: {},
-          },
-        }
-      : null
-  const { isLoading, error, data } = db.useQuery(query)
-  const hasProfile = !!data?.$users[0]?.profile
+  const { hasProfile, isLoading, error } = instantProfileStore.useProfileQuery(
+    user?.id ?? null,
+  )
 
   useEffect(() => {
     if (
@@ -50,15 +38,7 @@ export function useEnsureProfile({ status, user }: EnsureProfileInput) {
 
     const ensureProfile = async () => {
       try {
-        await db.transact(
-          db.tx.profiles[user.id]
-            .update({
-              createdAt: Date.now(),
-            })
-            .link({ $user: user.id }),
-        )
-      } catch (profileError) {
-        console.error("Failed to ensure profile", profileError)
+        await instantProfileStore.ensureProfile(user.id)
       } finally {
         isCreatingProfileRef.current = false
       }

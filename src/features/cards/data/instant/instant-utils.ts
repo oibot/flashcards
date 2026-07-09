@@ -16,6 +16,7 @@ import {
   resolveCardContent,
 } from "@/features/cards/model/card"
 import { parseCardState } from "@/features/cards/model/card-state"
+import { normalizeError } from "@/shared/lib/error"
 
 type EmptyRelations = Record<never, never>
 type InstantCardWithCardSetRecord = InstaQLEntity<
@@ -174,8 +175,4 @@ export function toCardBackupCardSet(
   }
 }
 
-export function normalizeError(error: unknown) {
-  if (!error) return null
-  if (error instanceof Error) return error
-  return new Error(String(error))
-}
+export { normalizeError }

@@ -1,32 +1,10 @@
-const mockUseQuery = jest.fn()
-const mockTransact = jest.fn()
+const mockEnsureProfile = jest.fn()
+const mockUseProfileQuery = jest.fn()
 
-jest.mock("@/features/cards/data/instant/db", () => ({
-  db: {
-    useQuery: (...args: unknown[]) => mockUseQuery(...args),
-    transact: (...args: unknown[]) => mockTransact(...args),
-    tx: {
-      profiles: new Proxy(
-        {},
-        {
-          get(_target, userId) {
-            return {
-              update(update: Record<string, unknown>) {
-                return {
-                  link(link: Record<string, string>) {
-                    return {
-                      userId: String(userId),
-                      update,
-                      link,
-                    }
-                  },
-                }
-              },
-            }
-          },
-        },
-      ),
-    },
+jest.mock("@/features/auth/data/instant-profile-store", () => ({
+  instantProfileStore: {
+    useProfileQuery: (...args: unknown[]) => mockUseProfileQuery(...args),
+    ensureProfile: (...args: unknown[]) => mockEnsureProfile(...args),
   },
 }))
 
@@ -43,11 +21,9 @@ const signedInUser = {
 
 function createMissingProfileQueryResult() {
   return {
+    hasProfile: false,
     isLoading: false,
     error: null,
-    data: {
-      $users: [{ profile: null }],
-    },
   }
 }
 
@@ -125,9 +101,8 @@ describe("shouldEnsureProfile", () => {
 describe("useEnsureProfile", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.spyOn(Date, "now").mockReturnValue(123)
-    mockUseQuery.mockReturnValue(createMissingProfileQueryResult())
-    mockTransact.mockResolvedValue(undefined)
+    mockUseProfileQuery.mockReturnValue(createMissingProfileQueryResult())
+    mockEnsureProfile.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
@@ -142,29 +117,28 @@ describe("useEnsureProfile", () => {
       }),
     )
 
-    expect(mockUseQuery).toHaveBeenCalledWith({
-      $users: {
-        $: {
-          where: {
-            id: "user-1",
-          },
-        },
-        profile: {},
-      },
-    })
+    expect(mockUseProfileQuery).toHaveBeenCalledWith("user-1")
 
     await waitFor(() => {
-      expect(mockTransact).toHaveBeenCalledWith({
-        userId: "user-1",
-        update: { createdAt: 123 },
-        link: { $user: "user-1" },
-      })
+      expect(mockEnsureProfile).toHaveBeenCalledWith("user-1")
     })
+  })
+
+  it("queries with null when the user is signed out", () => {
+    renderHook(() =>
+      useEnsureProfile({
+        status: "signed-out",
+        user: null,
+      }),
+    )
+
+    expect(mockUseProfileQuery).toHaveBeenCalledWith(null)
+    expect(mockEnsureProfile).not.toHaveBeenCalled()
   })
 
   it("does not start a second profile creation while one is already pending", async () => {
     const deferred = createDeferredPromise()
-    mockTransact.mockReturnValue(deferred.promise)
+    mockEnsureProfile.mockReturnValue(deferred.promise)
 
     const { rerender } = renderHook<void, { user: typeof signedInUser }>(
       ({ user }) =>
@@ -180,7 +154,7 @@ describe("useEnsureProfile", () => {
     )
 
     await waitFor(() => {
-      expect(mockTransact).toHaveBeenCalledTimes(1)
+      expect(mockEnsureProfile).toHaveBeenCalledTimes(1)
     })
 
     rerender({
@@ -190,7 +164,7 @@ describe("useEnsureProfile", () => {
     })
 
     await waitFor(() => {
-      expect(mockTransact).toHaveBeenCalledTimes(1)
+      expect(mockEnsureProfile).toHaveBeenCalledTimes(1)
     })
 
     deferred.resolve()
