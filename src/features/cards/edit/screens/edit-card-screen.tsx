@@ -12,6 +12,7 @@ import {
   type EditCardAudioActionResult,
   useEditCardAudio,
 } from "@/features/cards/audio/hooks/use-edit-card-audio"
+import type { CardSaveResult } from "@/features/cards/data/card-store"
 import CardSideField from "@/features/cards/edit/components/card-side-field"
 import EditCardHeader from "@/features/cards/edit/components/edit-card-header"
 import OppositeDirectionToggle from "@/features/cards/edit/components/opposite-direction-toggle"
@@ -121,6 +122,9 @@ export default function EditCardScreen({
 
     return {
       id: initialCard.id,
+      cardSetId: initialCard.cardSetId,
+      previousTags: initialCard.tags,
+      variant: initialCard.variant,
       tags: draft.tags,
       frontHtml: draft.frontHtml,
       backHtml: draft.backHtml,
@@ -157,6 +161,22 @@ export default function EditCardScreen({
     }
   }
 
+  const hasAudioPersistence = (input: NewCardInput | UpdateCardInput) => {
+    return Object.keys(input.tts ?? {}).length > 0
+  }
+
+  const persistAudioAfterMetadata = async (
+    saveResult: CardSaveResult,
+    input: NewCardInput | UpdateCardInput,
+  ) => {
+    if (!hasAudioPersistence(input)) {
+      return
+    }
+
+    await saveResult.metadataPersisted
+    await showAudioResult(audio.persistCardAudio(saveResult.cardSetId))
+  }
+
   const handleSave = async () => {
     const draft = await getValidatedDraft()
     if (!draft) {
@@ -164,14 +184,16 @@ export default function EditCardScreen({
     }
 
     if (initialCard) {
-      const result = await updateCard(createUpdateCardInput(draft))
-      await showAudioResult(audio.persistCardAudio(result.cardSetId))
+      const input = createUpdateCardInput(draft)
+      const result = updateCard(input)
+      await persistAudioAfterMetadata(result, input)
       onClose()
       return
     }
 
-    const result = await addCard(createNewCardInput(draft))
-    await showAudioResult(audio.persistCardAudio(result.cardSetId))
+    const input = createNewCardInput(draft)
+    const result = addCard(input)
+    await persistAudioAfterMetadata(result, input)
     onClose()
   }
 
@@ -179,8 +201,9 @@ export default function EditCardScreen({
     const draft = await getValidatedDraft()
     if (!draft) return
 
-    const result = await addCard(createNewCardInput(draft))
-    await showAudioResult(audio.persistCardAudio(result.cardSetId))
+    const input = createNewCardInput(draft)
+    const result = addCard(input)
+    await persistAudioAfterMetadata(result, input)
     audio.resetDraft()
     resetForm()
   }

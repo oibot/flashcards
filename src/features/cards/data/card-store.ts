@@ -21,6 +21,7 @@ export type TagsQueryState = {
 
 export type CardSaveResult = {
   cardSetId: string
+  metadataPersisted: Promise<void>
 }
 
 export type CardStore = {
@@ -29,8 +30,8 @@ export type CardStore = {
   useTagsQuery: () => TagsQueryState
   exportCards: () => Promise<CardBackupEnvelope>
   importCards: (backup: CardBackupEnvelope) => Promise<void>
-  addCard: (input: NewCardInput) => Promise<CardSaveResult>
-  updateCard: (input: UpdateCardInput) => Promise<CardSaveResult>
+  addCard: (input: NewCardInput) => CardSaveResult
+  updateCard: (input: UpdateCardInput) => CardSaveResult
   reviewCard: (card: Card, grade: ReviewGrade, reviewedAt?: number) => void
   removeCard: (id: CardId) => Promise<void>
 }

@@ -15,13 +15,11 @@ describe("instant card store planners", () => {
 
   it("normalizes tags and avoids tag changes when the stored and desired tags match", () => {
     const plan = planUpdateCard({
-      currentCard: {
-        cardSetId: "set-1",
-        variant: "forward",
-        tags: ["Travel", "German"],
-      },
       input: {
         id: "card-1",
+        cardSetId: "set-1",
+        previousTags: ["Travel", "German"],
+        variant: "forward",
         tags: [" german ", "travel"],
         frontHtml: "<p>Front</p>",
         backHtml: "<p>Back</p>",
@@ -43,13 +41,11 @@ describe("instant card store planners", () => {
 
   it("maps reverse cards back to canonical sides and computes tag deltas from stored data", () => {
     const plan = planUpdateCard({
-      currentCard: {
-        cardSetId: "set-2",
-        variant: "reverse",
-        tags: ["Travel", "German"],
-      },
       input: {
         id: "card-2",
+        cardSetId: "set-2",
+        previousTags: ["Travel", "German"],
+        variant: "reverse",
         tags: ["Travel", " Verbs "],
         frontHtml: "<p>Visible front</p>",
         backHtml: "<p>Visible back</p>",

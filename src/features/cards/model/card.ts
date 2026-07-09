@@ -53,6 +53,9 @@ export type NewCardInput = EditableCardInput & {
 
 export type UpdateCardInput = EditableCardInput & {
   id: CardId
+  cardSetId: string
+  previousTags: string[]
+  variant: CardVariant
 }
 
 export function isCardVariant(value: unknown): value is CardVariant {

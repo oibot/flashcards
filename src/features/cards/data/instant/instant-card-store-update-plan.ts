@@ -8,7 +8,6 @@ import type {
   CardBackupEnvelope,
 } from "@/features/cards/backup/model/card-backup"
 import {
-  type Card,
   type NewCardInput,
   parseTags,
   toCanonicalCardContent,
@@ -42,7 +41,6 @@ export type UpdateCardPlan = {
 } & TagDiff
 
 type UpdateCardPlanInput = {
-  currentCard: Pick<Card, "cardSetId" | "variant" | "tags">
   input: UpdateCardInput
   now: number
 }
@@ -115,26 +113,25 @@ export function buildCardSetTtsUpdateData(
 }
 
 export function planUpdateCard({
-  currentCard,
   input,
   now,
 }: UpdateCardPlanInput): UpdateCardPlan {
   const tags = parseTags(input.tags)
-  const ttsPatch = toCanonicalCardTtsPatch(input.tts ?? {}, currentCard.variant)
+  const ttsPatch = toCanonicalCardTtsPatch(input.tts ?? {}, input.variant)
   const { sideAHtml, sideBHtml } = toCanonicalCardContent(
     {
       frontHtml: input.frontHtml,
       backHtml: input.backHtml,
     },
-    currentCard.variant,
+    input.variant,
   )
   const { tagsToLink, tagsToUnlink } = diffTags(
-    parseTags(currentCard.tags),
+    parseTags(input.previousTags),
     tags,
   )
 
   return {
-    cardSetId: currentCard.cardSetId,
+    cardSetId: input.cardSetId,
     cardSetUpdate: {
       sideAHtml,
       sideBHtml,

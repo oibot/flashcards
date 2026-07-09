@@ -386,8 +386,14 @@ describe("EditCardScreen", () => {
     })
     mockUseEditCardAudio.mockReturnValue(audioMock)
     mockUseEditCardForm.mockReturnValue(formMock)
-    addCard.mockResolvedValue({ cardSetId: "set-new" })
-    updateCard.mockResolvedValue({ cardSetId: "set-existing" })
+    addCard.mockReturnValue({
+      cardSetId: "set-new",
+      metadataPersisted: Promise.resolve(),
+    })
+    updateCard.mockReturnValue({
+      cardSetId: "set-existing",
+      metadataPersisted: Promise.resolve(),
+    })
   })
 
   afterEach(() => {
@@ -428,6 +434,9 @@ describe("EditCardScreen", () => {
     await waitFor(() => {
       expect(updateCard).toHaveBeenCalledWith({
         id: "card-1",
+        cardSetId: "set-1",
+        previousTags: ["German"],
+        variant: "forward",
         tags: ["German", "Travel"],
         frontHtml: "<p>Visible front</p>",
         backHtml: "<p>Visible back</p>",

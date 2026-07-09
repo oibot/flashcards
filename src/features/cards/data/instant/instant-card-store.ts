@@ -298,8 +298,7 @@ export const createInstantCardStore = (): CardStore => {
     ])
   }
 
-  const addCard = async (input: NewCardInput): Promise<CardSaveResult> => {
-    const currentUser = await requireCurrentUser()
+  const addCard = (input: NewCardInput): CardSaveResult => {
     const cardSetId = id()
     const cardIds = input.variants.map(() => id())
     const now = Date.now()
@@ -309,119 +308,105 @@ export const createInstantCardStore = (): CardStore => {
       cardSetId,
       cardIds,
     })
-    const createTagTransactions = createEnsureTagTransactions(
-      currentUser.id,
-      plan.tags,
-    )
 
-    let cardSetTransaction = db.tx.cardSets[plan.cardSetId]
-      .update(plan.cardSetUpdate)
-      .link({ owner: currentUser.id })
+    const persistCard = async () => {
+      try {
+        const currentUser = await requireCurrentUser()
+        const createTagTransactions = createEnsureTagTransactions(
+          currentUser.id,
+          plan.tags,
+        )
 
-    if (plan.tags.length > 0) {
-      cardSetTransaction = cardSetTransaction.link({
-        tags: toTagLookups(currentUser.id, plan.tags),
-      })
+        let cardSetTransaction = db.tx.cardSets[plan.cardSetId]
+          .update(plan.cardSetUpdate)
+          .link({ owner: currentUser.id })
+
+        if (plan.tags.length > 0) {
+          cardSetTransaction = cardSetTransaction.link({
+            tags: toTagLookups(currentUser.id, plan.tags),
+          })
+        }
+
+        const cardTransactions = plan.cards.map((card) =>
+          db.tx.cards[card.id]
+            .update({
+              variant: card.variant,
+              createdAt: card.createdAt,
+              updatedAt: card.updatedAt,
+              dueAt: card.dueAt,
+              lastReviewedAt: card.lastReviewedAt,
+              intervalDays: card.intervalDays,
+              easeFactor: card.easeFactor,
+              repetition: card.repetition,
+              lapses: card.lapses,
+              state: card.state,
+            })
+            .link({
+              owner: currentUser.id,
+              cardSet: plan.cardSetId,
+            }),
+        )
+
+        await db.transact([
+          ...createTagTransactions,
+          cardSetTransaction,
+          ...cardTransactions,
+        ])
+      } catch (error) {
+        console.error("Failed to persist card metadata.", error)
+      }
     }
 
-    const cardTransactions = plan.cards.map((card) =>
-      db.tx.cards[card.id]
-        .update({
-          variant: card.variant,
-          createdAt: card.createdAt,
-          updatedAt: card.updatedAt,
-          dueAt: card.dueAt,
-          lastReviewedAt: card.lastReviewedAt,
-          intervalDays: card.intervalDays,
-          easeFactor: card.easeFactor,
-          repetition: card.repetition,
-          lapses: card.lapses,
-          state: card.state,
-        })
-        .link({
-          owner: currentUser.id,
-          cardSet: plan.cardSetId,
-        }),
-    )
+    const metadataPersisted = persistCard()
 
-    await db.transact([
-      ...createTagTransactions,
-      cardSetTransaction,
-      ...cardTransactions,
-    ])
-
-    return { cardSetId: plan.cardSetId }
+    return { cardSetId: plan.cardSetId, metadataPersisted }
   }
 
-  const updateCard = async (
-    input: UpdateCardInput,
-  ): Promise<CardSaveResult> => {
-    const currentUser = await requireCurrentUser()
-    const query = {
-      $users: {
-        $: {
-          where: {
-            id: currentUser.id,
-          },
-        },
-        cards: {
-          $: {
-            where: {
-              id: input.id,
-            },
-          },
-          cardSet: {
-            sideATtsAsset: { file: {} },
-            sideBTtsAsset: { file: {} },
-            tags: {},
-          },
-        },
-      },
-    }
-    const currentCardRecord = (await db.queryOnce(query)).data.$users[0]
-      ?.cards?.[0]
-
-    if (!currentCardRecord) {
-      throw new Error("Card not found.")
-    }
-
-    const currentCard = toCard(currentCardRecord)
+  const updateCard = (input: UpdateCardInput): CardSaveResult => {
     const now = Date.now()
     const plan = planUpdateCard({
-      currentCard,
       input,
       now,
     })
 
-    let cardSetTransaction = db.tx.cardSets[plan.cardSetId].update(
-      plan.cardSetUpdate,
-    )
+    const persistCard = async () => {
+      try {
+        const currentUser = await requireCurrentUser()
+        let cardSetTransaction = db.tx.cardSets[plan.cardSetId].update(
+          plan.cardSetUpdate,
+        )
 
-    if (plan.tagsToLink.length === 0 && plan.tagsToUnlink.length === 0) {
-      await db.transact(cardSetTransaction)
-      return { cardSetId: plan.cardSetId }
+        if (plan.tagsToUnlink.length > 0) {
+          cardSetTransaction = cardSetTransaction.unlink({
+            tags: toTagLookups(currentUser.id, plan.tagsToUnlink),
+          })
+        }
+
+        if (plan.tagsToLink.length > 0) {
+          cardSetTransaction = cardSetTransaction.link({
+            tags: toTagLookups(currentUser.id, plan.tagsToLink),
+          })
+        }
+
+        if (plan.tagsToLink.length === 0 && plan.tagsToUnlink.length === 0) {
+          await db.transact(cardSetTransaction)
+          return
+        }
+
+        const createTagTransactions = createEnsureTagTransactions(
+          currentUser.id,
+          plan.tagsToLink,
+        )
+
+        await db.transact([...createTagTransactions, cardSetTransaction])
+      } catch (error) {
+        console.error("Failed to persist card metadata.", error)
+      }
     }
 
-    const createTagTransactions = createEnsureTagTransactions(
-      currentUser.id,
-      plan.tagsToLink,
-    )
+    const metadataPersisted = persistCard()
 
-    if (plan.tagsToUnlink.length > 0) {
-      cardSetTransaction = cardSetTransaction.unlink({
-        tags: toTagLookups(currentUser.id, plan.tagsToUnlink),
-      })
-    }
-
-    if (plan.tagsToLink.length > 0) {
-      cardSetTransaction = cardSetTransaction.link({
-        tags: toTagLookups(currentUser.id, plan.tagsToLink),
-      })
-    }
-
-    await db.transact([...createTagTransactions, cardSetTransaction])
-
-    return { cardSetId: plan.cardSetId }
+    return { cardSetId: plan.cardSetId, metadataPersisted }
   }
 
   const reviewCard = (
