@@ -4,7 +4,7 @@ import { type NativeSyntheticEvent, Pressable, Text, View } from "react-native"
 import {
   EnrichedTextInput,
   type EnrichedTextInputInstance,
-} from "react-native-enriched"
+} from "react-native-enriched-html"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import type { RichTextEditorHtmlChangeEvent } from "@/features/cards/edit/lib/rich-text-editor"
