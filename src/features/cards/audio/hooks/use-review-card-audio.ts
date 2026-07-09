@@ -2,13 +2,9 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
+import { resolveCardAudio } from "@/features/cards/audio/api/tts-client"
 import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
-import {
-  formatTtsHttpError,
-  formatUnexpectedTtsResponse,
-  getErrorMessage,
-} from "@/features/cards/audio/lib/tts-client-errors"
-import type { TtsResolveReadyResponse } from "@/features/cards/audio/model/card-audio"
+import { getErrorMessage } from "@/features/cards/audio/lib/tts-client-errors"
 import type { VisibleCardSide } from "@/features/cards/model/card"
 
 type UseReviewCardAudioOptions = {
@@ -17,19 +13,6 @@ type UseReviewCardAudioOptions = {
 }
 
 type PlayAudioResult = { ok: true } | { message: string; ok: false }
-
-function isResolveTtsReadyResponse(
-  value: unknown,
-): value is TtsResolveReadyResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "status" in value &&
-    value.status === "ready" &&
-    "fileUrl" in value &&
-    typeof value.fileUrl === "string"
-  )
-}
 
 export function useReviewCardAudio({
   cardId,
@@ -71,46 +54,20 @@ export function useReviewCardAudio({
     setResolvingAudio({ isResolving: true, key: requestKey })
 
     try {
-      console.log("Requesting review card audio.", {
-        cardId,
-        visibleSide,
-      })
-
-      const response = await fetch("/api/tts/resolve", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user.refreshToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const audio = await resolveCardAudio(
+        {
+          refreshToken: user.refreshToken,
           cardId,
           visibleSide,
-        }),
-      })
+        },
+        {
+          requestFailed: t("audioRequestFailed"),
+          unexpectedResponse: t("audioUnexpectedResponse"),
+        },
+      )
 
-      console.log("Received review card audio response.", {
-        cardId,
-        visibleSide,
-        status: response.status,
-        ok: response.ok,
-      })
-
-      const payload: unknown = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        throw new Error(
-          formatTtsHttpError(response, payload, t("audioRequestFailed")),
-        )
-      }
-
-      if (!isResolveTtsReadyResponse(payload)) {
-        throw new Error(
-          formatUnexpectedTtsResponse(response, t("audioUnexpectedResponse")),
-        )
-      }
-
-      setResolvedAudio({ fileUrl: payload.fileUrl, key: requestKey })
-      return fileAudioPlayer.playAudio(payload.fileUrl)
+      setResolvedAudio({ fileUrl: audio.fileUrl, key: requestKey })
+      return fileAudioPlayer.playAudio(audio.fileUrl)
     } catch (error) {
       setResolvedAudio({ fileUrl: null, key: requestKey })
       console.error("Review card audio playback failed.", error)

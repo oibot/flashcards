@@ -11,46 +11,9 @@ The review grading cleanup established a preferred boundary for local-first app 
 
 This document lists other places where UI and data-layer responsibilities are currently mixed.
 
-## Separation Leaks
-
-### 1. Audio hooks contain API/client logic
-
-Files:
-
-- `src/features/cards/audio/hooks/use-edit-card-audio.ts`
-- `src/features/cards/audio/hooks/use-review-card-audio.ts`
-
-Current behavior:
-
-- Hooks call `fetch` directly.
-- Hooks parse API responses.
-- Hooks format HTTP errors.
-- Hooks manage playback/UI state.
-
-This is not exactly the same as Instant local-first persistence, but it mixes UI state with API/client responsibilities.
-
-Potential cleanup:
-
-Create a small TTS client layer, for example:
-
-```ts
-ttsClient.resolveReviewAudio(...)
-ttsClient.resolveDraftAudio(...)
-ttsClient.attachAudio(...)
-```
-
-Then hooks can focus on:
-
-- loading state
-- selected audio state
-- playback state
-- user-facing error state
-
-Priority: medium.
-
 ## Probably Acceptable For Now
 
-### 2. Backup import/export awaits store actions
+### 1. Backup import/export awaits store actions
 
 File:
 
@@ -67,7 +30,7 @@ This is acceptable because import/export are explicit long-running user actions.
 
 Priority: low.
 
-### 3. Auth screen awaits auth actions
+### 2. Auth screen awaits auth actions
 
 File:
 
@@ -84,7 +47,7 @@ This is acceptable because authentication is inherently remote and user-facing e
 
 Priority: low.
 
-### 4. Review delete awaits remove action
+### 3. Review delete awaits remove action
 
 File:
 
@@ -100,6 +63,3 @@ This is more defensible than review grading because delete is destructive and ch
 
 Priority: low to medium.
 
-## Recommendation
-
-Next cleanup target: TTS client extraction.

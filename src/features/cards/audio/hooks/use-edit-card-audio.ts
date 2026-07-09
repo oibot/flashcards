@@ -2,6 +2,11 @@ import { useEffect, useReducer, useRef } from "react"
 import { useTranslation } from "react-i18next"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
+import {
+  attachCardAudio,
+  resolveCardAudio,
+  resolveDraftAudio,
+} from "@/features/cards/audio/api/tts-client"
 import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
 import {
   hydrateAudioSelectionDraftSide,
@@ -12,26 +17,15 @@ import {
   setAudioSelectionDraftReady,
   useAudioSelectionDraft,
 } from "@/features/cards/audio/lib/audio-selection-draft"
-import {
-  formatTtsHttpError,
-  formatUnexpectedTtsResponse,
-  getErrorMessage,
-} from "@/features/cards/audio/lib/tts-client-errors"
+import { getErrorMessage } from "@/features/cards/audio/lib/tts-client-errors"
 import type {
   CardSetTtsSelectionPatch,
   SupportedTtsLocale,
-  TtsResolveReadyResponse,
   VisibleCardTtsSelectionPatch,
 } from "@/features/cards/audio/model/card-audio"
 import { toCanonicalCardTtsSelectionPatch } from "@/features/cards/audio/model/card-audio"
 import type { Card, VisibleCardSide } from "@/features/cards/model/card"
 import { hasMeaningfulHtmlContent } from "@/shared/lib/html"
-
-type DraftTtsReadyResponse = {
-  status: "ready"
-  assetId: string
-  fileUrl: string
-}
 
 type AudioPreviewState = "none" | "selected" | "stale" | "ready"
 
@@ -103,36 +97,6 @@ function errorReducer(state: ErrorState, action: ErrorAction): ErrorState {
       }
     }
   }
-}
-
-function isDraftTtsReadyResponse(
-  value: unknown,
-): value is DraftTtsReadyResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "status" in value &&
-    value.status === "ready" &&
-    "assetId" in value &&
-    typeof value.assetId === "string" &&
-    "fileUrl" in value &&
-    typeof value.fileUrl === "string"
-  )
-}
-
-function isResolveTtsReadyResponse(
-  value: unknown,
-): value is TtsResolveReadyResponse {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "status" in value &&
-    value.status === "ready" &&
-    "assetId" in value &&
-    typeof value.assetId === "string" &&
-    "fileUrl" in value &&
-    typeof value.fileUrl === "string"
-  )
 }
 
 function audioSuccess(): EditCardAudioActionResult {
@@ -231,44 +195,26 @@ export function useEditCardAudio({
       }
 
       try {
-        const response = await fetch("/api/tts/draft", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user.refreshToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        const audio = await resolveDraftAudio(
+          {
+            refreshToken: user.refreshToken,
             html,
             locale,
-          }),
-        })
-        const payload: unknown = await response.json().catch(() => null)
+          },
+          {
+            requestFailed: t("audioRequestFailed"),
+            unexpectedResponse: t("audioUnexpectedResponse"),
+          },
+        )
 
         if (pendingDraftRequestKeyRef.current[side] !== requestKey) {
           return
         }
 
-        if (!response.ok) {
-          throw new Error(
-            formatTtsHttpError(response, payload, t("audioRequestFailed")),
-          )
-        }
-
-        if (!isDraftTtsReadyResponse(payload)) {
-          throw new Error(
-            formatUnexpectedTtsResponse(response, t("audioUnexpectedResponse")),
-          )
-        }
-
-        setAudioSelectionDraftReady(
-          side,
-          locale,
-          payload.assetId,
-          payload.fileUrl,
-        )
+        setAudioSelectionDraftReady(side, locale, audio.assetId, audio.fileUrl)
 
         const preview = side === "front" ? frontAudioPreview : backAudioPreview
-        const playResult = await preview.playAudio(payload.fileUrl)
+        const playResult = await preview.playAudio(audio.fileUrl)
 
         if (!playResult.ok) {
           reportError(playResult.message)
@@ -380,47 +326,31 @@ export function useEditCardAudio({
           user?.refreshToken
         ) {
           try {
-            const response = await fetch("/api/tts/resolve", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${user.refreshToken}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
+            const audio = await resolveCardAudio(
+              {
+                refreshToken: user.refreshToken,
                 cardId: initialCard.id,
                 visibleSide: side,
-              }),
-            })
-            const payload: unknown = await response.json().catch(() => null)
-
-            if (!response.ok) {
-              throw new Error(
-                formatTtsHttpError(response, payload, t("audioRequestFailed")),
-              )
-            }
-
-            if (!isResolveTtsReadyResponse(payload)) {
-              throw new Error(
-                formatUnexpectedTtsResponse(
-                  response,
-                  t("audioUnexpectedResponse"),
-                ),
-              )
-            }
+              },
+              {
+                requestFailed: t("audioRequestFailed"),
+                unexpectedResponse: t("audioUnexpectedResponse"),
+              },
+            )
 
             hydrateAudioSelectionDraftSide(side, {
               locale: sideDraft.locale,
-              assetId: payload.assetId,
-              fileUrl: payload.fileUrl,
+              assetId: audio.assetId,
+              fileUrl: audio.fileUrl,
             })
 
             dispatchResolvedPersistedFileUrls({
-              fileUrl: payload.fileUrl,
+              fileUrl: audio.fileUrl,
               side,
               type: "set",
             })
 
-            const result = await audioPreview.playAudio(payload.fileUrl)
+            const result = await audioPreview.playAudio(audio.fileUrl)
 
             if (!result.ok) {
               return result
@@ -489,25 +419,17 @@ export function useEditCardAudio({
       }
 
       try {
-        const response = await fetch("/api/tts/attach", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user.refreshToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        await attachCardAudio(
+          {
+            refreshToken: user.refreshToken,
             cardSetId,
             tts,
-          }),
-        })
-        const payload: unknown = await response.json().catch(() => null)
-
-        if (!response.ok) {
-          throw new Error(
-            formatTtsHttpError(response, payload, t("audioRequestFailed")),
-          )
-        }
-
+          },
+          {
+            requestFailed: t("audioRequestFailed"),
+            unexpectedResponse: t("audioUnexpectedResponse"),
+          },
+        )
         return audioSuccess()
       } catch (error) {
         return audioFailure(getErrorMessage(error, t("audioUnavailable")))
