@@ -1,6 +1,8 @@
 # Rules
 
 # Do
+When I refer to issues, assume I mean Linear issues in the `Flashcards` Linear team/project unless I explicitly say otherwise.
+
 Before a commit
 + run typechecker `bunx tsc --noEmit`
 + run formatter `bun format`
