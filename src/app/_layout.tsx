@@ -1,5 +1,6 @@
 import "@/shared/i18n/i18n"
 
+import * as Sentry from "@sentry/react-native"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -11,7 +12,26 @@ import { DbProvider } from "@/features/cards/data/db-context"
 import LoadingScreen from "@/shared/ui/loading-screen"
 import NavigationThemeProvider from "@/shared/ui/navigation-theme-provider"
 
-export default function Layout() {
+Sentry.init({
+  dsn: "https://8518a9677451052cc0ad8c876b33ab1d@o4510827175870464.ingest.de.sentry.io/4511711049941072",
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+})
+
+function Layout() {
   const { rt } = useUnistyles()
   const { status, user } = useAuthSession()
   useEnsureProfile({ status, user })
@@ -79,3 +99,5 @@ export default function Layout() {
     </KeyboardProvider>
   )
 }
+
+export default Sentry.wrap(Layout)
