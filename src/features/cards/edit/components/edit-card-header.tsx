@@ -1,10 +1,6 @@
 import { Stack } from "expo-router"
 import { useTranslation } from "react-i18next"
-import { Platform, Pressable, Text } from "react-native"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
-
-import AndroidHeader from "@/shared/ui/android-header"
-import { IconButtonPlus } from "@/shared/ui/icon-button"
+import { useUnistyles } from "react-native-unistyles"
 
 type EditCardHeaderProps = {
   isEditing?: boolean
@@ -21,9 +17,6 @@ export default function EditCardHeader({
 }: EditCardHeaderProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation("common", { keyPrefix: "editCard" })
-  const isIOS = Platform.OS === "ios"
-  const isAndroid = Platform.OS === "android"
-  const title = isEditing ? t("editHeaderTitle") : t("headerTitle")
   const canAddAnother = !isEditing && onAddAnother != null
   const handleAddAnother = () => {
     onAddAnother?.()
@@ -32,100 +25,46 @@ export default function EditCardHeader({
   return (
     <Stack.Screen
       options={{
-        title: isIOS ? "" : title,
-        headerTransparent: isIOS,
+        title: "",
+        headerTransparent: true,
         headerShadowVisible: false,
-        ...(isIOS
-          ? {
-              unstable_headerLeftItems: () => [
+        unstable_headerLeftItems: () => [
+          {
+            type: "button" as const,
+            label: t("cancel"),
+            icon: { type: "sfSymbol" as const, name: "xmark" as const },
+            tintColor: theme.colors.primary,
+            onPress: onClose,
+          },
+        ],
+        unstable_headerRightItems: () => [
+          ...(canAddAnother
+            ? [
                 {
                   type: "button" as const,
-                  label: t("cancel"),
-                  icon: { type: "sfSymbol" as const, name: "xmark" as const },
-                  tintColor: theme.colors.primary,
-                  onPress: onClose,
-                },
-              ],
-              unstable_headerRightItems: () => [
-                ...(canAddAnother
-                  ? [
-                      {
-                        type: "button" as const,
-                        label: t("addAnotherCard"),
-                        icon: {
-                          type: "sfSymbol" as const,
-                          name: "plus" as const,
-                        },
-                        tintColor: theme.colors.primary,
-                        onPress: handleAddAnother,
-                      },
-                    ]
-                  : []),
-                {
-                  type: "button" as const,
-                  label: t("saveCard"),
+                  label: t("addAnotherCard"),
                   icon: {
                     type: "sfSymbol" as const,
-                    name: "checkmark" as const,
+                    name: "plus" as const,
                   },
-                  tintColor: theme.colors.accent,
-                  variant: "prominent",
-                  onPress: onSave,
+                  tintColor: theme.colors.primary,
+                  onPress: handleAddAnother,
                 },
-              ],
-            }
-          : {
-              header: () =>
-                isAndroid ? (
-                  <AndroidHeader
-                    title={title}
-                    closeAccessibilityLabel={t("cancelAccessibilityLabel")}
-                    onClose={onClose}
-                    leftAction={
-                      canAddAnother ? (
-                        <IconButtonPlus
-                          accessibilityLabel={t(
-                            "addAnotherCardAccessibilityLabel",
-                          )}
-                          onPress={onAddAnother}
-                          tintColor={theme.colors.primary}
-                        />
-                      ) : null
-                    }
-                    rightAction={
-                      <Pressable
-                        accessibilityLabel={t("saveCardAccessibilityLabel")}
-                        accessibilityRole="button"
-                        onPress={onSave}
-                        style={styles.androidHeaderSaveButton}
-                      >
-                        <Text style={styles.androidHeaderSaveLabel}>
-                          {t("saveCard")}
-                        </Text>
-                      </Pressable>
-                    }
-                  />
-                ) : null,
-            }),
+              ]
+            : []),
+          {
+            type: "button" as const,
+            label: t("saveCard"),
+            icon: {
+              type: "sfSymbol" as const,
+              name: "checkmark" as const,
+            },
+            tintColor: theme.colors.accent,
+            variant: "prominent" as const,
+            onPress: onSave,
+          },
+        ],
       }}
     />
   )
 }
-
-const styles = StyleSheet.create((theme) => ({
-  androidHeaderSaveButton: {
-    minHeight: 40,
-    minWidth: 70,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.accent,
-  },
-  androidHeaderSaveLabel: {
-    ...theme.typography.styles.subheadline,
-    color: theme.colors.background,
-    fontWeight: "600",
-  },
-}))

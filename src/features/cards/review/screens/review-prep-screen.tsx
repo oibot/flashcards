@@ -1,18 +1,10 @@
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import { Stack } from "expo-router"
 import { useTranslation } from "react-i18next"
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from "react-native"
+import { ActivityIndicator, Pressable, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { useReviewPrepCards } from "@/features/cards/review/hooks/use-review-prep-cards"
 import { setPendingReviewSessionSeed } from "@/features/cards/review/lib/review-session-seed-store"
-import { IconButtonPlus } from "@/shared/ui/icon-button"
 
 type Props = {
   onNewCard: () => void
@@ -29,7 +21,6 @@ export default function ReviewPrepScreen({
   const { t } = useTranslation("common", { keyPrefix: "reviewPrep" })
   const { allCardCount, dueCardCount, error, isLoading, prepareCards } =
     useReviewPrepCards()
-  const isAndroid = Platform.OS === "android"
   const isReviewDisabled = isLoading || !!error || dueCardCount === 0
   const isReviewAllDisabled = isLoading || !!error || allCardCount === 0
 
@@ -64,15 +55,6 @@ export default function ReviewPrepScreen({
               onPress: onNewCard,
             },
           ],
-          headerRight: isAndroid
-            ? undefined
-            : () => (
-                <IconButtonPlus
-                  tintColor={theme.colors.accent}
-                  accessibilityLabel={t("newCardAccessibilityLabel")}
-                  onPress={onNewCard}
-                />
-              ),
         }}
       />
       <View style={styles.container}>
@@ -128,26 +110,12 @@ export default function ReviewPrepScreen({
             </Pressable>
           </View>
         </View>
-        {isAndroid ? (
-          <Pressable
-            accessibilityLabel={t("newCardAccessibilityLabel")}
-            accessibilityRole="button"
-            onPress={onNewCard}
-            style={styles.fab}
-          >
-            <MaterialCommunityIcons
-              name="plus"
-              size={28}
-              color={theme.colors.background}
-            />
-          </Pressable>
-        ) : null}
       </View>
     </>
   )
 }
 
-const styles = StyleSheet.create((theme, rt) => ({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -224,18 +192,5 @@ const styles = StyleSheet.create((theme, rt) => ({
   },
   secondaryButtonLabelDisabled: {
     color: theme.colors.secondary,
-  },
-  fab: {
-    position: "absolute",
-    right: Math.max(rt.insets.right, 16),
-    bottom: Math.max(rt.insets.bottom, 16),
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.accent,
-    boxShadow: `0 8px 18px ${theme.colors.shadowSoft}`,
   },
 }))

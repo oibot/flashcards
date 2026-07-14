@@ -1,17 +1,9 @@
 import { Platform, type TextStyle } from "react-native"
-import type {
-  AndroidContentSizeCategory,
-  IOSContentSizeCategory,
-} from "react-native-unistyles"
 import { StyleSheet } from "react-native-unistyles"
 
-type ContentSizeCategory =
-  | IOSContentSizeCategory
-  | AndroidContentSizeCategory
-  | "unspecified"
-  | "web-unspecified"
+type ContentSizeCategory = string
 
-const textScaleByCategory: Record<ContentSizeCategory, number> = {
+const textScaleByCategory: Record<string, number> = {
   xSmall: 0.9,
   Small: 0.95,
   Medium: 1,
@@ -24,11 +16,6 @@ const textScaleByCategory: Record<ContentSizeCategory, number> = {
   accessibilityExtraLarge: 1.75,
   accessibilityExtraExtraLarge: 1.9,
   accessibilityExtraExtraExtraLarge: 2.1,
-  Default: 1,
-  ExtraLarge: 1.25,
-  Huge: 1.4,
-  ExtraHuge: 1.6,
-  ExtraExtraHuge: 1.8,
   unspecified: 1,
   "web-unspecified": 1,
 }

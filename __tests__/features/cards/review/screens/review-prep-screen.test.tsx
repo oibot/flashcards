@@ -1,15 +1,6 @@
 const mockUseReviewPrepCards = jest.fn()
 const mockSetPendingReviewSessionSeed = jest.fn()
 
-jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
-  const React = require("react")
-  const { Text } = require("react-native")
-
-  return function MockMaterialCommunityIcons({ name }: { name: string }) {
-    return <Text>{name}</Text>
-  }
-})
-
 jest.mock("expo-router", () => {
   const React = require("react")
   const { Pressable, Text, View } = require("react-native")
@@ -128,31 +119,6 @@ jest.mock("@/features/cards/review/lib/review-session-seed-store", () => ({
   setPendingReviewSessionSeed: (...args: unknown[]) =>
     mockSetPendingReviewSessionSeed(...args),
 }))
-
-jest.mock("@/shared/ui/icon-button", () => {
-  const React = require("react")
-  const { Pressable, Text } = require("react-native")
-
-  return {
-    IconButtonPlus({
-      accessibilityLabel,
-      onPress,
-    }: {
-      accessibilityLabel: string
-      onPress: () => void
-    }) {
-      return (
-        <Pressable
-          accessibilityLabel={accessibilityLabel}
-          accessibilityRole="button"
-          onPress={onPress}
-        >
-          <Text>{accessibilityLabel}</Text>
-        </Pressable>
-      )
-    },
-  }
-})
 
 import { fireEvent, render, screen } from "@testing-library/react-native"
 

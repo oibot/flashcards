@@ -2,14 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { SymbolView } from "expo-symbols"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native"
+import { Alert, Pressable, ScrollView, Text, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { TTS_LANGUAGE_NATIVE_LABELS } from "@/features/cards/audio/components/audio-labels"
@@ -23,9 +16,8 @@ import {
   type SupportedTtsLocale,
 } from "@/features/cards/audio/model/card-audio"
 import type { VisibleCardSide } from "@/features/cards/model/card"
-import AndroidHeader from "@/shared/ui/android-header"
 
-const checkmarkIconName = { ios: "checkmark", android: "done" } as const
+const checkmarkIconName = "checkmark" as const
 
 function isVisibleCardSide(value: unknown): value is VisibleCardSide {
   return value === "front" || value === "back"
@@ -40,9 +32,6 @@ export default function LanguageSelectionScreen() {
   const { t: tEditCard } = useTranslation("common", { keyPrefix: "editCard" })
   const params = useLocalSearchParams<{ side?: string | string[] }>()
   const side = isVisibleCardSide(params.side) ? params.side : "front"
-  const isIOS = Platform.OS === "ios"
-  const isAndroid = Platform.OS === "android"
-  const sideLabel = tSoundSheet(side)
   const audioSelectionDraft = useAudioSelectionDraft()
   const sideDraft = audioSelectionDraft[side]
   const preferredLocale: SupportedTtsLocale =
@@ -116,63 +105,34 @@ export default function LanguageSelectionScreen() {
     <>
       <Stack.Screen
         options={{
-          title: isIOS ? "" : tSoundSheet("title", { side: sideLabel }),
-          headerTransparent: isIOS,
+          title: "",
+          headerTransparent: true,
           headerShadowVisible: false,
-          ...(isIOS
-            ? {
-                unstable_headerLeftItems: () => [
-                  {
-                    type: "button" as const,
-                    label: tEditCard("cancel"),
-                    icon: {
-                      type: "sfSymbol" as const,
-                      name: "xmark" as const,
-                    },
-                    tintColor: theme.colors.primary,
-                    onPress: handleDismiss,
-                  },
-                ],
-                unstable_headerRightItems: () => [
-                  {
-                    type: "button" as const,
-                    label: tEditCard("saveCard"),
-                    icon: {
-                      type: "sfSymbol" as const,
-                      name: "checkmark" as const,
-                    },
-                    tintColor: theme.colors.accent,
-                    variant: "prominent",
-                    onPress: handleSave,
-                  },
-                ],
-              }
-            : {
-                header: () =>
-                  isAndroid ? (
-                    <AndroidHeader
-                      title={tSoundSheet("title", { side: sideLabel })}
-                      closeAccessibilityLabel={tEditCard(
-                        "cancelAccessibilityLabel",
-                      )}
-                      onClose={handleDismiss}
-                      rightAction={
-                        <Pressable
-                          accessibilityLabel={tEditCard(
-                            "saveCardAccessibilityLabel",
-                          )}
-                          accessibilityRole="button"
-                          onPress={handleSave}
-                          style={styles.androidHeaderSaveButton}
-                        >
-                          <Text style={styles.androidHeaderSaveLabel}>
-                            {tEditCard("saveCard")}
-                          </Text>
-                        </Pressable>
-                      }
-                    />
-                  ) : null,
-              }),
+          unstable_headerLeftItems: () => [
+            {
+              type: "button" as const,
+              label: tEditCard("cancel"),
+              icon: {
+                type: "sfSymbol" as const,
+                name: "xmark" as const,
+              },
+              tintColor: theme.colors.primary,
+              onPress: handleDismiss,
+            },
+          ],
+          unstable_headerRightItems: () => [
+            {
+              type: "button" as const,
+              label: tEditCard("saveCard"),
+              icon: {
+                type: "sfSymbol" as const,
+                name: "checkmark" as const,
+              },
+              tintColor: theme.colors.accent,
+              variant: "prominent" as const,
+              onPress: handleSave,
+            },
+          ],
         }}
       />
       <ScrollView
@@ -273,20 +233,5 @@ const styles = StyleSheet.create((theme, rt) => ({
   languageNativeLabel: {
     ...theme.typography.styles.caption,
     color: theme.colors.secondary,
-  },
-  androidHeaderSaveButton: {
-    minHeight: 40,
-    minWidth: 70,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderCurve: "continuous",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.accent,
-  },
-  androidHeaderSaveLabel: {
-    ...theme.typography.styles.subheadline,
-    color: theme.colors.background,
-    fontWeight: "600",
   },
 }))

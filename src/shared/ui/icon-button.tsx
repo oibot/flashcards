@@ -16,28 +16,16 @@ type IconButtonProps = {
   style?: StyleProp<ViewStyle>
 }
 
-const plusIconName = { ios: "plus", android: "add" } as const
-const closeIconName = { ios: "xmark", android: "close" } as const
-const checkmarkIconName = { ios: "checkmark", android: "done" } as const
-const trashIconName = { ios: "trash", android: "delete" } as const
-const undoIconName = { ios: "arrow.uturn.backward", android: "undo" } as const
-const pencilIconName = { ios: "pencil", android: "edit" } as const
-const audioIconName = {
-  ios: "speaker.wave.2.fill",
-  android: "volume_up",
-} as const
-const audioNoneIconName = {
-  ios: "speaker.slash",
-  android: "volume_off",
-} as const
-const audioSelectedIconName = {
-  ios: "speaker.wave.2",
-  android: "volume_up",
-} as const
-const audioStaleIconName = {
-  ios: "arrow.clockwise.circle",
-  android: "refresh",
-} as const
+const plusIconName = "plus" as const
+const closeIconName = "xmark" as const
+const checkmarkIconName = "checkmark" as const
+const trashIconName = "trash" as const
+const undoIconName = "arrow.uturn.backward" as const
+const pencilIconName = "pencil" as const
+const audioIconName = "speaker.wave.2.fill" as const
+const audioNoneIconName = "speaker.slash" as const
+const audioSelectedIconName = "speaker.wave.2" as const
+const audioStaleIconName = "arrow.clockwise.circle" as const
 
 function IconButtonBase({
   iconName,

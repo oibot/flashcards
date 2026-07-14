@@ -3,6 +3,7 @@
     "name": "flashcards",
     "slug": "flashcards",
     "scheme": "flashcards",
+    "platforms": ["ios", "web"],
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -13,14 +14,6 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "predictiveBackGestureEnabled": false,
-      "package": "com.tobio.flashcards"
     },
     "web": {
       "bundler": "metro",

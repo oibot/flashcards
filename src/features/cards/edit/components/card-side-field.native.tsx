@@ -17,10 +17,7 @@ import {
 
 import type { CardSideFieldProps } from "./card-side-field.types"
 
-const chevronIconName = {
-  ios: "chevron.right",
-  android: "chevron_right",
-} as const
+const chevronIconName = "chevron.right" as const
 
 export default function CardSideField({
   label,

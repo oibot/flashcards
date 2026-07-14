@@ -55,15 +55,8 @@ jest.mock("expo-symbols", () => {
   const { Text } = require("react-native")
 
   return {
-    SymbolView({
-      name,
-    }: {
-      name: string | { android?: string; ios?: string }
-    }) {
-      const resolvedName =
-        typeof name === "string" ? name : (name.ios ?? name.android ?? "")
-
-      return <Text>{resolvedName}</Text>
+    SymbolView({ name }: { name: string }) {
+      return <Text>{name}</Text>
     },
   }
 })
@@ -183,12 +176,6 @@ jest.mock("@/features/cards/audio/lib/audio-selection-draft", () => ({
     mockSetAudioSelectionDraftCreating(...args),
   useAudioSelectionDraft: () => mockUseAudioSelectionDraft(),
 }))
-
-jest.mock("@/shared/ui/android-header", () => {
-  return function MockAndroidHeader() {
-    return null
-  }
-})
 
 import {
   fireEvent,
