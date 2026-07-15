@@ -454,10 +454,10 @@ Expected server environment:
 - `INSTANT_APP_ID`
 - `INSTANT_APP_ADMIN_TOKEN`
 - `ELEVENLABS_API_KEY`
-- optional `ELEVENLABS_MODEL_ID`
 
-Locale-to-voice mapping should live in a server-only typed config module rather
-than per-locale environment variables.
+Locale-to-voice and locale-to-model mapping should live in a server-only typed
+config module rather than environment variables. Thai uses `eleven_v3`; the
+existing locales use `eleven_flash_v2_5`.
 
 Only `EXPO_PUBLIC_*` values may be used on the client. The ElevenLabs key and
 Instant admin token must stay server-only.

@@ -9,4 +9,5 @@ export const TTS_LANGUAGE_NATIVE_LABELS = {
   "ja-JP": "日本語",
   "zh-CN": "中文",
   "ru-RU": "Русский",
+  "th-TH": "ไทย",
 } satisfies Record<SupportedTtsLocale, string>

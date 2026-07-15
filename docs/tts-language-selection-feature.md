@@ -98,6 +98,7 @@ Introduce a server-side voice catalog:
 type TtsVoiceProfile = {
   locale: string
   voiceId: string
+  modelId: string
 }
 ```
 
@@ -111,20 +112,27 @@ This keeps the decision explicit and reviewable.
 
 The voice catalog can be backed by:
 
-- a server-only typed config module for supported locales and `voiceId` values
-- environment variables only for actual secrets or operational overrides such as
-  the API key or optional model id
+- a server-only typed config module for supported locales, `voiceId` values,
+  and `modelId` values
+- environment variables only for actual secrets such as the API key
 
-Model and output format should remain global server settings, not per-locale
-settings.
+The output format should remain a global server setting. Models are selected per
+locale because Thai requires Eleven v3 while the existing locales continue to
+use Flash v2.5.
 
 Example shape:
 
 ```ts
-const TTS_VOICE_IDS_BY_LOCALE = {
-  "en-US": "2vbhUP8zyKg4dEZaTWGn",
-  "de-DE": "JiW03c2Gt43XNUQAumRP",
-} satisfies Record<SupportedTtsLocale, string>
+const TTS_VOICE_PROFILES_BY_LOCALE = {
+  "en-US": {
+    voiceId: "2vbhUP8zyKg4dEZaTWGn",
+    modelId: "eleven_flash_v2_5",
+  },
+  "th-TH": {
+    voiceId: "xVv8qLTTnsYnrysc2Lx4",
+    modelId: "eleven_v3",
+  },
+} satisfies Record<SupportedTtsLocale, Omit<TtsVoiceProfile, "locale">>
 ```
 
 Suggested config split:
@@ -132,25 +140,21 @@ Suggested config split:
 ```ts
 type TtsBaseConfig = {
   provider: "elevenlabs"
-  modelId: "eleven_flash_v2_5"
   outputFormat: "mp3"
 }
 ```
 
 ```ts
-type ResolvedTtsConfig = TtsBaseConfig & {
-  locale: string
-  voiceId: string
-}
+type ResolvedTtsConfig = TtsBaseConfig & TtsVoiceProfile
 ```
 
-The server resolves `voiceId` from the selected locale, then combines it with
-the global model and output settings.
+The server resolves `voiceId` and `modelId` from the selected locale, then
+combines them with the global provider and output settings.
 
 ## Supported Languages
 
-The first version should support a focused set of `8` languages, with one
-canonical app locale and one configured voice per language.
+The app supports a focused set of `9` languages, with one canonical app locale
+and one configured voice and model per language.
 
 Supported locales:
 
@@ -162,11 +166,12 @@ Supported locales:
 - `ja-JP` Japanese
 - `zh-CN` Chinese
 - `ru-RU` Russian
+- `th-TH` Thai
 
 These locales should define:
 
 - which languages appear in the picker
-- which `voiceId` values are defined in the server-only TTS config
+- which `voiceId` and `modelId` values are defined in the server-only TTS config
 - which locale values are accepted by the locale persistence route
 
 If a locale does not have a configured voice, it should not appear in the
@@ -361,14 +366,14 @@ Likely files to update when implementing:
 Exit criteria:
 
 - the schema can represent locale selection per content side
-- the app has one shared source of truth for the 8 supported locales
+- the app has one shared source of truth for the 9 supported locales
 
 ### Step 2: Add server-side voice resolution
 
-- introduce locale-based voice resolution on the server
-- keep `modelId` and `outputFormat` as global server config
-- validate that every supported locale has a configured `voiceId`
-- make the resolved locale and `voiceId` part of the effective TTS config
+- introduce locale-based voice and model resolution on the server
+- keep `outputFormat` as global server config
+- validate that every supported locale has a configured `voiceId` and `modelId`
+- make the resolved locale, `voiceId`, and `modelId` part of the effective TTS config
 
 Exit criteria:
 

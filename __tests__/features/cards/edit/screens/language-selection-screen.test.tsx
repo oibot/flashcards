@@ -102,6 +102,8 @@ jest.mock("react-i18next", () => ({
               return "Chinese"
             case "languages.ru-RU.label":
               return "Russian"
+            case "languages.th-TH.label":
+              return "Thai"
             default:
               return key
           }
@@ -239,11 +241,13 @@ describe("LanguageSelectionScreen", () => {
 
     const labels = screen
       .getAllByText(
-        /^(None|German|English|Spanish|French|Portuguese|Japanese|Chinese|Russian)$/,
+        /^(None|German|English|Spanish|French|Portuguese|Japanese|Chinese|Russian|Thai)$/,
       )
       .map((node) => node.props.children)
 
     expect(labels.slice(0, 3)).toEqual(["None", "German", "English"])
+    expect(labels).toContain("Thai")
+    expect(screen.getByText("ไทย")).toBeTruthy()
     expect(
       screen.getByRole("button", { name: "French" }).props.accessibilityState,
     ).toEqual({ selected: true })

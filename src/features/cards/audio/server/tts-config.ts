@@ -6,38 +6,70 @@ import {
 
 export type TtsBaseConfig = {
   provider: "elevenlabs"
-  modelId: string
   outputFormat: TtsOutputFormat
 }
 
 export type TtsVoiceProfile = {
   locale: SupportedTtsLocale
   voiceId: string
+  modelId: string
 }
 
 export const TTS_BASE_CONFIG: TtsBaseConfig = {
   provider: "elevenlabs",
-  modelId: "eleven_flash_v2_5",
   outputFormat: "mp3",
 }
 
-const TTS_VOICE_IDS_BY_LOCALE = {
-  "en-US": "2vbhUP8zyKg4dEZaTWGn",
-  "de-DE": "JiW03c2Gt43XNUQAumRP",
-  "es-ES": "ODO4sbmD3pTjhgRVVRP6",
-  "fr-FR": "fMikjf4u2qBd4gPl7yuw",
-  "pt-BR": "7iqXtOF3wl3pomwXFY7G",
-  "ja-JP": "GxhGYQesaQaYKePCZDEC",
-  "zh-CN": "BqljjWyTnrioXPCNkCd4",
-  "ru-RU": "KpX1OoMT6Br64YtIpgRI",
-} satisfies Record<SupportedTtsLocale, string>
+const FLASH_MODEL_ID = "eleven_flash_v2_5"
+
+const TTS_VOICE_PROFILES_BY_LOCALE = {
+  "en-US": {
+    voiceId: "2vbhUP8zyKg4dEZaTWGn",
+    modelId: FLASH_MODEL_ID,
+  },
+  "de-DE": {
+    voiceId: "JiW03c2Gt43XNUQAumRP",
+    modelId: FLASH_MODEL_ID,
+  },
+  "es-ES": {
+    voiceId: "ODO4sbmD3pTjhgRVVRP6",
+    modelId: FLASH_MODEL_ID,
+  },
+  "fr-FR": {
+    voiceId: "fMikjf4u2qBd4gPl7yuw",
+    modelId: FLASH_MODEL_ID,
+  },
+  "pt-BR": {
+    voiceId: "7iqXtOF3wl3pomwXFY7G",
+    modelId: FLASH_MODEL_ID,
+  },
+  "ja-JP": {
+    voiceId: "GxhGYQesaQaYKePCZDEC",
+    modelId: FLASH_MODEL_ID,
+  },
+  "zh-CN": {
+    voiceId: "BqljjWyTnrioXPCNkCd4",
+    modelId: FLASH_MODEL_ID,
+  },
+  "ru-RU": {
+    voiceId: "KpX1OoMT6Br64YtIpgRI",
+    modelId: FLASH_MODEL_ID,
+  },
+  "th-TH": {
+    voiceId: "xVv8qLTTnsYnrysc2Lx4",
+    modelId: "eleven_v3",
+  },
+} satisfies Record<
+  SupportedTtsLocale,
+  Pick<TtsVoiceProfile, "voiceId" | "modelId">
+>
 
 export function getTtsVoiceProfile(
   locale: SupportedTtsLocale,
 ): TtsVoiceProfile {
   return {
     locale,
-    voiceId: TTS_VOICE_IDS_BY_LOCALE[locale],
+    ...TTS_VOICE_PROFILES_BY_LOCALE[locale],
   }
 }
 

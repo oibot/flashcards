@@ -7,6 +7,7 @@ import type {
   SupportedTtsLocale,
   TtsConfig,
 } from "@/features/cards/audio/model/card-audio"
+import { getReadyFileUrl } from "@/features/cards/audio/server/tts-file"
 import { getAdminDb } from "@/features/cards/data/instant/admin"
 import type { AppSchema } from "@/features/cards/data/instant/instant.schema"
 import { hasOwn } from "@/shared/lib/object"
@@ -51,17 +52,7 @@ export function getSelectedTtsAsset(
   return cardSet.sideBTtsAsset ?? null
 }
 
-export function getReadyFileUrl(asset: TtsAssetRecord | null | undefined) {
-  if (!asset || asset.status !== "ready" || !asset.file) {
-    return null
-  }
-
-  if (typeof asset.file.url !== "string") {
-    return null
-  }
-
-  return asset.file.url
-}
+export { getReadyFileUrl }
 
 export async function loadCardForTts(userId: string, cardId: string) {
   const adminDb = getAdminDb()

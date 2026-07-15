@@ -20,6 +20,7 @@ export const SUPPORTED_TTS_LOCALES = [
   "ja-JP",
   "zh-CN",
   "ru-RU",
+  "th-TH",
 ] as const
 export type SupportedTtsLocale = (typeof SUPPORTED_TTS_LOCALES)[number]
 export type TtsConfig = {

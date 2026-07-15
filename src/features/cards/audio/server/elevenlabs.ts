@@ -34,10 +34,7 @@ export function getTtsAudioContentType(outputFormat: TtsOutputFormat) {
 }
 
 export function getTtsBaseConfig(): TtsBaseConfig {
-  return {
-    ...TTS_BASE_CONFIG,
-    modelId: process.env.ELEVENLABS_MODEL_ID ?? TTS_BASE_CONFIG.modelId,
-  }
+  return TTS_BASE_CONFIG
 }
 
 export function getTtsVoiceProfile(
@@ -61,6 +58,7 @@ export function resolveTtsConfig(locale: SupportedTtsLocale): TtsConfig {
     ...getTtsBaseConfig(),
     locale: voiceProfile.locale,
     voiceId: voiceProfile.voiceId,
+    modelId: voiceProfile.modelId,
   }
 }
 
@@ -122,6 +120,20 @@ export async function generateElevenLabsAudio(text: string, config: TtsConfig) {
   }
 
   const audioBytes = new Uint8Array(await response.arrayBuffer())
+
+  if (audioBytes.byteLength === 0) {
+    const errorMessage = "ElevenLabs returned an empty audio payload."
+
+    logTtsError("ElevenLabs returned empty audio", {
+      status: response.status,
+      locale: config.locale,
+      voiceId: config.voiceId,
+      modelId: config.modelId,
+      errorMessage,
+    })
+
+    throw new TtsResolveError(errorMessage, 502)
+  }
 
   logTtsInfo("Decoded ElevenLabs audio payload", {
     status: response.status,
