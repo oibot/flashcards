@@ -8,19 +8,19 @@ import ToolbarButton from "./toolbar-button"
 export const STYLE_ITEMS = [
   {
     name: "bold",
-    icon: "bold",
+    icon: { ios: "bold", web: "format_bold" },
   },
   {
     name: "italic",
-    icon: "italic",
+    icon: { ios: "italic", web: "format_italic" },
   },
   {
     name: "underline",
-    icon: "underline",
+    icon: { ios: "underline", web: "format_underlined" },
   },
   {
     name: "strikethrough",
-    icon: "strikethrough",
+    icon: { ios: "strikethrough", web: "strikethrough_s" },
   },
   {
     name: "heading-1",

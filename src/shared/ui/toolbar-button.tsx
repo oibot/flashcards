@@ -1,4 +1,5 @@
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6"
+import { SymbolView } from "expo-symbols"
+import type { ComponentProps } from "react"
 import { Pressable, Text } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -12,7 +13,7 @@ type ToolbarButtonTextProps = {
 
 type ToolbarButtonIconProps = {
   text?: never
-  icon: string
+  icon: ComponentProps<typeof SymbolView>["name"]
   isActive: boolean
   isDisabled: boolean
   onPress: () => void
@@ -45,7 +46,7 @@ export default function ToolbarButton({
       onPress={onPress}
     >
       {icon ? (
-        <FontAwesome6 name={icon} size={18} color={iconColor} />
+        <SymbolView name={icon} size={18} tintColor={iconColor} />
       ) : (
         <Text
           style={[
