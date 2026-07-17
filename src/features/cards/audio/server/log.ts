@@ -5,6 +5,9 @@ import { SENTRY_DSN } from "@/shared/lib/sentry"
 Sentry.init({
   dsn: SENTRY_DSN,
   enableLogs: true,
+  // Expo bundles API routes with a custom require implementation, which is
+  // incompatible with the Node SDK's default require-in-the-middle hooks.
+  defaultIntegrations: false,
 })
 
 type TtsLogContext = Record<string, unknown>

@@ -32,6 +32,7 @@ describe("TTS logging", () => {
     expect(mockSentryInit).toHaveBeenCalledWith({
       dsn: SENTRY_DSN,
       enableLogs: true,
+      defaultIntegrations: false,
     })
   })
 
