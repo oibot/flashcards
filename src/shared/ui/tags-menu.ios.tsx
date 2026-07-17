@@ -1,18 +1,19 @@
 import { Button, Host, Menu } from "@expo/ui/swift-ui"
 import { labelStyle } from "@expo/ui/swift-ui/modifiers"
-import { useTranslation } from "react-i18next"
 
 type TagsMenuProps = {
+  accessibilityLabel: string
   availableTags: string[]
+  cancelLabel: string
   onSelectTag: (tag: string) => void
+  title: string
 }
 
 export default function TagsMenu({
+  accessibilityLabel,
   availableTags,
   onSelectTag,
 }: TagsMenuProps) {
-  const { t } = useTranslation("common", { keyPrefix: "editCard.tagsMenu" })
-
   if (availableTags.length === 0) {
     return null
   }
@@ -20,7 +21,7 @@ export default function TagsMenu({
   return (
     <Host matchContents>
       <Menu
-        label={t("accessibilityLabel")}
+        label={accessibilityLabel}
         systemImage="tag"
         modifiers={[labelStyle("iconOnly")]}
       >

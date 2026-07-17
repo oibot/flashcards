@@ -1,18 +1,22 @@
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Modal, Pressable, Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 type TagsMenuProps = {
+  accessibilityLabel: string
   availableTags: string[]
+  cancelLabel: string
   onSelectTag: (tag: string) => void
+  title: string
 }
 
 export default function TagsMenu({
+  accessibilityLabel,
   availableTags,
+  cancelLabel,
   onSelectTag,
+  title,
 }: TagsMenuProps) {
-  const { t } = useTranslation("common", { keyPrefix: "editCard.tagsMenu" })
   const [isOpen, setIsOpen] = useState(false)
 
   if (availableTags.length === 0) {
@@ -26,7 +30,7 @@ export default function TagsMenu({
   return (
     <>
       <Pressable
-        accessibilityLabel={t("accessibilityLabel")}
+        accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
         hitSlop={8}
         onPress={() => {
@@ -47,7 +51,7 @@ export default function TagsMenu({
         <View style={styles.modalRoot}>
           <Pressable onPress={closeMenu} style={styles.backdrop} />
           <View style={styles.sheet}>
-            <Text style={styles.title}>{t("title")}</Text>
+            <Text style={styles.title}>{title}</Text>
             {availableTags.map((tag) => (
               <Pressable
                 key={tag}
@@ -70,7 +74,7 @@ export default function TagsMenu({
                 pressed ? styles.itemButtonPressed : null,
               ]}
             >
-              <Text style={styles.cancelLabel}>{t("cancel")}</Text>
+              <Text style={styles.cancelLabel}>{cancelLabel}</Text>
             </Pressable>
           </View>
         </View>

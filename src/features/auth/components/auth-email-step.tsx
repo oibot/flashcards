@@ -17,7 +17,7 @@ export default function AuthEmailStep({
   onChangeEmail,
   onRequestCode,
 }: AuthEmailStepProps) {
-  const { t } = useTranslation("common", { keyPrefix: "auth" })
+  const { t } = useTranslation("auth")
   const isRequestDisabled = email.trim().length === 0 || isSendingCode
 
   return (

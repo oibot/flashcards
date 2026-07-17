@@ -36,7 +36,7 @@ export default function ActiveReviewState({
   onReveal,
   onGrade,
 }: Props) {
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
+  const { t } = useTranslation("reviewSession", { keyPrefix: "active" })
   const isAnswerVisible = visibleSide === "back"
   const gradeActions: ReviewGrade[] = ["again", "hard", "good"]
 

@@ -29,7 +29,7 @@ export default function ReviewCard({
   onReveal,
 }: Props) {
   const { rt, theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
+  const { t } = useTranslation("reviewSession", { keyPrefix: "active" })
   const isAnswerVisible = visibleSide === "back"
   const cardHeight = rt.screen.height * CARD_HEIGHT_RATIO
   const audio = useReviewCardAudio({

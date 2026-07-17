@@ -1,0 +1,35 @@
+{
+  "active": {
+    "again": "Again",
+    "audioLoading": "Loading audio...",
+    "audioRequestFailed": "Audio request failed.",
+    "audioSignInRequired": "Please sign in again to load audio.",
+    "audioUnexpectedResponse": "The audio endpoint returned an unexpected response.",
+    "audioUnavailable": "Audio unavailable",
+    "back": "Back",
+    "front": "Front",
+    "good": "Good",
+    "hard": "Hard",
+    "playAudioAccessibilityLabel": "Play audio",
+    "revealAnswer": "Reveal Answer"
+  },
+  "closeAccessibilityLabel": "Close review",
+  "editAccessibilityLabel": "Edit card",
+  "delete": {
+    "accessibilityLabel": "Delete card",
+    "error": "Could not delete card",
+    "message": "Delete this card permanently? Any other direction variants will also be deleted.",
+    "title": "Delete card?"
+  },
+  "completed": {
+    "summary_one": "You reviewed {{count}} card.",
+    "summary_other": "You reviewed {{count}} cards.",
+    "title": "Review complete"
+  },
+  "finish": "Finish",
+  "loadErrorTitle": "Could not load cards",
+  "loading": "Loading cards...",
+  "next": "Next",
+  "showFrontAccessibilityLabel": "Show front of card",
+  "saveErrorTitle": "Could not save review"
+}

@@ -19,7 +19,7 @@ export default function ReviewSessionScreen({
   onEditCard,
 }: ReviewSessionScreenProps) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
+  const { t } = useTranslation("reviewSession")
   const [initialSeed] = useState(() => consumePendingReviewSessionSeed())
   const session = useReviewSession({ initialSeed: initialSeed ?? undefined })
 

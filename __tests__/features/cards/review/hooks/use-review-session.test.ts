@@ -1,17 +1,17 @@
 const mockUseCards = jest.fn()
 
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
+  useTranslation: (namespace: string) => ({
     t: (key: string) => {
+      if (namespace === "common") {
+        return key === "cancel" ? "Cancel" : "Delete"
+      }
+
       switch (key) {
         case "delete.title":
           return "Delete card?"
         case "delete.message":
           return "Delete this card and related cards?"
-        case "delete.cancel":
-          return "Cancel"
-        case "delete.confirm":
-          return "Delete"
         case "delete.error":
           return "Delete failed."
         case "saveErrorTitle":

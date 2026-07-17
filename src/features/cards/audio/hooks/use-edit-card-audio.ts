@@ -110,7 +110,7 @@ function audioFailure(message: string): EditCardAudioActionResult {
 export function useEditCardAudio({
   initialCard,
 }: UseEditCardAudioOptions = {}) {
-  const { t } = useTranslation("common", { keyPrefix: "editCard" })
+  const { t } = useTranslation("editCard")
   const { status, user } = useAuthSession()
   const audioSelectionDraft = useAudioSelectionDraft()
   const [resolvedPersistedFileUrls, dispatchResolvedPersistedFileUrls] =
@@ -281,8 +281,8 @@ export function useEditCardAudio({
 
     return {
       valueLabel: sideDraft.locale
-        ? t(`soundSheet.languages.${sideDraft.locale}.label`)
-        : t("soundSheet.none"),
+        ? t(`languageSelection.languages.${sideDraft.locale}.label`)
+        : t("languageSelection.none"),
       isActionDisabled: !hasMeaningfulContent,
       isPreviewDisabled:
         !hasMeaningfulContent ||

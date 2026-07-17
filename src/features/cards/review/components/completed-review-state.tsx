@@ -8,9 +8,10 @@ type Props = {
 }
 
 export default function CompletedReviewState({ cardCount, onClose }: Props) {
-  const { t } = useTranslation("common", {
-    keyPrefix: "reviewSession.completed",
+  const { t } = useTranslation("reviewSession", {
+    keyPrefix: "completed",
   })
+  const { t: tCommon } = useTranslation("common")
 
   return (
     <View style={styles.centerContent}>
@@ -20,7 +21,7 @@ export default function CompletedReviewState({ cardCount, onClose }: Props) {
       </Text>
       <View style={styles.actions}>
         <Pressable onPress={onClose} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonLabel}>{t("close")}</Text>
+          <Text style={styles.secondaryButtonLabel}>{tCommon("close")}</Text>
         </Pressable>
       </View>
     </View>

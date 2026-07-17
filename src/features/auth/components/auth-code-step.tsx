@@ -22,7 +22,7 @@ export default function AuthCodeStep({
   onUseDifferentEmail,
 }: AuthCodeStepProps) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "auth" })
+  const { t } = useTranslation("auth")
   const isSignInDisabled =
     sentEmail.length === 0 || code.trim().length === 0 || isSigningIn
 

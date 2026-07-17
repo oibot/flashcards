@@ -1,5 +1,4 @@
 import { type Ref, useImperativeHandle, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import type { TextInputKeyPressEvent } from "react-native"
 import { Pressable, Text, TextInput, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -14,6 +13,8 @@ export type TagInputHandle = {
 }
 
 type TagInputProps = {
+  label: string
+  removeTagAccessibilityLabel: (tag: string) => string
   tags: string[]
   onChange: (tags: string[]) => void
   error?: string
@@ -25,6 +26,8 @@ type TagInputProps = {
 }
 
 export function TagInput({
+  label,
+  removeTagAccessibilityLabel,
   tags,
   onChange,
   error,
@@ -34,7 +37,6 @@ export function TagInput({
   onFocus,
   ref,
 }: TagInputProps) {
-  const { t } = useTranslation("common", { keyPrefix: "editCard" })
   const inputRef = useRef<TextInput>(null)
   const [input, setInput] = useState("")
   const hasReachedMaxTags = maxTags !== undefined && tags.length >= maxTags
@@ -110,7 +112,7 @@ export function TagInput({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{t("tagsLabel")}</Text>
+      <Text style={styles.label}>{label}</Text>
       <View
         style={[
           styles.inputContainer,
@@ -133,7 +135,7 @@ export function TagInput({
                 {tag}
               </Text>
               <Pressable
-                accessibilityLabel={`Remove ${tag}`}
+                accessibilityLabel={removeTagAccessibilityLabel(tag)}
                 accessibilityRole="button"
                 hitSlop={8}
                 onPress={() => handleRemoveTag(index)}

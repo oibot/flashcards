@@ -7,8 +7,12 @@ const mockIsAvailableAsync = jest.fn()
 const mockShareAsync = jest.fn()
 
 jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
+  useTranslation: (namespace: string) => ({
     t: (key: string, options?: { count?: number }) => {
+      if (namespace === "common" && key === "cancel") {
+        return "Cancel"
+      }
+
       if (key === "errorTitle") {
         return "Error"
       }
@@ -35,10 +39,6 @@ jest.mock("react-i18next", () => ({
 
       if (key === "importConfirm.message") {
         return `Import ${options?.count ?? 0} cards from this backup?`
-      }
-
-      if (key === "importConfirm.cancel") {
-        return "Cancel"
       }
 
       if (key === "importConfirm.confirm") {

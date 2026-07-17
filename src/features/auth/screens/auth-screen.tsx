@@ -10,7 +10,7 @@ import AuthEmailStep from "@/features/auth/components/auth-email-step"
 import { useAuthActions } from "@/features/auth/hooks/use-auth-actions"
 
 export default function AuthScreen() {
-  const { t } = useTranslation("common", { keyPrefix: "auth" })
+  const { t } = useTranslation("auth")
   const { requestCode, signInWithCode } = useAuthActions()
   const [email, setEmail] = useState("")
   const [code, setCode] = useState("")

@@ -18,7 +18,7 @@ export default function ReviewPrepScreen({
   onReviewStart,
 }: Props) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "reviewPrep" })
+  const { t } = useTranslation("reviewPrep")
   const { allCardCount, dueCardCount, error, isLoading, prepareCards } =
     useReviewPrepCards()
   const isReviewDisabled = isLoading || !!error || dueCardCount === 0

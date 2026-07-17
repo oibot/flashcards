@@ -26,10 +26,8 @@ function isVisibleCardSide(value: unknown): value is VisibleCardSide {
 export default function LanguageSelectionScreen() {
   const { dismiss } = useRouter()
   const { theme } = useUnistyles()
-  const { t: tSoundSheet, i18n } = useTranslation("common", {
-    keyPrefix: "editCard.soundSheet",
-  })
-  const { t: tEditCard } = useTranslation("common", { keyPrefix: "editCard" })
+  const { t, i18n } = useTranslation("editCard")
+  const { t: tCommon } = useTranslation("common")
   const params = useLocalSearchParams<{ side?: string | string[] }>()
   const side = isVisibleCardSide(params.side) ? params.side : "front"
   const audioSelectionDraft = useAudioSelectionDraft()
@@ -50,18 +48,18 @@ export default function LanguageSelectionScreen() {
     if (selectedLocale === null) {
       if (hasExistingAudioAsset) {
         Alert.alert(
-          tSoundSheet("deleteConfirmation.title"),
-          tSoundSheet("deleteConfirmation.message"),
+          t("languageSelection.deleteConfirmation.title"),
+          t("languageSelection.deleteConfirmation.message"),
           [
             {
-              text: tSoundSheet("deleteConfirmation.cancel"),
+              text: t("languageSelection.deleteConfirmation.cancel"),
               style: "cancel",
               onPress: () => {
                 setSelectedLocale(lastNonNullSelectedLocale)
               },
             },
             {
-              text: tSoundSheet("deleteConfirmation.confirm"),
+              text: tCommon("delete"),
               style: "destructive",
               onPress: () => {
                 clearAudioSelectionDraftSide(side)
@@ -90,16 +88,16 @@ export default function LanguageSelectionScreen() {
     return [
       {
         locale: null,
-        label: tSoundSheet("none"),
+        label: t("languageSelection.none"),
         nativeLabel: null,
       },
       ...orderedLocales.map((locale) => ({
         locale,
-        label: tSoundSheet(`languages.${locale}.label`),
+        label: t(`languageSelection.languages.${locale}.label`),
         nativeLabel: TTS_LANGUAGE_NATIVE_LABELS[locale],
       })),
     ]
-  }, [preferredLocale, tSoundSheet])
+  }, [preferredLocale, t])
 
   return (
     <>
@@ -111,7 +109,7 @@ export default function LanguageSelectionScreen() {
           unstable_headerLeftItems: () => [
             {
               type: "button" as const,
-              label: tEditCard("cancel"),
+              label: tCommon("cancel"),
               icon: {
                 type: "sfSymbol" as const,
                 name: "xmark" as const,
@@ -123,7 +121,7 @@ export default function LanguageSelectionScreen() {
           unstable_headerRightItems: () => [
             {
               type: "button" as const,
-              label: tEditCard("saveCard"),
+              label: t("saveCard"),
               icon: {
                 type: "sfSymbol" as const,
                 name: "checkmark" as const,

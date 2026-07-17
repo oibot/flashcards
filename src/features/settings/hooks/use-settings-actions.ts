@@ -6,7 +6,7 @@ import { useAuthActions } from "@/features/auth/hooks/use-auth-actions"
 import { useCardBackupActions } from "@/features/cards/backup/hooks/use-card-backup-actions"
 
 export function useSettingsActions() {
-  const { t } = useTranslation("common", { keyPrefix: "settings" })
+  const { t } = useTranslation("settings")
   const { signOut } = useAuthActions()
   const { isExporting, isImporting, onExport, onImport } =
     useCardBackupActions()

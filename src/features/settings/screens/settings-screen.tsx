@@ -7,7 +7,7 @@ import { useSettingsActions } from "@/features/settings/hooks/use-settings-actio
 
 export default function SettingsScreen() {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "settings" })
+  const { t } = useTranslation("settings")
   const {
     isCheckingHealth,
     isExporting,

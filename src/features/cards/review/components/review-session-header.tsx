@@ -31,7 +31,7 @@ export default function ReviewSessionHeader({
   onShowFront,
 }: Props) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
+  const { t } = useTranslation("reviewSession")
   const canShowFront = visibleSide === "back" && onShowFront != null
 
   return (

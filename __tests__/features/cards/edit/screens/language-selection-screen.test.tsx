@@ -62,48 +62,48 @@ jest.mock("expo-symbols", () => {
 })
 
 jest.mock("react-i18next", () => ({
-  useTranslation: (_namespace: string, options?: { keyPrefix?: string }) => {
-    if (options?.keyPrefix === "editCard.soundSheet") {
+  useTranslation: (namespace: string) => {
+    if (namespace === "editCard") {
       return {
         i18n: {
           resolvedLanguage: mockResolvedLanguage,
         },
         t: (key: string, params?: { side?: string }) => {
           switch (key) {
-            case "title":
+            case "languageSelection.title":
               return `Choose Audio Language: ${params?.side ?? ""}`
-            case "front":
+            case "languageSelection.front":
               return "Front"
-            case "back":
+            case "languageSelection.back":
               return "Back"
-            case "none":
+            case "languageSelection.none":
               return "None"
-            case "deleteConfirmation.title":
+            case "languageSelection.deleteConfirmation.title":
               return "Delete audio?"
-            case "deleteConfirmation.message":
+            case "languageSelection.deleteConfirmation.message":
               return "Remove saved audio for this side?"
-            case "deleteConfirmation.cancel":
+            case "languageSelection.deleteConfirmation.cancel":
               return "Keep audio"
-            case "deleteConfirmation.confirm":
-              return "Delete audio"
-            case "languages.en-US.label":
+            case "languageSelection.languages.en-US.label":
               return "English"
-            case "languages.de-DE.label":
+            case "languageSelection.languages.de-DE.label":
               return "German"
-            case "languages.es-ES.label":
+            case "languageSelection.languages.es-ES.label":
               return "Spanish"
-            case "languages.fr-FR.label":
+            case "languageSelection.languages.fr-FR.label":
               return "French"
-            case "languages.pt-BR.label":
+            case "languageSelection.languages.pt-BR.label":
               return "Portuguese"
-            case "languages.ja-JP.label":
+            case "languageSelection.languages.ja-JP.label":
               return "Japanese"
-            case "languages.zh-CN.label":
+            case "languageSelection.languages.zh-CN.label":
               return "Chinese"
-            case "languages.ru-RU.label":
+            case "languageSelection.languages.ru-RU.label":
               return "Russian"
-            case "languages.th-TH.label":
+            case "languageSelection.languages.th-TH.label":
               return "Thai"
+            case "saveCard":
+              return "Save Card"
             default:
               return key
           }
@@ -113,18 +113,15 @@ jest.mock("react-i18next", () => ({
 
     return {
       t: (key: string) => {
-        switch (key) {
-          case "cancel":
-            return "Cancel"
-          case "saveCard":
-            return "Save Card"
-          case "cancelAccessibilityLabel":
-            return "Cancel"
-          case "saveCardAccessibilityLabel":
-            return "Save Card"
-          default:
-            return key
+        if (key === "cancel") {
+          return "Cancel"
         }
+
+        if (key === "delete") {
+          return "Delete"
+        }
+
+        return key
       },
     }
   },

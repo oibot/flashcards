@@ -1,9 +1,3 @@
-jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}))
-
 jest.mock("react-native-unistyles", () => ({
   StyleSheet: {
     create: (styles: unknown) =>
@@ -53,12 +47,14 @@ function renderTagInput({
 
     return (
       <TagInput
+        label="Tags"
         maxTags={maxTags}
         onBlur={onBlurSpy}
         onChange={(nextTags) => {
           onChangeSpy(nextTags)
           setTags(nextTags)
         }}
+        removeTagAccessibilityLabel={(tag) => `Remove ${tag}`}
         tags={tags}
       />
     )

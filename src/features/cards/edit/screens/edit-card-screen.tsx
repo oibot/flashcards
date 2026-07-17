@@ -46,7 +46,8 @@ export default function EditCardScreen({
   onClose,
 }: EditCardProps) {
   const { push } = useRouter()
-  const { t } = useTranslation("common", { keyPrefix: "editCard" })
+  const { t } = useTranslation("editCard")
+  const { t: tCommon } = useTranslation("common")
   const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
   const [focusedField, setFocusedField] = useState<FocusedField | null>(null)
@@ -238,16 +239,23 @@ export default function EditCardScreen({
           <TagInput
             accessory={
               <TagsMenu
+                accessibilityLabel={t("tagsMenu.accessibilityLabel")}
                 availableTags={availableTags}
+                cancelLabel={tCommon("cancel")}
                 onSelectTag={handleAddTag}
+                title={t("tagsMenu.title")}
               />
             }
+            label={t("tagsLabel")}
             onChange={setTags}
             onBlur={createBlurHandler("tags")}
             onFocus={() => {
               setFocusedField("tags")
             }}
             ref={tagInputRef}
+            removeTagAccessibilityLabel={(tag) =>
+              t("removeTagAccessibilityLabel", { tag })
+            }
             tags={tags}
           />
           <CardSideField

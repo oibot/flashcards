@@ -60,7 +60,8 @@ const areCardsEquivalent = (left: Card, right: Card) => {
 export function useReviewSession({
   initialSeed,
 }: UseReviewSessionOptions = {}) {
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession" })
+  const { t } = useTranslation("reviewSession")
+  const { t: tCommon } = useTranslation("common")
   const {
     cards: liveCards,
     isLoading: areCardsLoading,
@@ -179,11 +180,11 @@ export function useReviewSession({
 
     Alert.alert(t("delete.title"), t("delete.message"), [
       {
-        text: t("delete.cancel"),
+        text: tCommon("cancel"),
         style: "cancel",
       },
       {
-        text: t("delete.confirm"),
+        text: tCommon("delete"),
         style: "destructive",
         onPress: () => {
           deleteCurrentConfirmed()

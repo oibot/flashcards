@@ -1,0 +1,76 @@
+{
+  "addAnotherCard": "Weitere Karte",
+  "addAnotherCardAccessibilityLabel": "Weitere Karte hinzufügen",
+  "backLabel": "Rückseite",
+  "cancelAccessibilityLabel": "Abbrechen",
+  "audioRequestFailed": "Audio-Anfrage fehlgeschlagen.",
+  "audioSignInRequired": "Melde dich erneut an, um Audio zu laden.",
+  "audioUnexpectedResponse": "Der Audio-Endpunkt hat eine unerwartete Antwort zurückgegeben.",
+  "audioUnavailable": "Audio nicht verfügbar",
+  "discard": {
+    "cancel": "Weiter bearbeiten",
+    "confirm": "Verwerfen",
+    "message": "Diesen Kartenentwurf verwerfen?",
+    "title": "Ungespeicherte Änderungen"
+  },
+  "editHeaderTitle": "Karte bearbeiten",
+  "frontLabel": "Vorderseite",
+  "headerTitle": "Neue Karte",
+  "languageSelection": {
+    "back": "Rückseite",
+    "description": "Unterstützte Sprachen für diese Seite.",
+    "deleteConfirmation": {
+      "cancel": "Audio behalten",
+      "message": "Möchtest du dieses Audio wirklich löschen?",
+      "title": "Audio löschen?"
+    },
+    "front": "Vorderseite",
+    "headline": "Verfügbare Sprachen",
+    "audioUnavailable": "Audio nicht verfügbar",
+    "none": "Keine",
+    "languages": {
+      "de-DE": {
+        "label": "Deutsch"
+      },
+      "en-US": {
+        "label": "Englisch"
+      },
+      "es-ES": {
+        "label": "Spanisch"
+      },
+      "fr-FR": {
+        "label": "Französisch"
+      },
+      "ja-JP": {
+        "label": "Japanisch"
+      },
+      "pt-BR": {
+        "label": "Portugiesisch"
+      },
+      "ru-RU": {
+        "label": "Russisch"
+      },
+      "th-TH": {
+        "label": "Thailändisch"
+      },
+      "zh-CN": {
+        "label": "Chinesisch"
+      }
+    },
+    "title": "Audio für {{side}}"
+  },
+  "oppositeDirection": {
+    "description": "Erstellt zusätzlich eine zweite Karte mit vertauschter Vorder- und Rückseite.",
+    "label": "Gegenrichtung auch üben"
+  },
+  "audioLabel": "Audio",
+  "previewAudioAccessibilityLabel": "Audio vorhören",
+  "removeTagAccessibilityLabel": "{{tag}} entfernen",
+  "saveCard": "Karte speichern",
+  "saveCardAccessibilityLabel": "Karte speichern",
+  "tagsMenu": {
+    "accessibilityLabel": "Vorhandenes Tag hinzufugen",
+    "title": "Vorhandene Tags"
+  },
+  "tagsLabel": "Tags"
+}

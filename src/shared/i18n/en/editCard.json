@@ -1,0 +1,76 @@
+{
+  "addAnotherCard": "Add another card",
+  "addAnotherCardAccessibilityLabel": "Add another card",
+  "backLabel": "Back",
+  "cancelAccessibilityLabel": "Cancel",
+  "audioRequestFailed": "Audio request failed.",
+  "audioSignInRequired": "Please sign in again to load audio.",
+  "audioUnexpectedResponse": "The audio endpoint returned an unexpected response.",
+  "audioUnavailable": "Audio unavailable",
+  "discard": {
+    "cancel": "Keep editing",
+    "confirm": "Discard",
+    "message": "Discard this card draft?",
+    "title": "Unsaved changes"
+  },
+  "editHeaderTitle": "Edit Card",
+  "frontLabel": "Front",
+  "headerTitle": "New Card",
+  "languageSelection": {
+    "back": "Back",
+    "description": "Supported languages for this side.",
+    "deleteConfirmation": {
+      "cancel": "Keep audio",
+      "message": "Do you really want to delete this audio?",
+      "title": "Delete audio?"
+    },
+    "front": "Front",
+    "headline": "Available languages",
+    "audioUnavailable": "Audio unavailable",
+    "none": "None",
+    "languages": {
+      "de-DE": {
+        "label": "German"
+      },
+      "en-US": {
+        "label": "English"
+      },
+      "es-ES": {
+        "label": "Spanish"
+      },
+      "fr-FR": {
+        "label": "French"
+      },
+      "ja-JP": {
+        "label": "Japanese"
+      },
+      "pt-BR": {
+        "label": "Portuguese"
+      },
+      "ru-RU": {
+        "label": "Russian"
+      },
+      "th-TH": {
+        "label": "Thai"
+      },
+      "zh-CN": {
+        "label": "Chinese"
+      }
+    },
+    "title": "{{side}} Audio"
+  },
+  "oppositeDirection": {
+    "description": "Also create a second card with front and back swapped.",
+    "label": "Practice opposite direction too"
+  },
+  "audioLabel": "Audio",
+  "previewAudioAccessibilityLabel": "Preview audio",
+  "removeTagAccessibilityLabel": "Remove {{tag}}",
+  "saveCard": "Save card",
+  "saveCardAccessibilityLabel": "Save card",
+  "tagsMenu": {
+    "accessibilityLabel": "Add existing tag",
+    "title": "Existing tags"
+  },
+  "tagsLabel": "Tags"
+}

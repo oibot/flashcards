@@ -16,7 +16,8 @@ export default function EditCardHeader({
   onSave,
 }: EditCardHeaderProps) {
   const { theme } = useUnistyles()
-  const { t } = useTranslation("common", { keyPrefix: "editCard" })
+  const { t } = useTranslation("editCard")
+  const { t: tCommon } = useTranslation("common")
   const canAddAnother = !isEditing && onAddAnother != null
   const handleAddAnother = () => {
     onAddAnother?.()
@@ -31,7 +32,7 @@ export default function EditCardHeader({
         unstable_headerLeftItems: () => [
           {
             type: "button" as const,
-            label: t("cancel"),
+            label: tCommon("cancel"),
             icon: { type: "sfSymbol" as const, name: "xmark" as const },
             tintColor: theme.colors.primary,
             onPress: onClose,

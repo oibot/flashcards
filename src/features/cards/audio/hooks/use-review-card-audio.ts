@@ -20,7 +20,7 @@ export function useReviewCardAudio({
   cardId,
   visibleSide,
 }: UseReviewCardAudioOptions) {
-  const { t } = useTranslation("common", { keyPrefix: "reviewSession.active" })
+  const { t } = useTranslation("reviewSession", { keyPrefix: "active" })
   const { status, user } = useAuthSession()
   const requestKey = `${cardId}:${visibleSide}`
   const [resolvedAudio, setResolvedAudio] = useState<{

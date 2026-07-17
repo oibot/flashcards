@@ -1,0 +1,30 @@
+{
+  "errorTitle": "Etwas ist schiefgelaufen",
+  "export": "Daten exportieren",
+  "exportAccessibilityLabel": "Daten exportieren",
+  "exportDialogTitle": "Flashcards exportieren",
+  "exportError": "Daten konnten nicht exportiert werden.",
+  "exportUnavailableError": "Export ist auf diesem Gerät nicht verfügbar.",
+  "health": "API-Status prüfen",
+  "healthAccessibilityLabel": "API-Status prüfen",
+  "healthEmpty": "Der Health-Endpunkt hat eine leere Antwort zurückgegeben.",
+  "healthError": "Der API-Status konnte nicht geprüft werden.",
+  "healthResultTitle": "API-Status",
+  "import": "Daten importieren",
+  "importAccessibilityLabel": "Daten importieren",
+  "importError": "Daten konnten nicht importiert werden.",
+  "invalidBackupError": "Diese Datei ist kein gültiges Flashcards-Backup.",
+  "importConfirm": {
+    "confirm": "Importieren",
+    "message_one": "{{count}} Karte aus diesem Backup importieren?",
+    "message_other": "{{count}} Karten aus diesem Backup importieren?",
+    "title": "Backup importieren?"
+  },
+  "importSuccess_one": "{{count}} Karte importiert.",
+  "importSuccess_other": "{{count}} Karten importiert.",
+  "signOut": "Abmelden",
+  "signOutAccessibilityLabel": "Abmelden",
+  "signOutError": "Abmeldung fehlgeschlagen.",
+  "successTitle": "Fertig",
+  "title": "Einstellungen"
+}

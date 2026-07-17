@@ -18,7 +18,8 @@ function isFilePickerCancellationError(error: unknown) {
 }
 
 export function useCardBackupActions() {
-  const { t } = useTranslation("common", { keyPrefix: "settings" })
+  const { t } = useTranslation("settings")
+  const { t: tCommon } = useTranslation("common")
   const { cardStore } = useDb()
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
@@ -38,7 +39,7 @@ export function useCardBackupActions() {
         t("importConfirm.message", { count: cardCount }),
         [
           {
-            text: t("importConfirm.cancel"),
+            text: tCommon("cancel"),
             style: "cancel",
             onPress: () => resolve(false),
           },
