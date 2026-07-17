@@ -1,4 +1,5 @@
 import { id, lookup } from "@instantdb/react-native"
+import * as Sentry from "@sentry/react-native"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
 import {
@@ -35,6 +36,7 @@ import {
   type ReviewGrade,
   scheduleCardReview,
 } from "@/features/cards/model/review-scheduler"
+import { getErrorLogAttributes } from "@/shared/lib/error"
 
 async function requireCurrentUser() {
   const user = await db.getAuth()
@@ -353,7 +355,10 @@ export const createInstantCardStore = (): CardStore => {
           ...cardTransactions,
         ])
       } catch (error) {
-        console.error("Failed to persist card metadata.", error)
+        Sentry.logger.error("Failed to persist card metadata.", {
+          feature: "cards",
+          ...getErrorLogAttributes(error),
+        })
       }
     }
 
@@ -400,7 +405,10 @@ export const createInstantCardStore = (): CardStore => {
 
         await db.transact([...createTagTransactions, cardSetTransaction])
       } catch (error) {
-        console.error("Failed to persist card metadata.", error)
+        Sentry.logger.error("Failed to persist card metadata.", {
+          feature: "cards",
+          ...getErrorLogAttributes(error),
+        })
       }
     }
 
@@ -423,7 +431,10 @@ export const createInstantCardStore = (): CardStore => {
           }),
         )
       } catch (error) {
-        console.error("Failed to persist card review.", error)
+        Sentry.logger.error("Failed to persist card review.", {
+          feature: "cards",
+          ...getErrorLogAttributes(error),
+        })
       }
     }
 
@@ -435,7 +446,10 @@ export const createInstantCardStore = (): CardStore => {
       try {
         await db.transact(db.tx.cardSets[card.cardSetId].delete())
       } catch (error) {
-        console.error("Failed to remove card.", error)
+        Sentry.logger.error("Failed to remove card.", {
+          feature: "cards",
+          ...getErrorLogAttributes(error),
+        })
       }
     }
 

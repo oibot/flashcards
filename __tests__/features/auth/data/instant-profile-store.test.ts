@@ -1,6 +1,12 @@
 const mockTransact = jest.fn()
 const mockUseQuery = jest.fn()
 
+jest.mock("@sentry/react-native", () => ({
+  logger: {
+    error: jest.fn(),
+  },
+}))
+
 jest.mock("@/features/cards/data/instant/db", () => ({
   db: {
     useQuery: (...args: unknown[]) => mockUseQuery(...args),
@@ -30,17 +36,17 @@ jest.mock("@/features/cards/data/instant/db", () => ({
   },
 }))
 
+import * as Sentry from "@sentry/react-native"
 import { renderHook } from "@testing-library/react-native"
 
 import { instantProfileStore } from "@/features/auth/data/instant-profile-store"
 
-describe("instantProfileStore", () => {
-  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>
+const mockSentryError = jest.mocked(Sentry.logger.error)
 
+describe("instantProfileStore", () => {
   beforeEach(() => {
     jest.clearAllMocks()
     jest.spyOn(Date, "now").mockReturnValue(123)
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation()
     mockUseQuery.mockReturnValue({
       isLoading: false,
       error: null,
@@ -52,7 +58,6 @@ describe("instantProfileStore", () => {
   })
 
   afterEach(() => {
-    consoleErrorSpy.mockRestore()
     jest.restoreAllMocks()
   })
 
@@ -106,7 +111,7 @@ describe("instantProfileStore", () => {
       update: { createdAt: 123 },
       link: { $user: "user-1" },
     })
-    expect(consoleErrorSpy).not.toHaveBeenCalled()
+    expect(mockSentryError).not.toHaveBeenCalled()
   })
 
   it("logs profile creation failures", async () => {
@@ -115,9 +120,10 @@ describe("instantProfileStore", () => {
 
     await instantProfileStore.ensureProfile("user-1")
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to ensure profile",
-      error,
-    )
+    expect(mockSentryError).toHaveBeenCalledWith("Failed to ensure profile", {
+      feature: "auth",
+      error: "profile failed",
+      error_type: "Error",
+    })
   })
 })

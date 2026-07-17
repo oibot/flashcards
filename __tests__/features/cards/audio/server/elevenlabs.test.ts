@@ -1,5 +1,11 @@
 const ORIGINAL_ENV = process.env
 
+jest.mock("@/features/cards/audio/server/log", () => ({
+  logTtsError: jest.fn(),
+  logTtsInfo: jest.fn(),
+  summarizeText: (text: string) => text,
+}))
+
 function createAudioEnv(
   overrides: Partial<Record<`ELEVENLABS_${string}`, string>>,
 ) {

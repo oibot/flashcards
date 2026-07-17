@@ -1,6 +1,12 @@
 const mockUseAuthSession = jest.fn()
 const mockUseFileAudioPlayer = jest.fn()
 
+jest.mock("@sentry/react-native", () => ({
+  logger: {
+    error: jest.fn(),
+  },
+}))
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
@@ -33,9 +39,12 @@ jest.mock("@/features/cards/audio/hooks/use-file-audio-player", () => ({
   useFileAudioPlayer: (...args: unknown[]) => mockUseFileAudioPlayer(...args),
 }))
 
+import * as Sentry from "@sentry/react-native"
 import { act, renderHook, waitFor } from "@testing-library/react-native"
 
 import { useReviewCardAudio } from "@/features/cards/audio/hooks/use-review-card-audio"
+
+const mockSentryError = jest.mocked(Sentry.logger.error)
 
 function createFetchResponse(payload: unknown, ok = true, status = 200) {
   return {
@@ -55,8 +64,6 @@ describe("useReviewCardAudio", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.spyOn(console, "log").mockImplementation(() => {})
-    jest.spyOn(console, "error").mockImplementation(() => {})
     globalThis.fetch = mockFetch as unknown as typeof fetch
     mockUseAuthSession.mockReturnValue({
       status: "signed-in",
@@ -66,10 +73,6 @@ describe("useReviewCardAudio", () => {
     })
     fileAudioPlayer.playAudio.mockResolvedValue({ ok: true })
     mockUseFileAudioPlayer.mockReturnValue(fileAudioPlayer)
-  })
-
-  afterEach(() => {
-    jest.restoreAllMocks()
   })
 
   it("returns an unavailable message when the user is not signed in", async () => {
@@ -105,10 +108,20 @@ describe("useReviewCardAudio", () => {
       }),
     )
 
-    await expect(result.current.playAudio()).resolves.toEqual({
-      ok: false,
-      message: "HTTP 401: Unauthorized",
+    await act(async () => {
+      await expect(result.current.playAudio()).resolves.toEqual({
+        ok: false,
+        message: "HTTP 401: Unauthorized",
+      })
     })
+    expect(mockSentryError).toHaveBeenCalledWith(
+      "Review card audio playback failed.",
+      {
+        feature: "audio",
+        error: "HTTP 401: Unauthorized",
+        error_type: "Error",
+      },
+    )
   })
 
   it("resolves audio once and then reuses the cached URL on later plays", async () => {

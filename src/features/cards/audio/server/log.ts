@@ -1,29 +1,33 @@
+import * as Sentry from "@sentry/node"
+
+import { SENTRY_DSN } from "@/shared/lib/sentry"
+
+Sentry.init({
+  dsn: SENTRY_DSN,
+  enableLogs: true,
+})
+
 type TtsLogContext = Record<string, unknown>
 
 function serializeContext(context: TtsLogContext) {
-  return Object.fromEntries(
-    Object.entries(context).filter(([, value]) => value !== undefined),
-  )
-}
-
-function log(
-  level: "info" | "warn" | "error",
-  message: string,
-  context: TtsLogContext,
-) {
-  console[level](`[tts] ${message}`, serializeContext(context))
+  return {
+    ...Object.fromEntries(
+      Object.entries(context).filter(([, value]) => value !== undefined),
+    ),
+    feature: "tts",
+  }
 }
 
 export function logTtsInfo(message: string, context: TtsLogContext = {}) {
-  log("info", message, context)
+  Sentry.logger.info(message, serializeContext(context))
 }
 
 export function logTtsWarn(message: string, context: TtsLogContext = {}) {
-  log("warn", message, context)
+  Sentry.logger.warn(message, serializeContext(context))
 }
 
 export function logTtsError(message: string, context: TtsLogContext = {}) {
-  log("error", message, context)
+  Sentry.logger.error(message, serializeContext(context))
 }
 
 export function summarizeCacheKey(cacheKey: string) {

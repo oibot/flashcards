@@ -23,6 +23,12 @@ jest.mock("@instantdb/react-native", () => ({
   lookup: jest.fn((field: string, value: string) => ({ field, value })),
 }))
 
+jest.mock("@sentry/react-native", () => ({
+  logger: {
+    error: jest.fn(),
+  },
+}))
+
 jest.mock("@/features/cards/data/instant/db", () => ({
   db: {
     getAuth: (...args: unknown[]) => mockGetAuth(...args),
@@ -57,8 +63,12 @@ jest.mock("@/features/cards/data/instant/db", () => ({
   },
 }))
 
+import * as Sentry from "@sentry/react-native"
+
 import type { Card } from "@/features/cards/model/card"
 import { createInstantCardStore } from "@/features/cards/data/instant/instant-card-store"
+
+const mockSentryError = jest.mocked(Sentry.logger.error)
 
 function createReviewCard(overrides: Partial<Card> = {}): Card {
   return {
@@ -86,18 +96,11 @@ function createReviewCard(overrides: Partial<Card> = {}): Card {
 }
 
 describe("createInstantCardStore", () => {
-  let consoleErrorSpy: jest.SpiedFunction<typeof console.error>
-
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetAuth.mockResolvedValue({ id: "user-1" })
     mockId.mockReturnValue("generated-id")
     mockTransact.mockResolvedValue(undefined)
-    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation()
-  })
-
-  afterEach(() => {
-    consoleErrorSpy.mockRestore()
   })
 
   it("persists card reviews in the background", async () => {
@@ -118,7 +121,7 @@ describe("createInstantCardStore", () => {
 
     await Promise.resolve()
 
-    expect(consoleErrorSpy).not.toHaveBeenCalled()
+    expect(mockSentryError).not.toHaveBeenCalled()
   })
 
   it("logs background review persistence failures", async () => {
@@ -130,9 +133,13 @@ describe("createInstantCardStore", () => {
 
     await Promise.resolve()
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect(mockSentryError).toHaveBeenCalledWith(
       "Failed to persist card review.",
-      error,
+      {
+        feature: "cards",
+        error: "Review sync failed.",
+        error_type: "Error",
+      },
     )
   })
 
@@ -220,9 +227,13 @@ describe("createInstantCardStore", () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect(mockSentryError).toHaveBeenCalledWith(
       "Failed to persist card metadata.",
-      error,
+      {
+        feature: "cards",
+        error: "Metadata sync failed.",
+        error_type: "Error",
+      },
     )
   })
 
@@ -236,7 +247,7 @@ describe("createInstantCardStore", () => {
 
     await Promise.resolve()
 
-    expect(consoleErrorSpy).not.toHaveBeenCalled()
+    expect(mockSentryError).not.toHaveBeenCalled()
   })
 
   it("logs background card removal failures", async () => {
@@ -248,9 +259,10 @@ describe("createInstantCardStore", () => {
 
     await Promise.resolve()
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to remove card.",
-      error,
-    )
+    expect(mockSentryError).toHaveBeenCalledWith("Failed to remove card.", {
+      feature: "cards",
+      error: "Delete sync failed.",
+      error_type: "Error",
+    })
   })
 })

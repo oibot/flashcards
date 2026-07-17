@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -6,6 +7,7 @@ import { resolveCardAudio } from "@/features/cards/audio/api/tts-client"
 import { useFileAudioPlayer } from "@/features/cards/audio/hooks/use-file-audio-player"
 import { getErrorMessage } from "@/features/cards/audio/lib/tts-client-errors"
 import type { VisibleCardSide } from "@/features/cards/model/card"
+import { getErrorLogAttributes } from "@/shared/lib/error"
 
 type UseReviewCardAudioOptions = {
   cardId: string
@@ -70,7 +72,10 @@ export function useReviewCardAudio({
       return fileAudioPlayer.playAudio(audio.fileUrl)
     } catch (error) {
       setResolvedAudio({ fileUrl: null, key: requestKey })
-      console.error("Review card audio playback failed.", error)
+      Sentry.logger.error("Review card audio playback failed.", {
+        feature: "audio",
+        ...getErrorLogAttributes(error),
+      })
       return {
         message: getErrorMessage(error, t("audioUnavailable")),
         ok: false,

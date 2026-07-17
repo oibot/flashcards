@@ -9,11 +9,12 @@ import { useUnistyles } from "react-native-unistyles"
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
 import { useEnsureProfile } from "@/features/auth/hooks/use-ensure-profile"
 import { DbProvider } from "@/features/cards/data/db-context"
+import { SENTRY_DSN } from "@/shared/lib/sentry"
 import LoadingScreen from "@/shared/ui/loading-screen"
 import NavigationThemeProvider from "@/shared/ui/navigation-theme-provider"
 
 Sentry.init({
-  dsn: "https://8518a9677451052cc0ad8c876b33ab1d@o4510827175870464.ingest.de.sentry.io/4511711049941072",
+  dsn: SENTRY_DSN,
 
   // Adds more context data to events (IP address, cookies, user, etc.)
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/

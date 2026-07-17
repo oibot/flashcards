@@ -1,9 +1,12 @@
+import * as Sentry from "@sentry/react-native"
 import {
   setAudioModeAsync,
   useAudioPlayer,
   useAudioPlayerStatus,
 } from "expo-audio"
 import { useEffect, useReducer, useRef } from "react"
+
+import { getErrorLogAttributes } from "@/shared/lib/error"
 
 export type PlayAudioResult = { ok: true } | { message: string; ok: false }
 const AUDIO_LOAD_TIMEOUT_MS = 8000
@@ -76,7 +79,10 @@ export function useFileAudioPlayer({
     }
 
     void configureAudioMode().catch((error) => {
-      console.error("Failed to configure file audio player mode.", error)
+      Sentry.logger.error("Failed to configure file audio player mode.", {
+        feature: "audio",
+        ...getErrorLogAttributes(error),
+      })
     })
   }, [])
 
@@ -102,7 +108,9 @@ export function useFileAudioPlayer({
       currentSourceUrlRef.current = null
       player.pause()
       dispatchAudioLoad({ type: "reset" })
-      console.error("Timed out while loading audio source.")
+      Sentry.logger.error("Timed out while loading audio source.", {
+        feature: "audio",
+      })
       finishPendingPlay({ message: timeoutMessage, ok: false })
     }, AUDIO_LOAD_TIMEOUT_MS)
 
@@ -127,7 +135,10 @@ export function useFileAudioPlayer({
       } catch (error) {
         currentSourceUrlRef.current = null
         player.pause()
-        console.error("Failed to start file audio playback.", error)
+        Sentry.logger.error("Failed to start file audio playback.", {
+          feature: "audio",
+          ...getErrorLogAttributes(error),
+        })
         finishPendingPlay({ message: startPlaybackMessage, ok: false })
       } finally {
         dispatchAudioLoad({ type: "reset" })
@@ -168,7 +179,10 @@ export function useFileAudioPlayer({
       player.pause()
       dispatchAudioLoad({ type: "reset" })
       finishPendingPlay({ message: loadSourceMessage, ok: false })
-      console.error("Failed to load file audio source.", error)
+      Sentry.logger.error("Failed to load file audio source.", {
+        feature: "audio",
+        ...getErrorLogAttributes(error),
+      })
       return { message: loadSourceMessage, ok: false }
     }
   }

@@ -1,9 +1,11 @@
+import * as Sentry from "@sentry/react-native"
+
 import type {
   ProfileQueryState,
   ProfileStore,
 } from "@/features/auth/data/profile-store"
 import { db } from "@/features/cards/data/instant/db"
-import { normalizeError } from "@/shared/lib/error"
+import { getErrorLogAttributes, normalizeError } from "@/shared/lib/error"
 
 export const instantProfileStore: ProfileStore = {
   useProfileQuery: (userId: string | null): ProfileQueryState => {
@@ -38,7 +40,10 @@ export const instantProfileStore: ProfileStore = {
           .link({ $user: userId }),
       )
     } catch (profileError) {
-      console.error("Failed to ensure profile", profileError)
+      Sentry.logger.error("Failed to ensure profile", {
+        feature: "auth",
+        ...getErrorLogAttributes(profileError),
+      })
     }
   },
 }
