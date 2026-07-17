@@ -74,32 +74,45 @@ const getSharedStylesFromState = (
 export function useEditCardEditors() {
   const frontRef = useRef<RichTextEditorHandle | null>(null)
   const backRef = useRef<RichTextEditorHandle | null>(null)
-  const [focusedEditor, setFocusedEditor] = useState<EditorSide | null>(null)
+  const focusedEditorRef = useRef<EditorSide | null>(null)
+  const editorStatesRef = useRef<
+    Record<EditorSide, RichTextEditorState | null>
+  >({
+    front: null,
+    back: null,
+  })
   const [currentStylesState, setCurrentStylesState] =
     useState<RichTextEditorState | null>(null)
 
   const handleEditorFocus = (editor: EditorSide) => {
-    setFocusedEditor(editor)
+    focusedEditorRef.current = editor
+    setCurrentStylesState(editorStatesRef.current[editor])
   }
 
   const handleEditorStateChange = (
     editor: EditorSide,
     nextState: RichTextEditorState,
   ) => {
+    editorStatesRef.current[editor] = nextState
+
+    const focusedEditor = focusedEditorRef.current
     if (focusedEditor === null || focusedEditor === editor) {
       setCurrentStylesState(nextState)
     }
   }
 
   const handleToggleStyle = (item: ToolbarItem) => {
-    const styleKey = stateKeyByItemName[item.name]
+    const focusedEditor = focusedEditorRef.current
+    if (!focusedEditor) return
 
-    toggleEditorStyle(frontRef, styleKey)
-    toggleEditorStyle(backRef, styleKey)
+    const editorRef = focusedEditor === "front" ? frontRef : backRef
+    const styleKey = stateKeyByItemName[item.name]
+    toggleEditorStyle(editorRef, styleKey)
   }
 
   const resetEditors = () => {
-    setFocusedEditor(null)
+    focusedEditorRef.current = null
+    editorStatesRef.current = { front: null, back: null }
     setCurrentStylesState(null)
     frontRef.current?.setValue("")
     backRef.current?.setValue("")
