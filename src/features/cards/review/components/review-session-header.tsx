@@ -53,10 +53,10 @@ export default function ReviewSessionHeader({
             onPress: onClose,
           },
         ],
-        ...(isComplete
-          ? {}
-          : {
-              unstable_headerRightItems: () => [
+        unstable_headerRightItems: () =>
+          isComplete
+            ? []
+            : [
                 ...(canShowFront
                   ? [
                       {
@@ -89,7 +89,6 @@ export default function ReviewSessionHeader({
                   onPress: onDelete,
                 } satisfies NativeStackHeaderItem,
               ],
-            }),
       }}
     />
   )
