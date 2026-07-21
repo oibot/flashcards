@@ -8,10 +8,8 @@ import {
 } from "react-native-keyboard-controller"
 import { StyleSheet, withUnistyles } from "react-native-unistyles"
 
-import {
-  type EditCardAudioActionResult,
-  useEditCardAudio,
-} from "@/features/cards/audio/hooks/use-edit-card-audio"
+import EditCardAudioControls from "@/features/cards/audio/components/edit-card-audio-controls"
+import { useEditCardAudio } from "@/features/cards/audio/hooks/use-edit-card-audio"
 import type { CardSaveResult } from "@/features/cards/data/card-store"
 import CardSideField from "@/features/cards/edit/components/card-side-field"
 import EditCardHeader from "@/features/cards/edit/components/edit-card-header"
@@ -24,7 +22,9 @@ import type {
   CardVariants,
   NewCardInput,
   UpdateCardInput,
+  VisibleCardSide,
 } from "@/features/cards/model/card"
+import { featureFlags } from "@/shared/config/feature-flags"
 import { hasMeaningfulHtmlContent } from "@/shared/lib/html"
 import { TagInput } from "@/shared/ui/tag-input"
 import TagsMenu from "@/shared/ui/tags-menu"
@@ -50,8 +50,12 @@ export default function EditCardScreen({
   const { t: tCommon } = useTranslation("common")
   const { addCard, updateCard } = useEditCard(initialCard?.id)
   const isEditing = initialCard != null
+  const isAudioCreationEnabled = featureFlags.audioCreation
   const [focusedField, setFocusedField] = useState<FocusedField | null>(null)
-  const audio = useEditCardAudio({ initialCard })
+  const audio = useEditCardAudio({
+    enabled: isAudioCreationEnabled,
+    initialCard,
+  })
   const {
     activeStyles,
     availableTags,
@@ -152,16 +156,6 @@ export default function EditCardScreen({
     ])
   }
 
-  const showAudioResult = async (
-    resultPromise: Promise<EditCardAudioActionResult>,
-  ) => {
-    const result = await resultPromise
-
-    if (!result.ok) {
-      Alert.alert(result.message)
-    }
-  }
-
   const hasAudioPersistence = (input: NewCardInput | UpdateCardInput) => {
     return Object.keys(input.tts ?? {}).length > 0
   }
@@ -175,7 +169,11 @@ export default function EditCardScreen({
     }
 
     await saveResult.metadataPersisted
-    await showAudioResult(audio.persistCardAudio(saveResult.cardSetId))
+    const audioResult = await audio.persistCardAudio(saveResult.cardSetId)
+
+    if (!audioResult.ok) {
+      Alert.alert(audioResult.message)
+    }
   }
 
   const handleSave = async () => {
@@ -209,7 +207,7 @@ export default function EditCardScreen({
     resetForm()
   }
 
-  const openLanguagePicker = (side: "front" | "back") => {
+  const openLanguagePicker = (side: VisibleCardSide) => {
     Keyboard.dismiss()
     frontRef.current?.blur()
     backRef.current?.blur()
@@ -219,6 +217,21 @@ export default function EditCardScreen({
       pathname: "/edit-card-language-selection",
       params: { side },
     })
+  }
+
+  const renderAudioControls = (side: VisibleCardSide) => {
+    if (!isAudioCreationEnabled) {
+      return null
+    }
+
+    return (
+      <EditCardAudioControls
+        audio={audio[side]}
+        onConfigure={() => {
+          openLanguagePicker(side)
+        }}
+      />
+    )
   }
 
   return (
@@ -259,14 +272,8 @@ export default function EditCardScreen({
             tags={tags}
           />
           <CardSideField
-            audioActionLabel={t("audioLabel")}
-            audioActionDisabled={audio.front.isActionDisabled}
-            audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
-            audioPreviewLoading={audio.front.isPreviewLoading}
-            audioPreviewState={audio.front.previewState}
-            audioValueLabel={audio.front.valueLabel}
             editorRef={frontRef}
-            isAudioPreviewDisabled={audio.front.isPreviewDisabled}
+            footer={renderAudioControls("front")}
             label={t("frontLabel")}
             onBlur={createBlurHandler("front")}
             onChangeHtml={audio.front.setHtml}
@@ -274,37 +281,19 @@ export default function EditCardScreen({
               setFocusedField("front")
               handleEditorFocus("front")
             }}
-            onPressAudioAction={() => {
-              openLanguagePicker("front")
-            }}
-            onPressAudioPreview={() => {
-              void showAudioResult(audio.front.playPreview())
-            }}
             onStateChange={(nextState) =>
               handleEditorStateChange("front", nextState)
             }
           />
           <CardSideField
-            audioActionLabel={t("audioLabel")}
-            audioActionDisabled={audio.back.isActionDisabled}
-            audioPreviewAccessibilityLabel={t("previewAudioAccessibilityLabel")}
-            audioPreviewLoading={audio.back.isPreviewLoading}
-            audioPreviewState={audio.back.previewState}
-            audioValueLabel={audio.back.valueLabel}
             editorRef={backRef}
-            isAudioPreviewDisabled={audio.back.isPreviewDisabled}
+            footer={renderAudioControls("back")}
             label={t("backLabel")}
             onBlur={createBlurHandler("back")}
             onChangeHtml={audio.back.setHtml}
             onFocus={() => {
               setFocusedField("back")
               handleEditorFocus("back")
-            }}
-            onPressAudioAction={() => {
-              openLanguagePicker("back")
-            }}
-            onPressAudioPreview={() => {
-              void showAudioResult(audio.back.playPreview())
             }}
             onStateChange={(nextState) =>
               handleEditorStateChange("back", nextState)

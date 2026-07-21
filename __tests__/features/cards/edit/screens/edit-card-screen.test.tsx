@@ -159,15 +159,13 @@ jest.mock("@/features/cards/edit/components/card-side-field", () => {
   const { Pressable, Text, View } = require("react-native")
 
   return function MockCardSideField({
+    footer,
     label,
     onFocus,
-    onPressAudioAction,
-    onPressAudioPreview,
   }: {
+    footer?: React.ReactNode
     label: string
     onFocus: () => void
-    onPressAudioAction?: () => void
-    onPressAudioPreview?: () => void
   }) {
     return (
       <View>
@@ -179,24 +177,44 @@ jest.mock("@/features/cards/edit/components/card-side-field", () => {
         >
           <Text>{label}-focus</Text>
         </Pressable>
-        {onPressAudioAction ? (
-          <Pressable
-            accessibilityLabel={`${label}-audio-action`}
-            accessibilityRole="button"
-            onPress={onPressAudioAction}
-          >
-            <Text>{label}-audio-action</Text>
-          </Pressable>
-        ) : null}
-        {onPressAudioPreview ? (
-          <Pressable
-            accessibilityLabel={`${label}-audio-preview`}
-            accessibilityRole="button"
-            onPress={onPressAudioPreview}
-          >
-            <Text>{label}-audio-preview</Text>
-          </Pressable>
-        ) : null}
+        {footer}
+      </View>
+    )
+  }
+})
+
+jest.mock("@/features/cards/audio/components/edit-card-audio-controls", () => {
+  const React = require("react")
+  const { Pressable, Text, View } = require("react-native")
+
+  return function MockEditCardAudioControls({
+    audio,
+    onConfigure,
+  }: {
+    audio: {
+      playPreview: () => void
+      valueLabel: string
+    }
+    onConfigure: () => void
+  }) {
+    const side = audio.valueLabel.startsWith("Front") ? "Front" : "Back"
+
+    return (
+      <View>
+        <Pressable
+          accessibilityLabel={`${side}-audio-action`}
+          accessibilityRole="button"
+          onPress={onConfigure}
+        >
+          <Text>{side}-audio-action</Text>
+        </Pressable>
+        <Pressable
+          accessibilityLabel={`${side}-audio-preview`}
+          accessibilityRole="button"
+          onPress={audio.playPreview}
+        >
+          <Text>{side}-audio-preview</Text>
+        </Pressable>
       </View>
     )
   }
@@ -265,6 +283,9 @@ import { Alert } from "react-native"
 
 import EditCardScreen from "@/features/cards/edit/screens/edit-card-screen"
 import type { Card } from "@/features/cards/model/card"
+import { featureFlags } from "@/shared/config/feature-flags"
+
+const mockFeatureFlags = featureFlags as { audioCreation: boolean }
 
 type DraftOverride = {
   backHtml?: string
@@ -307,7 +328,7 @@ function createAudioMock() {
       playPreview: jest.fn().mockResolvedValue({ ok: true }),
       previewState: "none" as const,
       setHtml: jest.fn(),
-      valueLabel: "None",
+      valueLabel: "Front audio",
     },
     back: {
       isActionDisabled: false,
@@ -316,7 +337,7 @@ function createAudioMock() {
       playPreview: jest.fn().mockResolvedValue({ ok: true }),
       previewState: "none" as const,
       setHtml: jest.fn(),
-      valueLabel: "None",
+      valueLabel: "Back audio",
     },
     clearError: jest.fn(),
     error: null as { id: number; message: string } | null,
@@ -378,13 +399,28 @@ describe("EditCardScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockFeatureFlags.audioCreation = true
     audioMock = createAudioMock()
     formMock = createFormMock()
     mockUseEditCard.mockReturnValue({
       addCard,
       updateCard,
     })
-    mockUseEditCardAudio.mockReturnValue(audioMock)
+    mockUseEditCardAudio.mockImplementation(
+      ({ enabled }: { enabled?: boolean }) => {
+        audioMock.getPersistedSelection.mockReturnValue(
+          enabled === false
+            ? {}
+            : {
+                front: {
+                  locale: "de-DE",
+                  assetId: "asset-front",
+                },
+              },
+        )
+        return audioMock
+      },
+    )
     mockUseEditCardForm.mockReturnValue(formMock)
     addCard.mockReturnValue({
       cardSetId: "set-new",
@@ -453,6 +489,58 @@ describe("EditCardScreen", () => {
     expect(addCard).not.toHaveBeenCalled()
   })
 
+  it("hides and omits audio authoring when the feature is disabled", async () => {
+    mockFeatureFlags.audioCreation = false
+
+    render(<EditCardScreen onClose={onClose} />)
+
+    expect(screen.queryByLabelText("Front-audio-action")).toBeNull()
+    expect(screen.queryByLabelText("Front-audio-preview")).toBeNull()
+    expect(screen.queryByLabelText("Back-audio-action")).toBeNull()
+    expect(screen.queryByLabelText("Back-audio-preview")).toBeNull()
+
+    fireEvent.press(screen.getByLabelText("save-card"))
+
+    await waitFor(() => {
+      expect(addCard).toHaveBeenCalledWith({
+        tags: ["German", "Travel"],
+        frontHtml: "<p>Visible front</p>",
+        backHtml: "<p>Visible back</p>",
+        tts: {},
+        variants: ["forward", "reverse"],
+      })
+    })
+    expect(audioMock.getPersistedSelection).toHaveBeenCalledTimes(1)
+    expect(audioMock.persistCardAudio).not.toHaveBeenCalled()
+  })
+
+  it("preserves existing audio metadata by omitting the patch when disabled", async () => {
+    mockFeatureFlags.audioCreation = false
+    const initialCard = createInitialCard({
+      frontTtsLocale: "de-DE",
+      frontHasSound: true,
+    })
+
+    render(<EditCardScreen initialCard={initialCard} onClose={onClose} />)
+
+    fireEvent.press(screen.getByLabelText("save-card"))
+
+    await waitFor(() => {
+      expect(updateCard).toHaveBeenCalledWith({
+        id: "card-1",
+        cardSetId: "set-1",
+        previousTags: ["German"],
+        variant: "forward",
+        tags: ["German", "Travel"],
+        frontHtml: "<p>Visible front</p>",
+        backHtml: "<p>Visible back</p>",
+        tts: {},
+      })
+    })
+    expect(audioMock.getPersistedSelection).toHaveBeenCalledTimes(1)
+    expect(audioMock.persistCardAudio).not.toHaveBeenCalled()
+  })
+
   it("adds another card, then resets the audio draft and form without closing", async () => {
     render(<EditCardScreen onClose={onClose} />)
 
@@ -497,25 +585,6 @@ describe("EditCardScreen", () => {
     })
 
     expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it("shows an alert when an audio preview action returns a failure", async () => {
-    audioMock.front.playPreview.mockResolvedValue({
-      ok: false,
-      message: "HTTP 401: Unauthorized",
-    })
-    jest.spyOn(Alert, "alert").mockImplementation(jest.fn())
-
-    render(<EditCardScreen onClose={onClose} />)
-
-    fireEvent.press(screen.getByLabelText("Front-audio-preview"))
-
-    await waitFor(() => {
-      expect(audioMock.front.playPreview).toHaveBeenCalledTimes(1)
-    })
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith("HTTP 401: Unauthorized")
-    })
   })
 
   it("shows and clears background audio errors from the hook", async () => {

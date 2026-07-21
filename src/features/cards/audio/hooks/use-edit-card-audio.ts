@@ -43,7 +43,7 @@ export type EditCardAudioErrorEvent = {
   message: string
 }
 
-type EditCardAudioSideState = {
+export type EditCardAudioSideState = {
   valueLabel: string
   isActionDisabled: boolean
   isPreviewDisabled: boolean
@@ -54,6 +54,7 @@ type EditCardAudioSideState = {
 }
 
 type UseEditCardAudioOptions = {
+  enabled?: boolean
   initialCard?: Card
 }
 
@@ -108,6 +109,7 @@ function audioFailure(message: string): EditCardAudioActionResult {
 }
 
 export function useEditCardAudio({
+  enabled = true,
   initialCard,
 }: UseEditCardAudioOptions = {}) {
   const { t } = useTranslation("editCard")
@@ -231,6 +233,13 @@ export function useEditCardAudio({
 
     const pendingSides: VisibleCardSide[] = ["front", "back"]
 
+    if (!enabled) {
+      pendingSides.forEach((side) => {
+        pendingDraftRequestKeyRef.current[side] = null
+      })
+      return
+    }
+
     pendingSides.forEach((side) => {
       const sideDraft = audioSelectionDraft[side]
 
@@ -258,6 +267,7 @@ export function useEditCardAudio({
   }, [
     audioSelectionDraft,
     backAudioPreview,
+    enabled,
     frontAudioPreview,
     status,
     t,
@@ -304,6 +314,10 @@ export function useEditCardAudio({
         setAudioSelectionDraftHtml(side, html)
       },
       playPreview: async () => {
+        if (!enabled) {
+          return audioSuccess()
+        }
+
         if (sideDraft.status === "stale" && sideDraft.locale) {
           setAudioSelectionDraftCreating(side, sideDraft.locale)
           return audioSuccess()
@@ -374,6 +388,10 @@ export function useEditCardAudio({
   }
 
   const getVisibleCardTtsSelection = (): VisibleCardTtsSelectionPatch => {
+    if (!enabled) {
+      return {}
+    }
+
     const selection: VisibleCardTtsSelectionPatch = {}
 
     ;(["front", "back"] as const).forEach((side) => {

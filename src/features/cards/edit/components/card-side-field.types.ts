@@ -1,4 +1,4 @@
-import type { RefObject } from "react"
+import type { ReactNode, RefObject } from "react"
 
 import type {
   RichTextEditorHandle,
@@ -12,13 +12,5 @@ export type CardSideFieldProps = {
   onFocus: () => void
   onChangeHtml?: (html: string) => void
   onStateChange: (nextState: RichTextEditorState) => void
-  audioActionLabel?: string
-  audioActionDisabled?: boolean
-  audioPreviewAccessibilityLabel?: string
-  audioPreviewLoading?: boolean
-  audioPreviewState?: "none" | "selected" | "stale" | "ready"
-  audioValueLabel?: string
-  isAudioPreviewDisabled?: boolean
-  onPressAudioAction?: () => void
-  onPressAudioPreview?: () => void
+  footer?: ReactNode
 }

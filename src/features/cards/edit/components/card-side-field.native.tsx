@@ -1,23 +1,14 @@
-import { SymbolView } from "expo-symbols"
 import type { RefObject } from "react"
-import { type NativeSyntheticEvent, Pressable, Text, View } from "react-native"
+import { type NativeSyntheticEvent, Text, View } from "react-native"
 import {
   EnrichedTextInput,
   type EnrichedTextInputInstance,
 } from "react-native-enriched-html"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
 import type { RichTextEditorHtmlChangeEvent } from "@/features/cards/edit/lib/rich-text-editor"
-import {
-  IconButtonAudio,
-  IconButtonAudioNone,
-  IconButtonAudioSelected,
-  IconButtonAudioStale,
-} from "@/shared/ui/icon-button"
 
 import type { CardSideFieldProps } from "./card-side-field.types"
-
-const chevronIconName = "chevron.right" as const
 
 export default function CardSideField({
   label,
@@ -26,30 +17,8 @@ export default function CardSideField({
   onFocus,
   onChangeHtml,
   onStateChange,
-  audioActionLabel,
-  audioActionDisabled = false,
-  audioPreviewAccessibilityLabel,
-  audioPreviewLoading = false,
-  audioPreviewState = "none",
-  audioValueLabel,
-  isAudioPreviewDisabled = true,
-  onPressAudioAction,
-  onPressAudioPreview,
+  footer,
 }: CardSideFieldProps) {
-  const { theme } = useUnistyles()
-  const audioPreviewTintColor =
-    audioPreviewState === "ready" ? theme.colors.accent : theme.colors.secondary
-  const audioPreviewBorderStyle =
-    audioPreviewState === "ready" ? styles.audioPreviewButtonReady : null
-  const AudioPreviewButton =
-    audioPreviewState === "none"
-      ? IconButtonAudioNone
-      : audioPreviewState === "selected"
-        ? IconButtonAudioSelected
-        : audioPreviewState === "stale"
-          ? IconButtonAudioStale
-          : IconButtonAudio
-
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -67,43 +36,7 @@ export default function CardSideField({
         onFocus={onFocus}
         style={styles.input}
       />
-      {audioActionLabel &&
-      audioPreviewAccessibilityLabel &&
-      audioValueLabel &&
-      onPressAudioAction &&
-      onPressAudioPreview ? (
-        <View style={styles.audioControls}>
-          <Pressable
-            accessibilityRole="button"
-            disabled={audioActionDisabled}
-            onPress={onPressAudioAction}
-            style={({ pressed }) => [
-              styles.audioRow,
-              audioActionDisabled ? styles.audioRowDisabled : null,
-              pressed ? styles.audioRowPressed : null,
-            ]}
-          >
-            <Text style={styles.audioActionLabel}>{audioActionLabel}</Text>
-            <View style={styles.audioValueGroup}>
-              <Text style={styles.audioValueLabel}>{audioValueLabel}</Text>
-              <SymbolView
-                name={chevronIconName}
-                size={16}
-                tintColor={theme.colors.secondary}
-              />
-            </View>
-          </Pressable>
-          <AudioPreviewButton
-            accessibilityLabel={audioPreviewAccessibilityLabel}
-            disabled={isAudioPreviewDisabled}
-            loading={audioPreviewLoading}
-            onPress={onPressAudioPreview}
-            size={20}
-            style={[styles.audioPreviewButton, audioPreviewBorderStyle]}
-            tintColor={audioPreviewTintColor}
-          />
-        </View>
-      ) : null}
+      {footer}
     </View>
   )
 }
@@ -128,53 +61,5 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 14,
     borderCurve: "continuous",
     textAlignVertical: "top",
-  },
-  audioControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  audioRow: {
-    flex: 1,
-    minHeight: 42,
-    borderRadius: 14,
-    borderCurve: "continuous",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    backgroundColor: theme.colors.secondaryBackground,
-    borderWidth: 1,
-    borderColor: theme.colors.chromeMuted,
-  },
-  audioRowPressed: {
-    opacity: 0.85,
-  },
-  audioRowDisabled: {
-    opacity: 0.5,
-  },
-  audioActionLabel: {
-    ...theme.typography.styles.subheadline,
-    color: theme.colors.primary,
-    fontWeight: "600",
-  },
-  audioValueGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  audioValueLabel: {
-    ...theme.typography.styles.subheadline,
-    color: theme.colors.secondary,
-  },
-  audioPreviewButton: {
-    width: 42,
-    height: 42,
-    backgroundColor: theme.colors.secondaryBackground,
-    borderWidth: 1,
-    borderColor: theme.colors.chromeMuted,
-  },
-  audioPreviewButtonReady: {
-    borderColor: theme.colors.accent,
   },
 }))

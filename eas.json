@@ -6,10 +6,16 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_FEATURE_AUDIO_CREATION": "false"
+      }
     },
     "ios-simulator": {
       "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_FEATURE_AUDIO_CREATION": "false"
+      },
       "ios": {
         "buildConfiguration": "Release",
         "simulator": true
@@ -17,7 +23,8 @@
     },
     "preview": {
       "env": {
-        "EXPO_PUBLIC_API_ORIGIN": "https://tobio-flashcards--preview.expo.app"
+        "EXPO_PUBLIC_API_ORIGIN": "https://tobio-flashcards--preview.expo.app",
+        "EXPO_PUBLIC_FEATURE_AUDIO_CREATION": "false"
       },
       "distribution": "internal",
       "ios": {
@@ -26,7 +33,10 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_FEATURE_AUDIO_CREATION": "false"
+      }
     }
   },
   "submit": {

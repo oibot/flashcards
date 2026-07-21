@@ -287,6 +287,37 @@ describe("useEditCardAudio", () => {
     expect(result.current.error).toBeNull()
   })
 
+  it("disables preview generation and persistence when audio authoring is disabled", async () => {
+    const { result } = renderHook(() =>
+      useEditCardAudio({
+        enabled: false,
+        initialCard: createInitialCard(),
+      }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.front.previewState).toBe("selected")
+    })
+
+    act(() => {
+      result.current.front.setHtml("<p>Hello there</p>")
+    })
+
+    let previewResult: EditCardAudioActionResult | null = null
+    let persistResult: EditCardAudioActionResult | null = null
+
+    await act(async () => {
+      previewResult = await result.current.front.playPreview()
+      persistResult = await result.current.persistCardAudio("set-1")
+    })
+
+    expect(previewResult).toEqual({ ok: true })
+    expect(persistResult).toEqual({ ok: true })
+    expect(result.current.getPersistedSelection()).toEqual({})
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(frontAudioPlayer.playAudio).not.toHaveBeenCalled()
+  })
+
   it("returns a persistence failure when attaching generated audio fails", async () => {
     mockFetch
       .mockResolvedValueOnce(
