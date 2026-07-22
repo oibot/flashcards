@@ -62,7 +62,9 @@ export type AddCardPlan = {
   tags: string[]
   cardSetUpdate: {
     sideAHtml: string
+    sideAShowText: boolean
     sideBHtml: string
+    sideBShowText: boolean
     createdAt: number
     updatedAt: number
   } & CardSetLocaleUpdateData
@@ -75,6 +77,8 @@ export type AddCardPlan = {
 }
 
 export type ImportedCardSetPlan = Omit<CardBackupCardSet, "cards" | "tags"> & {
+  sideAShowText: boolean
+  sideBShowText: boolean
   tags: string[]
   previousTags: string[]
 }
@@ -161,7 +165,9 @@ export function planAddCard({
     tags,
     cardSetUpdate: {
       sideAHtml: input.frontHtml,
+      sideAShowText: true,
       sideBHtml: input.backHtml,
+      sideBShowText: true,
       ...buildCardSetTtsUpdateData(ttsPatch),
       createdAt: now,
       updatedAt: now,
@@ -197,7 +203,9 @@ export function planImportCards({
       tags: cardSet.tags,
       previousTags: existingTagsByCardSetId.get(cardSet.id) ?? [],
       sideAHtml: cardSet.sideAHtml,
+      sideAShowText: true,
       sideBHtml: cardSet.sideBHtml,
+      sideBShowText: true,
       sideATtsLocale: cardSet.sideATtsLocale,
       sideBTtsLocale: cardSet.sideBTtsLocale,
       createdAt: cardSet.createdAt,

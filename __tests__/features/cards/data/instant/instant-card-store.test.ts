@@ -174,6 +174,14 @@ describe("createInstantCardStore", () => {
     await Promise.resolve()
 
     expect(mockTransact).toHaveBeenCalledTimes(1)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sideAHtml: "<p>Hallo</p>",
+        sideAShowText: true,
+        sideBHtml: "<p>Hello</p>",
+        sideBShowText: true,
+      }),
+    )
   })
 
   it("returns the existing card set id before update-card metadata persistence finishes", async () => {
@@ -213,7 +221,7 @@ describe("createInstantCardStore", () => {
     mockTransact.mockRejectedValue(error)
     const store = createInstantCardStore()
 
-    store.updateCard({
+    const result = store.updateCard({
       id: "card-1",
       cardSetId: "set-existing",
       previousTags: ["German"],
@@ -223,9 +231,7 @@ describe("createInstantCardStore", () => {
       backHtml: "<p>Hello</p>",
     })
 
-    await Promise.resolve()
-    await Promise.resolve()
-    await Promise.resolve()
+    await result.metadataPersisted
 
     expect(mockSentryError).toHaveBeenCalledWith(
       "Failed to persist card metadata.",

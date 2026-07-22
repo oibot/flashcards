@@ -77,7 +77,9 @@ function createImportedCardSetTransaction(
   let cardSetTransaction = db.tx.cardSets[cardSet.id]
     .update({
       sideAHtml: cardSet.sideAHtml,
+      sideAShowText: cardSet.sideAShowText,
       sideBHtml: cardSet.sideBHtml,
+      sideBShowText: cardSet.sideBShowText,
       ...localeSelection,
       createdAt: cardSet.createdAt,
       updatedAt: cardSet.updatedAt,

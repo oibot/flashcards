@@ -23,3 +23,29 @@ Unistyles `StyleSheet` can be a function that returns a dictionary of styles. Th
 Don't use promise chaining if possible. Instead try to use async/await.
 
 Don't commit unless the typechecker, the formatter, the linter and the tests run through successfully.
+
+# Persistent memory
+
+The project stores durable agent memory under `.agent-memory/`.
+
+Before starting a substantial task:
+
+1. Read `.agent-memory/index.md`.
+2. Open only memory files relevant to the current task.
+3. Verify remembered information against the current code.
+
+Update the memory when you discover:
+
+- architectural decisions and their rationale
+- non-obvious project constraints
+- recurring problems and their solutions
+- important commands or workflows
+
+Do not store:
+
+- temporary task progress
+- information easily visible in the code
+- guesses or unverified conclusions
+- secrets or credentials
+
+Keep `.agent-memory/index.md` short.
