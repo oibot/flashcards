@@ -7,6 +7,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "experiments": {
+      "reactCompiler": true
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tobio.flashcards",
