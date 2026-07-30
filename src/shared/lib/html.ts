@@ -12,6 +12,8 @@ export type HtmlTextNode = {
   value: string
 }
 
+export type HtmlTextAlignment = "center" | "justify" | "left" | "right"
+
 const VOID_TAGS = new Set(["br", "img"])
 const BLOCK_BREAK_TAGS = new Set([
   "blockquote",
@@ -54,6 +56,29 @@ const parseAttributes = (rawAttributes: string) => {
   }
 
   return attributes
+}
+
+export function getHtmlTextAlignment(
+  node: HtmlElementNode,
+): HtmlTextAlignment | null {
+  const style = node.attributes.style
+  if (!style) return null
+
+  const match = style.match(
+    /(?:^|;)\s*text-align\s*:\s*(left|center|right|justify)/i,
+  )
+  const alignment = match?.[1]?.toLowerCase()
+
+  if (
+    alignment === "left" ||
+    alignment === "center" ||
+    alignment === "right" ||
+    alignment === "justify"
+  ) {
+    return alignment
+  }
+
+  return null
 }
 
 export function hasMeaningfulHtmlContent(html: string) {

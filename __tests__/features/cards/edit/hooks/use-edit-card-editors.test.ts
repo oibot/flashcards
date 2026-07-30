@@ -1,29 +1,18 @@
-jest.mock("@/shared/ui/toolbar", () => ({
-  stateKeyByItemName: {
-    bold: "bold",
-    italic: "italic",
-    underline: "underline",
-    strikethrough: "strikeThrough",
-    "heading-1": "h1",
-    "heading-2": "h2",
-    "heading-3": "h3",
-  },
-  STYLE_ITEMS: [{ name: "bold" }, { name: "italic" }],
-}))
-
 import { act, renderHook } from "@testing-library/react-native"
 
 import { useEditCardEditors } from "@/features/cards/edit/hooks/use-edit-card-editors"
 import {
   createEmptyRichTextEditorState,
+  getRichTextAlignment,
+  getRichTextSize,
   type RichTextEditorHandle,
 } from "@/features/cards/edit/lib/rich-text-editor"
-import { STYLE_ITEMS } from "@/shared/ui/toolbar"
 
 const createEditorHandle = (): jest.Mocked<RichTextEditorHandle> => ({
   blur: jest.fn(),
   focus: jest.fn(),
   getHTML: jest.fn().mockResolvedValue(""),
+  setTextAlignment: jest.fn(),
   setValue: jest.fn(),
   toggleBold: jest.fn(),
   toggleItalic: jest.fn(),
@@ -35,7 +24,7 @@ const createEditorHandle = (): jest.Mocked<RichTextEditorHandle> => ({
 })
 
 describe("useEditCardEditors", () => {
-  it("sends toolbar commands only to the focused editor", () => {
+  it("sends inline formatting commands only to the focused editor", () => {
     const { result } = renderHook(() => useEditCardEditors())
     const frontEditor = createEditorHandle()
     const backEditor = createEditorHandle()
@@ -44,7 +33,7 @@ describe("useEditCardEditors", () => {
 
     act(() => {
       result.current.handleEditorFocus("back")
-      result.current.handleToggleStyle(STYLE_ITEMS[0])
+      result.current.handleToggleInlineStyle("bold")
     })
 
     expect(backEditor.toggleBold).toHaveBeenCalledTimes(1)
@@ -52,17 +41,63 @@ describe("useEditCardEditors", () => {
 
     act(() => {
       result.current.handleEditorFocus("front")
-      result.current.handleToggleStyle(STYLE_ITEMS[1])
+      result.current.handleToggleInlineStyle("italic")
     })
 
     expect(frontEditor.toggleItalic).toHaveBeenCalledTimes(1)
     expect(backEditor.toggleItalic).not.toHaveBeenCalled()
   })
 
+  it("applies paragraph alignment to the focused editor", () => {
+    const { result } = renderHook(() => useEditCardEditors())
+    const frontEditor = createEditorHandle()
+    const backEditor = createEditorHandle()
+    result.current.frontRef.current = frontEditor
+    result.current.backRef.current = backEditor
+
+    act(() => {
+      result.current.handleEditorFocus("front")
+      result.current.handleSetAlignment("center")
+    })
+
+    expect(frontEditor.setTextAlignment).toHaveBeenCalledWith("center")
+    expect(backEditor.setTextAlignment).not.toHaveBeenCalled()
+  })
+
+  it("maps Body, Large, and Title to paragraph and heading commands", () => {
+    const { result } = renderHook(() => useEditCardEditors())
+    const editor = createEditorHandle()
+    result.current.frontRef.current = editor
+
+    act(() => {
+      result.current.handleEditorFocus("front")
+      result.current.handleSetTextSize("large")
+    })
+    expect(editor.toggleH3).toHaveBeenCalledTimes(1)
+
+    const largeState = createEmptyRichTextEditorState()
+    largeState.h3.isActive = true
+    act(() => {
+      result.current.handleEditorStateChange("front", largeState)
+      result.current.handleSetTextSize("title")
+    })
+    expect(editor.toggleH1).toHaveBeenCalledTimes(1)
+
+    const titleState = createEmptyRichTextEditorState()
+    titleState.h1.isActive = true
+    act(() => {
+      result.current.handleEditorStateChange("front", titleState)
+      result.current.handleSetTextSize("body")
+    })
+    expect(editor.toggleH1).toHaveBeenCalledTimes(2)
+  })
+
   it("shows the formatting state of the focused editor", () => {
     const { result } = renderHook(() => useEditCardEditors())
     const frontState = createEmptyRichTextEditorState()
+    frontState.alignment = "right"
     frontState.bold.isActive = true
+    frontState.h1.isActive = true
     const backState = createEmptyRichTextEditorState()
 
     act(() => {
@@ -70,38 +105,17 @@ describe("useEditCardEditors", () => {
       result.current.handleEditorStateChange("front", frontState)
       result.current.handleEditorStateChange("back", backState)
     })
-    expect(result.current.activeStyles.bold).toBe(true)
+    expect(result.current.currentStylesState?.bold.isActive).toBe(true)
+    expect(getRichTextAlignment(result.current.currentStylesState)).toBe(
+      "right",
+    )
+    expect(getRichTextSize(result.current.currentStylesState)).toBe("title")
 
     act(() => {
       result.current.handleEditorFocus("back")
     })
-    expect(result.current.activeStyles.bold).toBe(false)
-
-    act(() => {
-      result.current.handleEditorFocus("front")
-    })
-    expect(result.current.activeStyles.bold).toBe(true)
-  })
-
-  it("uses the newly focused editor for immediate state changes", () => {
-    const { result } = renderHook(() => useEditCardEditors())
-    const backState = createEmptyRichTextEditorState()
-    backState.bold.isActive = true
-    const frontState = createEmptyRichTextEditorState()
-    frontState.italic.isActive = true
-
-    act(() => {
-      result.current.handleEditorFocus("back")
-      result.current.handleEditorStateChange("back", backState)
-    })
-    expect(result.current.activeStyles.bold).toBe(true)
-
-    act(() => {
-      result.current.handleEditorFocus("front")
-      result.current.handleEditorStateChange("front", frontState)
-    })
-
-    expect(result.current.activeStyles.bold).toBe(false)
-    expect(result.current.activeStyles.italic).toBe(true)
+    expect(result.current.currentStylesState?.bold.isActive).toBe(false)
+    expect(getRichTextAlignment(result.current.currentStylesState)).toBe("left")
+    expect(getRichTextSize(result.current.currentStylesState)).toBe("body")
   })
 })

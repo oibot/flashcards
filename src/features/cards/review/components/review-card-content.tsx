@@ -4,6 +4,7 @@ import { Text, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import {
+  getHtmlTextAlignment,
   type HtmlElementNode,
   type HtmlNode,
   parseHtmlFragment,
@@ -44,7 +45,7 @@ const renderBlock = (node: HtmlNode, key: string): ReactNode[] => {
 
   if (node.tag === "p") {
     return [
-      <Text key={key} style={styles.paragraph}>
+      <Text key={key} style={getAlignedBlockStyle(node, styles.paragraph)}>
         {renderInlineChildren(node.children, key)}
       </Text>,
     ]
@@ -52,7 +53,7 @@ const renderBlock = (node: HtmlNode, key: string): ReactNode[] => {
 
   if (node.tag === "h1") {
     return [
-      <Text key={key} style={styles.heading1}>
+      <Text key={key} style={getAlignedBlockStyle(node, styles.heading1)}>
         {renderInlineChildren(node.children, key)}
       </Text>,
     ]
@@ -60,7 +61,7 @@ const renderBlock = (node: HtmlNode, key: string): ReactNode[] => {
 
   if (node.tag === "h2") {
     return [
-      <Text key={key} style={styles.heading2}>
+      <Text key={key} style={getAlignedBlockStyle(node, styles.heading2)}>
         {renderInlineChildren(node.children, key)}
       </Text>,
     ]
@@ -68,7 +69,7 @@ const renderBlock = (node: HtmlNode, key: string): ReactNode[] => {
 
   if (node.tag === "h3") {
     return [
-      <Text key={key} style={styles.heading3}>
+      <Text key={key} style={getAlignedBlockStyle(node, styles.heading3)}>
         {renderInlineChildren(node.children, key)}
       </Text>,
     ]
@@ -119,6 +120,15 @@ const renderBlock = (node: HtmlNode, key: string): ReactNode[] => {
   return [
     <Fragment key={key}>{renderInlineChildren(node.children, key)}</Fragment>,
   ]
+}
+
+const getAlignedBlockStyle = (node: HtmlElementNode, baseStyle: object) => {
+  const alignment = getHtmlTextAlignment(node)
+
+  if (alignment === "left") return [baseStyle, styles.alignLeft]
+  if (alignment === "right") return [baseStyle, styles.alignRight]
+  if (alignment === "justify") return [baseStyle, styles.alignJustify]
+  return [baseStyle, styles.alignCenter]
 }
 
 const renderInlineChildren = (
@@ -208,6 +218,10 @@ const styles = StyleSheet.create((theme, rt) => {
     "title2",
     rt.contentSizeCategory,
   )
+  const large = {
+    ...title,
+    fontSize: theme.typography.getScaledSize(32, rt.contentSizeCategory),
+  }
   const title3 = theme.typography.getScaledStyle(
     "title3",
     rt.contentSizeCategory,
@@ -228,7 +242,6 @@ const styles = StyleSheet.create((theme, rt) => {
       width: "100%",
       lineHeight: blockLineHeight(title.fontSize),
       color: theme.colors.primary,
-      textAlign: "center",
     },
     heading1: {
       ...largeTitle,
@@ -236,7 +249,6 @@ const styles = StyleSheet.create((theme, rt) => {
       lineHeight: blockLineHeight(largeTitle.fontSize),
       fontWeight: "700",
       color: theme.colors.primary,
-      textAlign: "center",
     },
     heading2: {
       ...title,
@@ -244,15 +256,25 @@ const styles = StyleSheet.create((theme, rt) => {
       fontWeight: "700",
       lineHeight: blockLineHeight(title.fontSize),
       color: theme.colors.primary,
-      textAlign: "center",
     },
     heading3: {
-      ...title2,
+      ...large,
       width: "100%",
-      fontWeight: "600",
-      lineHeight: blockLineHeight(title2.fontSize),
+      fontWeight: "400",
+      lineHeight: blockLineHeight(large.fontSize),
       color: theme.colors.primary,
+    },
+    alignLeft: {
+      textAlign: "left",
+    },
+    alignCenter: {
       textAlign: "center",
+    },
+    alignRight: {
+      textAlign: "right",
+    },
+    alignJustify: {
+      textAlign: "justify",
     },
     bold: {
       fontWeight: "700",

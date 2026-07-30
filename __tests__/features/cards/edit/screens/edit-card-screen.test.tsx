@@ -30,9 +30,7 @@ jest.mock("react-i18next", () => ({
         case "discard.confirm":
           return "Discard"
         case "oppositeDirection.label":
-          return "Add reverse card"
-        case "oppositeDirection.description":
-          return "Create both directions"
+          return "Practice both directions"
         default:
           return key
       }
@@ -116,10 +114,12 @@ jest.mock("@/features/cards/edit/components/edit-card-header", () => {
   const { Pressable, Text, View } = require("react-native")
 
   return function MockEditCardHeader({
+    isSubmissionEnabled,
     onAddAnother,
     onClose,
     onSave,
   }: {
+    isSubmissionEnabled: boolean
     onAddAnother?: () => void
     onClose: () => void
     onSave: () => void
@@ -136,6 +136,7 @@ jest.mock("@/features/cards/edit/components/edit-card-header", () => {
         <Pressable
           accessibilityLabel="save-card"
           accessibilityRole="button"
+          disabled={!isSubmissionEnabled}
           onPress={onSave}
         >
           <Text>save-card</Text>
@@ -144,6 +145,7 @@ jest.mock("@/features/cards/edit/components/edit-card-header", () => {
           <Pressable
             accessibilityLabel="add-another-card"
             accessibilityRole="button"
+            disabled={!isSubmissionEnabled}
             onPress={onAddAnother}
           >
             <Text>add-another-card</Text>
@@ -267,8 +269,8 @@ jest.mock("@/shared/ui/tags-menu", () => {
   }
 })
 
-jest.mock("@/shared/ui/toolbar", () => {
-  return function MockToolbar() {
+jest.mock("@/features/cards/edit/components/rich-text-toolbar", () => {
+  return function MockRichTextToolbar() {
     return null
   }
 })
@@ -362,26 +364,23 @@ function createFormMock(draftOverrides: DraftOverride = {}) {
   }
 
   return {
-    activeStyles: {
-      bold: false,
-      italic: false,
-      underline: false,
-      strikeThrough: false,
-      h1: false,
-      h2: false,
-      h3: false,
-    },
     availableTags: ["Verbs"],
     backRef: { current: { blur: jest.fn() } },
     currentStylesState: null,
-    frontRef: { current: { blur: jest.fn() } },
+    frontRef: { current: { blur: jest.fn(), focus: jest.fn() } },
     getDraft: jest.fn().mockResolvedValue(draft),
     handleAddTag: jest.fn(),
     handleEditorFocus: jest.fn(),
+    handleEditorHtmlChange: jest.fn(),
     handleEditorStateChange: jest.fn(),
-    handleToggleStyle: jest.fn(),
+    handleSetAlignment: jest.fn(),
+    handleSetTextSize: jest.fn(),
+    handleToggleInlineStyle: jest.fn(),
     hasOppositeDirection: draft.hasOppositeDirection,
     hasUnsavedChanges: jest.fn().mockResolvedValue(false),
+    isDraftValid:
+      draft.frontHtml.replace(/<[^>]*>/g, "").trim().length > 0 &&
+      draft.backHtml.replace(/<[^>]*>/g, "").trim().length > 0,
     resetForm: jest.fn(),
     setHasOppositeDirection: jest.fn(),
     setTags: jest.fn(),
@@ -562,7 +561,9 @@ describe("EditCardScreen", () => {
     })
     expect(audioMock.persistCardAudio).toHaveBeenCalledWith("set-new")
     expect(audioMock.resetDraft).toHaveBeenCalledTimes(1)
-    expect(formMock.resetForm).toHaveBeenCalledTimes(1)
+    expect(formMock.resetForm).toHaveBeenCalledWith({ preserveTags: true })
+    expect(formMock.handleEditorFocus).toHaveBeenCalledWith("front")
+    expect(formMock.frontRef.current.focus).toHaveBeenCalledTimes(1)
     expect(onClose).not.toHaveBeenCalled()
   })
 
@@ -602,7 +603,7 @@ describe("EditCardScreen", () => {
     expect(audioMock.clearError).toHaveBeenCalledTimes(1)
   })
 
-  it("ignores invalid save attempts when either card side has no meaningful html", async () => {
+  it("disables save and add-another until both sides have meaningful content", () => {
     formMock = createFormMock({
       frontHtml: "",
       backHtml: "<p>Visible back</p>",
@@ -611,11 +612,11 @@ describe("EditCardScreen", () => {
 
     render(<EditCardScreen onClose={onClose} />)
 
+    expect(screen.getByLabelText("save-card")).toBeDisabled()
+    expect(screen.getByLabelText("add-another-card")).toBeDisabled()
     fireEvent.press(screen.getByLabelText("save-card"))
-
-    await waitFor(() => {
-      expect(formMock.getDraft).toHaveBeenCalledTimes(1)
-    })
+    fireEvent.press(screen.getByLabelText("add-another-card"))
+    expect(formMock.getDraft).not.toHaveBeenCalled()
     expect(addCard).not.toHaveBeenCalled()
     expect(updateCard).not.toHaveBeenCalled()
     expect(audioMock.persistCardAudio).not.toHaveBeenCalled()

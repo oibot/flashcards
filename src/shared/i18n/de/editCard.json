@@ -15,6 +15,22 @@
   },
   "editHeaderTitle": "Karte bearbeiten",
   "frontLabel": "Vorderseite",
+  "formatting": {
+    "alignment": {
+      "center": "Zentriert",
+      "label": "Textausrichtung",
+      "left": "Links",
+      "right": "Rechts"
+    },
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "textSize": {
+      "body": "Standard",
+      "label": "Textgröße",
+      "large": "Groß",
+      "title": "Titel"
+    }
+  },
   "headerTitle": "Neue Karte",
   "languageSelection": {
     "back": "Rückseite",
@@ -60,8 +76,7 @@
     "title": "Audio für {{side}}"
   },
   "oppositeDirection": {
-    "description": "Erstellt zusätzlich eine zweite Karte mit vertauschter Vorder- und Rückseite.",
-    "label": "Gegenrichtung auch üben"
+    "label": "Beide Richtungen üben"
   },
   "audioLabel": "Audio",
   "previewAudioAccessibilityLabel": "Audio vorhören",

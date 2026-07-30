@@ -1,73 +1,34 @@
 import { type RefObject, useRef, useState } from "react"
 
 import type {
+  RichTextAlignment,
   RichTextEditorHandle,
   RichTextEditorState,
+  RichTextInlineStyle,
+  RichTextSize,
 } from "@/features/cards/edit/lib/rich-text-editor"
-import {
-  type SharedToolbarState,
-  stateKeyByItemName,
-  type ToolbarItem,
-  type ToolbarStyleKey,
-} from "@/shared/ui/toolbar"
 
 type EditorSide = "front" | "back"
 
-const DEFAULT_SHARED_STYLES: SharedToolbarState = {
-  bold: false,
-  italic: false,
-  underline: false,
-  strikeThrough: false,
-  h1: false,
-  h2: false,
-  h3: false,
-}
-
-const toggleEditorStyle = (
-  editorRef: RefObject<RichTextEditorHandle | null>,
-  styleKey: ToolbarStyleKey,
+const getFocusedEditor = (
+  side: EditorSide | null,
+  frontRef: RefObject<RichTextEditorHandle | null>,
+  backRef: RefObject<RichTextEditorHandle | null>,
 ) => {
-  const editor = editorRef.current
-  if (!editor) return
-
-  switch (styleKey) {
-    case "bold":
-      editor.toggleBold()
-      break
-    case "italic":
-      editor.toggleItalic()
-      break
-    case "underline":
-      editor.toggleUnderline()
-      break
-    case "strikeThrough":
-      editor.toggleStrikeThrough()
-      break
-    case "h1":
-      editor.toggleH1()
-      break
-    case "h2":
-      editor.toggleH2()
-      break
-    case "h3":
-      editor.toggleH3()
-      break
-  }
+  if (!side) return null
+  return side === "front" ? frontRef.current : backRef.current
 }
 
-const getSharedStylesFromState = (
-  stylesState: RichTextEditorState | null,
-): SharedToolbarState => {
-  if (!stylesState) return DEFAULT_SHARED_STYLES
-
-  return {
-    bold: stylesState.bold.isActive,
-    italic: stylesState.italic.isActive,
-    underline: stylesState.underline.isActive,
-    strikeThrough: stylesState.strikeThrough.isActive,
-    h1: stylesState.h1.isActive,
-    h2: stylesState.h2.isActive,
-    h3: stylesState.h3.isActive,
+const resetHeading = (
+  editor: RichTextEditorHandle,
+  state: RichTextEditorState | null,
+) => {
+  if (state?.h1.isActive) {
+    editor.toggleH1()
+  } else if (state?.h2.isActive) {
+    editor.toggleH2()
+  } else if (state?.h3.isActive) {
+    editor.toggleH3()
   }
 }
 
@@ -101,13 +62,40 @@ export function useEditCardEditors() {
     }
   }
 
-  const handleToggleStyle = (item: ToolbarItem) => {
-    const focusedEditor = focusedEditorRef.current
-    if (!focusedEditor) return
+  const handleToggleInlineStyle = (style: RichTextInlineStyle) => {
+    const editor = getFocusedEditor(focusedEditorRef.current, frontRef, backRef)
+    if (!editor) return
 
-    const editorRef = focusedEditor === "front" ? frontRef : backRef
-    const styleKey = stateKeyByItemName[item.name]
-    toggleEditorStyle(editorRef, styleKey)
+    if (style === "bold") {
+      editor.toggleBold()
+    } else {
+      editor.toggleItalic()
+    }
+  }
+
+  const handleSetAlignment = (alignment: RichTextAlignment) => {
+    const editor = getFocusedEditor(focusedEditorRef.current, frontRef, backRef)
+    editor?.setTextAlignment(alignment)
+  }
+
+  const handleSetTextSize = (size: RichTextSize) => {
+    const focusedEditor = focusedEditorRef.current
+    const editor = getFocusedEditor(focusedEditor, frontRef, backRef)
+    if (!focusedEditor || !editor) return
+
+    const state = editorStatesRef.current[focusedEditor]
+
+    if (size === "body") {
+      resetHeading(editor, state)
+      return
+    }
+
+    if (size === "large") {
+      if (!state?.h3.isActive) editor.toggleH3()
+      return
+    }
+
+    if (!state?.h1.isActive) editor.toggleH1()
   }
 
   const resetEditors = () => {
@@ -119,13 +107,14 @@ export function useEditCardEditors() {
   }
 
   return {
-    activeStyles: getSharedStylesFromState(currentStylesState),
     backRef,
     currentStylesState,
     frontRef,
     handleEditorFocus,
     handleEditorStateChange,
-    handleToggleStyle,
+    handleSetAlignment,
+    handleSetTextSize,
+    handleToggleInlineStyle,
     resetEditors,
   }
 }

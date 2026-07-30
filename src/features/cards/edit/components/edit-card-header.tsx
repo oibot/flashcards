@@ -4,6 +4,7 @@ import { useUnistyles } from "react-native-unistyles"
 
 type EditCardHeaderProps = {
   isEditing?: boolean
+  isSubmissionEnabled: boolean
   onClose: () => void
   onAddAnother?: () => void
   onSave: () => void
@@ -11,6 +12,7 @@ type EditCardHeaderProps = {
 
 export default function EditCardHeader({
   isEditing = false,
+  isSubmissionEnabled,
   onClose,
   onAddAnother,
   onSave,
@@ -49,6 +51,7 @@ export default function EditCardHeader({
                     name: "plus" as const,
                   },
                   tintColor: theme.colors.primary,
+                  disabled: !isSubmissionEnabled,
                   onPress: handleAddAnother,
                 },
               ]
@@ -62,6 +65,7 @@ export default function EditCardHeader({
             },
             tintColor: theme.colors.accent,
             variant: "prominent" as const,
+            disabled: !isSubmissionEnabled,
             onPress: onSave,
           },
         ],

@@ -1,99 +1,26 @@
+import type { RefObject } from "react"
+import { type NativeSyntheticEvent, Text, View } from "react-native"
 import {
-  forwardRef,
-  type Ref,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react"
-import type { StyleProp, TextStyle, ViewStyle } from "react-native"
-import { Text, TextInput, View } from "react-native"
+  EnrichedTextInput,
+  type EnrichedTextInputInstance,
+  type HtmlStyle,
+} from "react-native-enriched-html"
 import { StyleSheet } from "react-native-unistyles"
 
-import {
-  EMPTY_RICH_TEXT_EDITOR_STATE,
-  type RichTextEditorHandle,
-} from "@/features/cards/edit/lib/rich-text-editor"
-import { extractPlainTextFromHtml } from "@/shared/lib/html"
+import type { RichTextEditorHtmlChangeEvent } from "@/features/cards/edit/lib/rich-text-editor"
 
 import type { CardSideFieldProps } from "./card-side-field.types"
 
-type PlainTextEditorProps = Pick<
-  CardSideFieldProps,
-  "onBlur" | "onChangeHtml" | "onFocus" | "onStateChange"
-> & {
-  style: StyleProp<TextStyle | ViewStyle>
+const htmlStyle: HtmlStyle = {
+  h1: {
+    bold: true,
+    fontSize: 32,
+  },
+  h3: {
+    bold: false,
+    fontSize: 24,
+  },
 }
-
-const escapeHtml = (value: string) => {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
-}
-
-const createHtmlFromPlainText = (value: string) => {
-  return escapeHtml(value).replaceAll("\n", "<br>")
-}
-
-const PlainTextEditor = forwardRef(function PlainTextEditor(
-  { onBlur, onChangeHtml, onFocus, onStateChange, style }: PlainTextEditorProps,
-  ref: Ref<RichTextEditorHandle>,
-) {
-  const inputRef = useRef<TextInput>(null)
-  const htmlRef = useRef("")
-  const [textValue, setTextValue] = useState("")
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      blur: () => {
-        inputRef.current?.blur()
-      },
-      focus: () => {
-        inputRef.current?.focus()
-      },
-      getHTML: async () => {
-        return htmlRef.current
-      },
-      setValue: (value: string) => {
-        htmlRef.current = value
-        setTextValue(extractPlainTextFromHtml(value))
-      },
-      toggleBold: () => {},
-      toggleItalic: () => {},
-      toggleUnderline: () => {},
-      toggleStrikeThrough: () => {},
-      toggleH1: () => {},
-      toggleH2: () => {},
-      toggleH3: () => {},
-    }),
-    [],
-  )
-
-  return (
-    <TextInput
-      multiline
-      onBlur={onBlur}
-      onChangeText={(nextValue) => {
-        const nextHtml = createHtmlFromPlainText(nextValue)
-        htmlRef.current = nextHtml
-        setTextValue(nextValue)
-        onChangeHtml?.(nextHtml)
-        onStateChange(EMPTY_RICH_TEXT_EDITOR_STATE)
-      }}
-      onFocus={() => {
-        onFocus()
-        onStateChange(EMPTY_RICH_TEXT_EDITOR_STATE)
-      }}
-      ref={inputRef}
-      style={style}
-      textAlignVertical="top"
-      value={textValue}
-    />
-  )
-})
 
 export default function CardSideField({
   label,
@@ -107,12 +34,19 @@ export default function CardSideField({
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <PlainTextEditor
+      <EnrichedTextInput
+        ref={
+          editorRef as unknown as RefObject<EnrichedTextInputInstance | null>
+        }
+        htmlStyle={htmlStyle}
         onBlur={onBlur}
-        onChangeHtml={onChangeHtml}
+        onChangeHtml={(
+          event: NativeSyntheticEvent<RichTextEditorHtmlChangeEvent>,
+        ) => {
+          onChangeHtml?.(event.nativeEvent.value)
+        }}
+        onChangeState={(event) => onStateChange(event.nativeEvent)}
         onFocus={onFocus}
-        onStateChange={onStateChange}
-        ref={editorRef}
         style={styles.input}
       />
       {footer}
@@ -139,5 +73,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.secondaryBackground,
     borderRadius: 14,
     borderCurve: "continuous",
+    textAlignVertical: "top",
   },
 }))

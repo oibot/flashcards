@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react"
 
 import { useEditCardEditors } from "@/features/cards/edit/hooks/use-edit-card-editors"
 import { useEditCardTags } from "@/features/cards/edit/hooks/use-edit-card-tags"
-import type { Card } from "@/features/cards/model/card"
-import { normalizeHtmlForComparison } from "@/shared/lib/html"
+import type { Card, VisibleCardSide } from "@/features/cards/model/card"
+import {
+  hasMeaningfulHtmlContent,
+  normalizeHtmlForComparison,
+} from "@/shared/lib/html"
 
 type UseEditCardFormOptions = {
   initialCard?: Card
@@ -16,6 +19,10 @@ export type EditCardDraft = {
   tags: string[]
 }
 
+type ResetFormOptions = {
+  preserveTags?: boolean
+}
+
 const areTagsEqual = (left: string[], right: string[]) => {
   return (
     left.length === right.length &&
@@ -25,19 +32,27 @@ const areTagsEqual = (left: string[], right: string[]) => {
 
 export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
   const {
-    activeStyles,
     backRef,
     currentStylesState,
     frontRef,
     handleEditorFocus,
     handleEditorStateChange,
-    handleToggleStyle,
+    handleSetAlignment,
+    handleSetTextSize,
+    handleToggleInlineStyle,
     resetEditors,
   } = useEditCardEditors()
   const { availableTags, handleAddTag, resetTags, setTags, tagInputRef, tags } =
     useEditCardTags()
   const hydratedCardIdRef = useRef<string | null>(null)
+  const [editorHtml, setEditorHtml] = useState({
+    back: initialCard?.backHtml ?? "",
+    front: initialCard?.frontHtml ?? "",
+  })
   const [hasOppositeDirection, setHasOppositeDirection] = useState(false)
+  const isDraftValid =
+    hasMeaningfulHtmlContent(editorHtml.front) &&
+    hasMeaningfulHtmlContent(editorHtml.back)
 
   useEffect(() => {
     if (!initialCard || hydratedCardIdRef.current === initialCard.id) {
@@ -47,6 +62,10 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     setTags(initialCard.tags)
     frontRef.current?.setValue(initialCard.frontHtml)
     backRef.current?.setValue(initialCard.backHtml)
+    setEditorHtml({
+      back: initialCard.backHtml,
+      front: initialCard.frontHtml,
+    })
     hydratedCardIdRef.current = initialCard.id
   }, [backRef, frontRef, initialCard, setTags])
 
@@ -70,6 +89,10 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     )
   }
 
+  const handleEditorHtmlChange = (side: VisibleCardSide, html: string) => {
+    setEditorHtml((currentHtml) => ({ ...currentHtml, [side]: html }))
+  }
+
   const getDraft = async (): Promise<EditCardDraft> => {
     const frontHtml = (await frontRef.current?.getHTML()) ?? ""
     const backHtml = (await backRef.current?.getHTML()) ?? ""
@@ -82,24 +105,28 @@ export function useEditCardForm({ initialCard }: UseEditCardFormOptions = {}) {
     }
   }
 
-  const resetForm = () => {
+  const resetForm = ({ preserveTags = false }: ResetFormOptions = {}) => {
     setHasOppositeDirection(false)
-    resetTags()
+    setEditorHtml({ back: "", front: "" })
+    if (!preserveTags) resetTags()
     resetEditors()
   }
 
   return {
-    activeStyles,
     backRef,
     currentStylesState,
     frontRef,
     getDraft,
     handleAddTag,
     handleEditorFocus,
+    handleEditorHtmlChange,
     handleEditorStateChange,
-    handleToggleStyle,
+    handleSetAlignment,
+    handleSetTextSize,
+    handleToggleInlineStyle,
     hasUnsavedChanges,
     hasOppositeDirection,
+    isDraftValid,
     resetForm,
     setHasOppositeDirection,
     setTags,

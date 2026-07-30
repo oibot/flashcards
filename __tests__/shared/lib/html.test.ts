@@ -1,5 +1,6 @@
 import {
   extractPlainTextFromHtml,
+  getHtmlTextAlignment,
   hasMeaningfulHtmlContent,
   normalizeHtmlForComparison,
   normalizeWhitespace,
@@ -55,6 +56,19 @@ describe("shared html helpers", () => {
         ],
       },
     ])
+  })
+
+  it("reads supported paragraph alignment from inline html styles", () => {
+    const [centered, unaligned] = parseHtmlFragment(
+      '<p style="font-weight: 600; text-align: CENTER">Centered</p><p>Default</p>',
+    )
+
+    expect(centered?.type).toBe("element")
+    expect(unaligned?.type).toBe("element")
+    if (centered?.type !== "element" || unaligned?.type !== "element") return
+
+    expect(getHtmlTextAlignment(centered)).toBe("center")
+    expect(getHtmlTextAlignment(unaligned)).toBeNull()
   })
 
   it("extracts decoded plain text from representative html", () => {

@@ -3,31 +3,35 @@ import type { ComponentProps } from "react"
 import { Pressable, Text } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-type ToolbarButtonTextProps = {
+type SharedRichTextToolbarButtonProps = {
+  accessibilityLabel: string
+  isActive: boolean
+  isDisabled: boolean
+  onPress: () => void
+}
+
+type RichTextToolbarButtonTextProps = SharedRichTextToolbarButtonProps & {
   text: string
   icon?: never
-  isActive: boolean
-  isDisabled: boolean
-  onPress: () => void
 }
 
-type ToolbarButtonIconProps = {
+type RichTextToolbarButtonIconProps = SharedRichTextToolbarButtonProps & {
   text?: never
   icon: ComponentProps<typeof SymbolView>["name"]
-  isActive: boolean
-  isDisabled: boolean
-  onPress: () => void
 }
 
-export type ToolbarButtonProps = ToolbarButtonTextProps | ToolbarButtonIconProps
+export type RichTextToolbarButtonProps =
+  | RichTextToolbarButtonTextProps
+  | RichTextToolbarButtonIconProps
 
-export default function ToolbarButton({
+export default function RichTextToolbarButton({
+  accessibilityLabel,
   text,
   icon,
   isActive,
   isDisabled,
   onPress,
-}: ToolbarButtonProps) {
+}: RichTextToolbarButtonProps) {
   const { theme } = useUnistyles()
   const iconColor = isDisabled
     ? theme.colors.secondary
@@ -37,6 +41,9 @@ export default function ToolbarButton({
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, selected: isActive }}
       style={[
         styles.container,
         isActive && styles.containerActive,

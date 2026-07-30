@@ -15,6 +15,22 @@
   },
   "editHeaderTitle": "Edit Card",
   "frontLabel": "Front",
+  "formatting": {
+    "alignment": {
+      "center": "Center",
+      "label": "Text alignment",
+      "left": "Left",
+      "right": "Right"
+    },
+    "bold": "Bold",
+    "italic": "Italic",
+    "textSize": {
+      "body": "Body",
+      "label": "Text size",
+      "large": "Large",
+      "title": "Title"
+    }
+  },
   "headerTitle": "New Card",
   "languageSelection": {
     "back": "Back",
@@ -60,8 +76,7 @@
     "title": "{{side}} Audio"
   },
   "oppositeDirection": {
-    "description": "Also create a second card with front and back swapped.",
-    "label": "Practice opposite direction too"
+    "label": "Practice both directions"
   },
   "audioLabel": "Audio",
   "previewAudioAccessibilityLabel": "Preview audio",

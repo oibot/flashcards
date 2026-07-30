@@ -14,6 +14,7 @@ import type { CardSaveResult } from "@/features/cards/data/card-store"
 import CardSideField from "@/features/cards/edit/components/card-side-field"
 import EditCardHeader from "@/features/cards/edit/components/edit-card-header"
 import OppositeDirectionToggle from "@/features/cards/edit/components/opposite-direction-toggle"
+import RichTextToolbar from "@/features/cards/edit/components/rich-text-toolbar"
 import { useEditCard } from "@/features/cards/edit/hooks/use-edit-card"
 import type { EditCardDraft } from "@/features/cards/edit/hooks/use-edit-card-form"
 import { useEditCardForm } from "@/features/cards/edit/hooks/use-edit-card-form"
@@ -28,7 +29,6 @@ import { featureFlags } from "@/shared/config/feature-flags"
 import { hasMeaningfulHtmlContent } from "@/shared/lib/html"
 import { TagInput } from "@/shared/ui/tag-input"
 import TagsMenu from "@/shared/ui/tags-menu"
-import Toolbar from "@/shared/ui/toolbar"
 
 type EditCardProps = {
   initialCard?: Card
@@ -57,7 +57,6 @@ export default function EditCardScreen({
     initialCard,
   })
   const {
-    activeStyles,
     availableTags,
     backRef,
     currentStylesState,
@@ -65,10 +64,14 @@ export default function EditCardScreen({
     getDraft,
     handleAddTag,
     handleEditorFocus,
+    handleEditorHtmlChange,
     handleEditorStateChange,
-    handleToggleStyle,
+    handleSetAlignment,
+    handleSetTextSize,
+    handleToggleInlineStyle,
     hasUnsavedChanges,
     hasOppositeDirection,
+    isDraftValid,
     resetForm,
     setHasOppositeDirection,
     setTags,
@@ -204,7 +207,10 @@ export default function EditCardScreen({
     const result = addCard(input)
     await persistAudioAfterMetadata(result, input)
     audio.resetDraft()
-    resetForm()
+    resetForm({ preserveTags: true })
+    setFocusedField("front")
+    handleEditorFocus("front")
+    frontRef.current?.focus()
   }
 
   const openLanguagePicker = (side: VisibleCardSide) => {
@@ -238,6 +244,7 @@ export default function EditCardScreen({
     <>
       <EditCardHeader
         isEditing={isEditing}
+        isSubmissionEnabled={isDraftValid}
         onAddAnother={isEditing ? undefined : handleAddAnother}
         onClose={handleClose}
         onSave={handleSave}
@@ -276,7 +283,10 @@ export default function EditCardScreen({
             footer={renderAudioControls("front")}
             label={t("frontLabel")}
             onBlur={createBlurHandler("front")}
-            onChangeHtml={audio.front.setHtml}
+            onChangeHtml={(html) => {
+              handleEditorHtmlChange("front", html)
+              audio.front.setHtml(html)
+            }}
             onFocus={() => {
               setFocusedField("front")
               handleEditorFocus("front")
@@ -290,7 +300,10 @@ export default function EditCardScreen({
             footer={renderAudioControls("back")}
             label={t("backLabel")}
             onBlur={createBlurHandler("back")}
-            onChangeHtml={audio.back.setHtml}
+            onChangeHtml={(html) => {
+              handleEditorHtmlChange("back", html)
+              audio.back.setHtml(html)
+            }}
             onFocus={() => {
               setFocusedField("back")
               handleEditorFocus("back")
@@ -301,7 +314,6 @@ export default function EditCardScreen({
           />
           {!isEditing ? (
             <OppositeDirectionToggle
-              description={t("oppositeDirection.description")}
               label={t("oppositeDirection.label")}
               onValueChange={setHasOppositeDirection}
               value={hasOppositeDirection}
@@ -312,9 +324,10 @@ export default function EditCardScreen({
 
       <KeyboardToolbar enabled={isEditorToolbarEnabled}>
         <KeyboardToolbar.Content>
-          <Toolbar
-            activeStyles={activeStyles}
-            onToggleStyle={handleToggleStyle}
+          <RichTextToolbar
+            onSetAlignment={handleSetAlignment}
+            onSetTextSize={handleSetTextSize}
+            onToggleInlineStyle={handleToggleInlineStyle}
             stylesState={currentStylesState}
           />
         </KeyboardToolbar.Content>

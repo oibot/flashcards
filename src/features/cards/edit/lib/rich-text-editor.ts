@@ -4,7 +4,12 @@ export type RichTextStyleState = {
   isConflicting: boolean
 }
 
+export type RichTextAlignment = "left" | "center" | "right"
+export type RichTextSize = "body" | "large" | "title"
+export type RichTextInlineStyle = "bold" | "italic"
+
 export type RichTextEditorState = {
+  alignment: string
   bold: RichTextStyleState
   italic: RichTextStyleState
   underline: RichTextStyleState
@@ -18,6 +23,7 @@ export type RichTextEditorHandle = {
   blur: () => void
   focus: () => void
   getHTML: () => Promise<string>
+  setTextAlignment: (alignment: RichTextAlignment) => void
   setValue: (value: string) => void
   toggleBold: () => void
   toggleItalic: () => void
@@ -39,6 +45,7 @@ const createInactiveStyleState = (): RichTextStyleState => ({
 })
 
 export const createEmptyRichTextEditorState = (): RichTextEditorState => ({
+  alignment: "left",
   bold: createInactiveStyleState(),
   italic: createInactiveStyleState(),
   underline: createInactiveStyleState(),
@@ -49,3 +56,25 @@ export const createEmptyRichTextEditorState = (): RichTextEditorState => ({
 })
 
 export const EMPTY_RICH_TEXT_EDITOR_STATE = createEmptyRichTextEditorState()
+
+export const getRichTextAlignment = (
+  state: RichTextEditorState | null,
+): RichTextAlignment => {
+  if (
+    state?.alignment === "center" ||
+    state?.alignment === "right" ||
+    state?.alignment === "left"
+  ) {
+    return state.alignment
+  }
+
+  return "left"
+}
+
+export const getRichTextSize = (
+  state: RichTextEditorState | null,
+): RichTextSize => {
+  if (state?.h1.isActive) return "title"
+  if (state?.h2.isActive || state?.h3.isActive) return "large"
+  return "body"
+}

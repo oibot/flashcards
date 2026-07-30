@@ -75,21 +75,14 @@ function configureFormMocks({
   }
 
   mockUseEditCardEditors.mockReturnValue({
-    activeStyles: {
-      bold: false,
-      italic: false,
-      underline: false,
-      strikeThrough: false,
-      h1: false,
-      h2: false,
-      h3: false,
-    },
     backRef: { current: backEditor },
     currentStylesState: null,
     frontRef: { current: frontEditor },
     handleEditorFocus: jest.fn(),
     handleEditorStateChange: jest.fn(),
-    handleToggleStyle: jest.fn(),
+    handleSetAlignment: jest.fn(),
+    handleSetTextSize: jest.fn(),
+    handleToggleInlineStyle: jest.fn(),
     resetEditors,
   })
   mockUseEditCardTags.mockReturnValue({
@@ -204,21 +197,48 @@ describe("useEditCardForm", () => {
     })
   })
 
-  it("resets opposite-direction state and delegates tag and editor resets", () => {
+  it("tracks whether both editor sides contain meaningful content", () => {
+    configureFormMocks({ frontHtml: "", backHtml: "" })
+    const { result } = renderHook(() => useEditCardForm())
+
+    expect(result.current.isDraftValid).toBe(false)
+
+    act(() => {
+      result.current.handleEditorHtmlChange("front", "<p>Hallo</p>")
+      result.current.handleEditorHtmlChange("back", "<p><br></p>")
+    })
+    expect(result.current.isDraftValid).toBe(false)
+
+    act(() => {
+      result.current.handleEditorHtmlChange("back", "<p>Hello</p>")
+    })
+    expect(result.current.isDraftValid).toBe(true)
+  })
+
+  it("resets all draft state by default", () => {
     const { resetEditors, resetTags } = configureFormMocks()
     const { result } = renderHook(() => useEditCardForm())
 
     act(() => {
       result.current.setHasOppositeDirection(true)
-    })
-    expect(result.current.hasOppositeDirection).toBe(true)
-
-    act(() => {
       result.current.resetForm()
     })
 
     expect(result.current.hasOppositeDirection).toBe(false)
+    expect(result.current.isDraftValid).toBe(false)
     expect(resetTags).toHaveBeenCalledTimes(1)
+    expect(resetEditors).toHaveBeenCalledTimes(1)
+  })
+
+  it("preserves tags when resetting after add-another", () => {
+    const { resetEditors, resetTags } = configureFormMocks()
+    const { result } = renderHook(() => useEditCardForm())
+
+    act(() => {
+      result.current.resetForm({ preserveTags: true })
+    })
+
+    expect(resetTags).not.toHaveBeenCalled()
     expect(resetEditors).toHaveBeenCalledTimes(1)
   })
 })

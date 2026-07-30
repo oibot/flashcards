@@ -2,7 +2,18 @@ jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "en" }],
 }))
 
+import deEditCard from "@/shared/i18n/de/editCard.json"
+import enEditCard from "@/shared/i18n/en/editCard.json"
 import i18n from "@/shared/i18n/i18n"
+
+const getLeafKeys = (value: object, prefix = ""): string[] => {
+  return Object.entries(value).flatMap(([key, child]) => {
+    const path = prefix ? `${prefix}.${key}` : key
+    return child && typeof child === "object"
+      ? getLeafKeys(child, path)
+      : [path]
+  })
+}
 
 describe("i18n", () => {
   it("registers feature and screen namespaces for every supported language", () => {
@@ -17,6 +28,12 @@ describe("i18n", () => {
         ns: "editCard",
       }),
     ).toBe("English")
+  })
+
+  it("keeps English and German edit-card translation keys in parity", () => {
+    expect(getLeafKeys(deEditCard).sort()).toEqual(
+      getLeafKeys(enEditCard).sort(),
+    )
   })
 
   it("keeps common limited to shared labels", () => {
