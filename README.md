@@ -1,5 +1,42 @@
 # Flashcards
 
+## Architecture
+
+The application uses a feature-first structure:
+
+```text
+src/
+├── app/       # Expo Router entry points
+├── features/  # Product capabilities and domain logic
+└── shared/    # Code reused across multiple features
+```
+
+Files under `src/app` define the navigation tree required by Expo Router. Keep these files minimal; they should normally re-export a feature route. Route groups such as `(tabs)` and `(modals)` organize navigation without adding URL segments, `_layout.tsx` configures navigators and providers, `[id].tsx` represents a dynamic parameter, and `+api.ts` defines a server endpoint.
+
+Feature routes under `src/features/**/routes` adapt navigation to a feature. They read route parameters, load route-level data, handle loading and error states, and pass props to a screen. Screens under `screens` compose complete workflows, while `components` contains feature-owned UI and `hooks` contains state and workflow orchestration.
+
+Other common feature directories are:
+
+- `model`: domain types and pure business rules
+- `data`: persistence contracts and implementations
+- `queries`: read-oriented data hooks
+- `api`: client-side API access
+- `server`: server-only feature logic used by API routes
+- `lib`: feature-specific utilities and library adapters
+
+Keep code in its owning feature until it is genuinely reused by multiple features. Move only application-wide infrastructure, utilities, and reusable UI to `src/shared`.
+
+For example, editing an existing card flows through:
+
+```text
+src/app/(modals)/edit-card/[id].tsx
+  → src/features/cards/edit/routes/edit-card-route.tsx
+  → src/features/cards/edit/screens/edit-card-screen.tsx
+  → feature hooks
+  → the card-store contract
+  → the InstantDB implementation
+```
+
 ## API routes and preview builds
 
 Do not use Expo's automatic build-time server deployment (`EXPO_UNSTABLE_DEPLOY_SERVER`). The app uses a stable EAS Hosting alias instead:
