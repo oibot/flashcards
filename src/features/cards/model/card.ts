@@ -97,7 +97,7 @@ export function toCanonicalCardContent(
 }
 
 export function normalizeTagTitle(tag: string) {
-  const normalizedWhitespace = normalizeWhitespace(tag)
+  const normalizedWhitespace = normalizeWhitespace(tag).normalize("NFC")
 
   if (normalizedWhitespace.length === 0) {
     return ""
@@ -109,8 +109,7 @@ export function normalizeTagTitle(tag: string) {
       const [firstCharacter = "", ...restCharacters] = [...part]
 
       return (
-        firstCharacter.toLocaleUpperCase() +
-        restCharacters.join("").toLocaleLowerCase()
+        firstCharacter.toUpperCase() + restCharacters.join("").toLowerCase()
       )
     })
     .join(" ")

@@ -1,5 +1,9 @@
+const mockDeletedCardSetIds: string[] = []
+const mockDeletedTagIds: string[] = []
 const mockGetAuth = jest.fn()
 const mockId = jest.fn(() => "generated-id")
+const mockQueryOnce = jest.fn()
+const mockTagEntityIds: string[] = []
 const mockDelete = jest.fn(() => ({ type: "delete" }))
 const mockLink = jest.fn()
 const mockTransact = jest.fn()
@@ -20,7 +24,6 @@ const mockUpdate = jest.fn((payload: unknown) => {
 
 jest.mock("@instantdb/react-native", () => ({
   id: () => mockId(),
-  lookup: jest.fn((field: string, value: string) => ({ field, value })),
 }))
 
 jest.mock("@sentry/react-native", () => ({
@@ -32,13 +35,17 @@ jest.mock("@sentry/react-native", () => ({
 jest.mock("@/features/cards/data/instant/db", () => ({
   db: {
     getAuth: (...args: unknown[]) => mockGetAuth(...args),
+    queryOnce: (...args: unknown[]) => mockQueryOnce(...args),
     transact: (...args: unknown[]) => mockTransact(...args),
     tx: {
       cardSets: new Proxy(
         {},
         {
-          get: () => ({
-            delete: mockDelete,
+          get: (_target, entityId) => ({
+            delete: () => {
+              mockDeletedCardSetIds.push(String(entityId))
+              return mockDelete()
+            },
             update: mockUpdate,
           }),
         },
@@ -54,9 +61,16 @@ jest.mock("@/features/cards/data/instant/db", () => ({
       tags: new Proxy(
         {},
         {
-          get: () => ({
-            update: mockUpdate,
-          }),
+          get: (_target, entityId) => {
+            mockTagEntityIds.push(String(entityId))
+            return {
+              delete: () => {
+                mockDeletedTagIds.push(String(entityId))
+                return mockDelete()
+              },
+              update: mockUpdate,
+            }
+          },
         },
       ),
     },
@@ -98,9 +112,16 @@ function createReviewCard(overrides: Partial<Card> = {}): Card {
 describe("createInstantCardStore", () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockDeletedCardSetIds.length = 0
+    mockDeletedTagIds.length = 0
     mockGetAuth.mockResolvedValue({ id: "user-1" })
     mockId.mockReturnValue("generated-id")
-    mockTransact.mockResolvedValue(undefined)
+    mockQueryOnce.mockResolvedValue({ data: { $users: [] } })
+    mockTagEntityIds.length = 0
+    mockTransact.mockResolvedValue({
+      clientId: "client-1",
+      status: "synced",
+    })
   })
 
   it("persists card reviews in the background", async () => {
@@ -174,6 +195,11 @@ describe("createInstantCardStore", () => {
     await Promise.resolve()
 
     expect(mockTransact).toHaveBeenCalledTimes(1)
+    expect(mockTagEntityIds).toContain("1f767874-6c18-598c-8407-1d9712ec8713")
+    expect(mockUpdate).toHaveBeenCalledWith({
+      ownerTitle: "user-1:German",
+      title: "German",
+    })
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         sideAHtml: "<p>Hallo</p>",
@@ -182,6 +208,9 @@ describe("createInstantCardStore", () => {
         sideBShowText: true,
       }),
     )
+    expect(mockLink).toHaveBeenCalledWith({
+      tags: ["1f767874-6c18-598c-8407-1d9712ec8713"],
+    })
   })
 
   it("returns the existing card set id before update-card metadata persistence finishes", async () => {
@@ -214,6 +243,34 @@ describe("createInstantCardStore", () => {
     await Promise.resolve()
 
     expect(mockTransact).toHaveBeenCalledTimes(1)
+    expect(mockTagEntityIds).toContain("ae1ac80e-efba-52e2-82a2-cfd3ee364217")
+    expect(mockUpdate).toHaveBeenCalledWith({
+      ownerTitle: "user-1:Travel",
+      title: "Travel",
+    })
+    expect(mockLink).toHaveBeenCalledWith({
+      tags: ["ae1ac80e-efba-52e2-82a2-cfd3ee364217"],
+    })
+  })
+
+  it("unlinks tags by deterministic id", async () => {
+    const store = createInstantCardStore()
+
+    const result = store.updateCard({
+      id: "card-1",
+      cardSetId: "set-existing",
+      previousTags: ["German", "Travel"],
+      variant: "forward",
+      tags: ["German"],
+      frontHtml: "<p>Hallo</p>",
+      backHtml: "<p>Hello</p>",
+    })
+
+    await result.metadataPersisted
+
+    expect(mockUnlink).toHaveBeenCalledWith({
+      tags: ["ae1ac80e-efba-52e2-82a2-cfd3ee364217"],
+    })
   })
 
   it("logs background metadata persistence failures", async () => {
@@ -241,6 +298,46 @@ describe("createInstantCardStore", () => {
         error_type: "Error",
       },
     )
+  })
+
+  it("deletes all card sets and tags owned by the current user", async () => {
+    mockQueryOnce.mockResolvedValue({
+      data: {
+        $users: [
+          {
+            cardSets: [{ id: "set-1" }, { id: "set-2" }],
+            tags: [{ id: "tag-1" }, { id: "tag-2" }],
+          },
+        ],
+      },
+    })
+    const store = createInstantCardStore()
+
+    await expect(store.deleteAllCardData()).resolves.toBe("synced")
+
+    expect(mockQueryOnce).toHaveBeenCalledWith({
+      $users: {
+        $: { where: { id: "user-1" } },
+        cardSets: {},
+        tags: {},
+      },
+    })
+    expect(mockDeletedCardSetIds).toEqual(["set-1", "set-2"])
+    expect(mockDeletedTagIds).toEqual(["tag-1", "tag-2"])
+    expect(mockTransact).toHaveBeenCalledWith([
+      { type: "delete" },
+      { type: "delete" },
+      { type: "delete" },
+      { type: "delete" },
+    ])
+  })
+
+  it("skips the deletion transaction when the account has no card data", async () => {
+    const store = createInstantCardStore()
+
+    await expect(store.deleteAllCardData()).resolves.toBe("empty")
+
+    expect(mockTransact).not.toHaveBeenCalled()
   })
 
   it("removes cards in the background by card set id", async () => {

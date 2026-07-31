@@ -18,6 +18,8 @@ export type TagsQueryState = {
   error: Error | null
 }
 
+export type CardDataDeletionStatus = "empty" | "enqueued" | "synced"
+
 export type CardSaveResult = {
   cardSetId: string
   metadataPersisted: Promise<void>
@@ -29,6 +31,7 @@ export type CardStore = {
   useTagsQuery: () => TagsQueryState
   exportCards: () => Promise<CardBackupEnvelope>
   importCards: (backup: CardBackupEnvelope) => Promise<void>
+  deleteAllCardData: () => Promise<CardDataDeletionStatus>
   addCard: (input: NewCardInput) => CardSaveResult
   updateCard: (input: UpdateCardInput) => CardSaveResult
   reviewCard: (card: Card, grade: ReviewGrade, reviewedAt?: number) => void

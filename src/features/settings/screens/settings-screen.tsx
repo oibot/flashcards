@@ -10,15 +10,22 @@ export default function SettingsScreen() {
   const { t } = useTranslation("settings")
   const {
     isCheckingHealth,
+    isDeletingCardData,
     isExporting,
     isImporting,
     isSigningOut,
     onCheckHealth,
+    onDeleteAllCards,
     onExport,
     onImport,
     onSignOut,
   } = useSettingsActions()
-  const isBusy = isCheckingHealth || isExporting || isImporting || isSigningOut
+  const isBusy =
+    isCheckingHealth ||
+    isDeletingCardData ||
+    isExporting ||
+    isImporting ||
+    isSigningOut
 
   return (
     <>
@@ -76,6 +83,23 @@ export default function SettingsScreen() {
           )}
         </Pressable>
         <Pressable
+          accessibilityLabel={t("deleteAllCards.accessibilityLabel")}
+          accessibilityRole="button"
+          disabled={isBusy}
+          onPress={onDeleteAllCards}
+          style={[
+            styles.button,
+            styles.destructiveButton,
+            isBusy ? styles.buttonDisabled : null,
+          ]}
+        >
+          {isDeletingCardData ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.buttonLabel}>{t("deleteAllCards.button")}</Text>
+          )}
+        </Pressable>
+        <Pressable
           accessibilityLabel={t("signOutAccessibilityLabel")}
           accessibilityRole="button"
           disabled={isBusy}
@@ -117,6 +141,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   primaryButton: {
     backgroundColor: theme.colors.accent,
+  },
+  destructiveButton: {
+    backgroundColor: theme.colors.destructive,
   },
   signOutButton: {
     backgroundColor: theme.colors.destructive,

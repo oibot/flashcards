@@ -33,6 +33,10 @@ describe("card helpers", () => {
     expect(parseTags(" travel,food, Travel ,  ")).toEqual(["Travel", "Food"])
   })
 
+  it("deduplicates canonically equivalent Unicode tags", () => {
+    expect(parseTags(["café", "cafe\u0301"])).toEqual(["Café"])
+  })
+
   it("resolves visible content for forward cards", () => {
     expect(
       resolveCardContent(

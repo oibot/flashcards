@@ -1,4 +1,15 @@
 {
+  "deleteAllCards": {
+    "accessibilityLabel": "Delete all cards and tags",
+    "button": "Delete All Cards",
+    "confirm": "Delete All",
+    "confirmMessage": "This permanently deletes all cards and tags from your account. This action cannot be undone.",
+    "confirmTitle": "Delete all cards?",
+    "error": "Could not delete your cards. Check your connection and try again.",
+    "pendingMessage": "The deletion is saved on this device but has not reached the server. Keep the app open, reconnect, and try again before logging out.",
+    "pendingTitle": "Deletion pending",
+    "success": "All cards and tags were deleted."
+  },
   "errorTitle": "Something went wrong",
   "export": "Export Data",
   "exportAccessibilityLabel": "Export data",

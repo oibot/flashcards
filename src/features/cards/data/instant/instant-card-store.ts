@@ -1,4 +1,4 @@
-import { id, lookup } from "@instantdb/react-native"
+import { id } from "@instantdb/react-native"
 import * as Sentry from "@sentry/react-native"
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session"
@@ -20,6 +20,10 @@ import {
   planImportCards,
   planUpdateCard,
 } from "@/features/cards/data/instant/instant-card-store-update-plan"
+import {
+  getTagId,
+  getTagOwnerTitle,
+} from "@/features/cards/data/instant/instant-tag-identity"
 import {
   normalizeError,
   toCard,
@@ -48,22 +52,21 @@ async function requireCurrentUser() {
   return user
 }
 
-function toOwnerTitle(userId: string, title: string) {
-  return `${userId}:${normalizeTagTitle(title)}`
-}
-
-function toTagLookups(userId: string, tags: string[]) {
-  return tags.map((tag) => lookup("ownerTitle", toOwnerTitle(userId, tag)))
+function toTagIds(userId: string, tags: string[]) {
+  return tags.map((tag) => getTagId(userId, tag))
 }
 
 function createEnsureTagTransactions(userId: string, tags: string[]) {
-  return tags.map((tag) =>
-    db.tx.tags[lookup("ownerTitle", toOwnerTitle(userId, tag))]
+  return tags.map((tag) => {
+    const normalizedTitle = normalizeTagTitle(tag)
+
+    return db.tx.tags[getTagId(userId, normalizedTitle)]
       .update({
-        title: tag,
+        ownerTitle: getTagOwnerTitle(userId, normalizedTitle),
+        title: normalizedTitle,
       })
-      .link({ owner: userId }),
-  )
+      .link({ owner: userId })
+  })
 }
 
 function createImportedCardSetTransaction(
@@ -93,13 +96,13 @@ function createImportedCardSetTransaction(
 
   if (tagsToUnlink.length > 0) {
     cardSetTransaction = cardSetTransaction.unlink({
-      tags: toTagLookups(userId, tagsToUnlink),
+      tags: toTagIds(userId, tagsToUnlink),
     })
   }
 
   if (tagsToLink.length > 0) {
     cardSetTransaction = cardSetTransaction.link({
-      tags: toTagLookups(userId, tagsToLink),
+      tags: toTagIds(userId, tagsToLink),
     })
   }
 
@@ -302,6 +305,33 @@ export const createInstantCardStore = (): CardStore => {
     ])
   }
 
+  const deleteAllCardData = async () => {
+    const currentUser = await requireCurrentUser()
+    const { data } = await db.queryOnce({
+      $users: {
+        $: {
+          where: {
+            id: currentUser.id,
+          },
+        },
+        cardSets: {},
+        tags: {},
+      },
+    })
+    const userData = data.$users[0]
+    const deletionTransactions = [
+      ...(userData?.cardSets ?? []).map((cardSet) =>
+        db.tx.cardSets[cardSet.id].delete(),
+      ),
+      ...(userData?.tags ?? []).map((tag) => db.tx.tags[tag.id].delete()),
+    ]
+
+    if (deletionTransactions.length === 0) return "empty"
+
+    const result = await db.transact(deletionTransactions)
+    return result.status
+  }
+
   const addCard = (input: NewCardInput): CardSaveResult => {
     const cardSetId = id()
     const cardIds = input.variants.map(() => id())
@@ -327,7 +357,7 @@ export const createInstantCardStore = (): CardStore => {
 
         if (plan.tags.length > 0) {
           cardSetTransaction = cardSetTransaction.link({
-            tags: toTagLookups(currentUser.id, plan.tags),
+            tags: toTagIds(currentUser.id, plan.tags),
           })
         }
 
@@ -385,13 +415,13 @@ export const createInstantCardStore = (): CardStore => {
 
         if (plan.tagsToUnlink.length > 0) {
           cardSetTransaction = cardSetTransaction.unlink({
-            tags: toTagLookups(currentUser.id, plan.tagsToUnlink),
+            tags: toTagIds(currentUser.id, plan.tagsToUnlink),
           })
         }
 
         if (plan.tagsToLink.length > 0) {
           cardSetTransaction = cardSetTransaction.link({
-            tags: toTagLookups(currentUser.id, plan.tagsToLink),
+            tags: toTagIds(currentUser.id, plan.tagsToLink),
           })
         }
 
@@ -464,6 +494,7 @@ export const createInstantCardStore = (): CardStore => {
     useTagsQuery,
     exportCards,
     importCards,
+    deleteAllCardData,
     addCard,
     updateCard,
     reviewCard,

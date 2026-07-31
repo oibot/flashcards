@@ -1,4 +1,15 @@
 {
+  "deleteAllCards": {
+    "accessibilityLabel": "Alle Karten und Tags löschen",
+    "button": "Alle Karten löschen",
+    "confirm": "Alle löschen",
+    "confirmMessage": "Dadurch werden alle Karten und Tags dauerhaft aus deinem Konto gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "confirmTitle": "Alle Karten löschen?",
+    "error": "Deine Karten konnten nicht gelöscht werden. Prüfe deine Verbindung und versuche es erneut.",
+    "pendingMessage": "Das Löschen ist auf diesem Gerät gespeichert, hat den Server aber noch nicht erreicht. Lass die App geöffnet, stelle die Verbindung wieder her und versuche es vor dem Abmelden erneut.",
+    "pendingTitle": "Löschen ausstehend",
+    "success": "Alle Karten und Tags wurden gelöscht."
+  },
   "errorTitle": "Etwas ist schiefgelaufen",
   "export": "Daten exportieren",
   "exportAccessibilityLabel": "Daten exportieren",
