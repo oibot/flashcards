@@ -10,91 +10,84 @@ type SharedRichTextToolbarButtonProps = {
   onPress: () => void
 }
 
-type RichTextToolbarButtonTextProps = SharedRichTextToolbarButtonProps & {
-  text: string
-  icon?: never
+type RichTextToolbarIconButtonProps = SharedRichTextToolbarButtonProps & {
+  icon: ComponentProps<typeof SymbolView>["name"]
+  text?: never
 }
 
-type RichTextToolbarButtonIconProps = SharedRichTextToolbarButtonProps & {
-  text?: never
-  icon: ComponentProps<typeof SymbolView>["name"]
+type RichTextToolbarTextButtonProps = SharedRichTextToolbarButtonProps & {
+  icon?: never
+  text: string
 }
 
 export type RichTextToolbarButtonProps =
-  | RichTextToolbarButtonTextProps
-  | RichTextToolbarButtonIconProps
+  | RichTextToolbarIconButtonProps
+  | RichTextToolbarTextButtonProps
 
 export default function RichTextToolbarButton({
   accessibilityLabel,
-  text,
   icon,
+  text,
   isActive,
   isDisabled,
   onPress,
 }: RichTextToolbarButtonProps) {
   const { theme } = useUnistyles()
-  const iconColor = isDisabled
-    ? theme.colors.secondary
-    : isActive
-      ? theme.colors.background
-      : theme.colors.primary
 
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, selected: isActive }}
-      style={[
-        styles.container,
-        isActive && styles.containerActive,
-        isDisabled && styles.containerDisabled,
-      ]}
       disabled={isDisabled}
+      hitSlop={4}
       onPress={onPress}
+      style={({ pressed }) => [
+        styles.control,
+        text && styles.textControl,
+        isActive && styles.controlActive,
+        (isDisabled || pressed) && styles.controlDimmed,
+      ]}
     >
       {icon ? (
-        <SymbolView name={icon} size={18} tintColor={iconColor} />
+        <SymbolView
+          name={icon}
+          size={18}
+          tintColor={isActive ? theme.colors.accent : theme.colors.primary}
+        />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            isActive && styles.textActive,
-            isDisabled && styles.textDisabled,
-          ]}
-        >
-          {text}
-        </Text>
+        <Text style={[styles.text, isActive && styles.textActive]}>{text}</Text>
       )}
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    justifyContent: "center",
-    alignItems: "center",
-    minWidth: 40,
+  control: {
+    width: 40,
     height: 36,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9,
     borderCurve: "continuous",
+  },
+  textControl: {
+    width: "auto",
+    minWidth: 52,
+    paddingHorizontal: 10,
+  },
+  controlActive: {
     backgroundColor: theme.colors.chromeMuted,
   },
-  containerActive: {
-    backgroundColor: theme.colors.accent,
-  },
-  containerDisabled: {
+  controlDimmed: {
     opacity: 0.45,
   },
   text: {
+    ...theme.typography.styles.subheadline,
     color: theme.colors.primary,
-    fontSize: 15,
-    fontWeight: "600",
   },
   textActive: {
-    color: theme.colors.background,
-  },
-  textDisabled: {
-    color: theme.colors.secondary,
+    color: theme.colors.accent,
+    fontWeight: "600",
   },
 }))

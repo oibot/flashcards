@@ -1,5 +1,6 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ScrollView, View } from "react-native"
+import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import {
@@ -12,9 +13,9 @@ import {
 } from "@/features/cards/edit/lib/rich-text-editor"
 
 import RichTextToolbarButton from "./rich-text-toolbar-button"
-import RichTextToolbarMenu, {
-  type RichTextToolbarMenuOption,
-} from "./rich-text-toolbar-menu"
+import RichTextToolbarOptions, {
+  type RichTextToolbarOption,
+} from "./rich-text-toolbar-options"
 
 export type RichTextToolbarProps = {
   onSetAlignment: (alignment: RichTextAlignment) => void
@@ -30,9 +31,12 @@ export default function RichTextToolbar({
   stylesState,
 }: RichTextToolbarProps) {
   const { t } = useTranslation("editCard")
+  const [expandedControl, setExpandedControl] = useState<
+    "alignment" | "textSize" | null
+  >(null)
   const alignment = getRichTextAlignment(stylesState)
   const textSize = getRichTextSize(stylesState)
-  const alignmentOptions: RichTextToolbarMenuOption<RichTextAlignment>[] = [
+  const alignmentOptions: RichTextToolbarOption<RichTextAlignment>[] = [
     {
       label: t("formatting.alignment.left"),
       systemImage: "text.alignleft",
@@ -49,7 +53,7 @@ export default function RichTextToolbar({
       value: "right",
     },
   ]
-  const textSizeOptions: RichTextToolbarMenuOption<RichTextSize>[] = [
+  const textSizeOptions: RichTextToolbarOption<RichTextSize>[] = [
     {
       label: t("formatting.textSize.body"),
       systemImage: "textformat.size.smaller",
@@ -69,56 +73,91 @@ export default function RichTextToolbar({
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        horizontal
-        contentContainerStyle={styles.content}
-        showsHorizontalScrollIndicator={false}
-      >
-        <RichTextToolbarButton
-          accessibilityLabel={t("formatting.bold")}
-          icon="bold"
-          isActive={stylesState?.bold.isActive ?? false}
-          isDisabled={stylesState?.bold.isBlocking ?? false}
-          onPress={() => onToggleInlineStyle("bold")}
-        />
-        <RichTextToolbarButton
-          accessibilityLabel={t("formatting.italic")}
-          icon="italic"
-          isActive={stylesState?.italic.isActive ?? false}
-          isDisabled={stylesState?.italic.isBlocking ?? false}
-          onPress={() => onToggleInlineStyle("italic")}
-        />
-        <RichTextToolbarMenu
-          accessibilityLabel={t("formatting.alignment.label")}
-          onSelect={onSetAlignment}
-          options={alignmentOptions}
-          selectedValue={alignment}
-          systemImage={
-            alignmentOptions.find((option) => option.value === alignment)
-              ?.systemImage ?? "text.alignleft"
-          }
-        />
-        <RichTextToolbarMenu
-          accessibilityLabel={t("formatting.textSize.label")}
-          onSelect={onSetTextSize}
-          options={textSizeOptions}
-          selectedValue={textSize}
-          systemImage="textformat.size"
-        />
-      </ScrollView>
+      <View style={styles.controls}>
+        {expandedControl === "alignment" ? (
+          <RichTextToolbarOptions
+            closeAccessibilityLabel={t("cancelAccessibilityLabel")}
+            display="icons"
+            onClose={() => setExpandedControl(null)}
+            onSelect={onSetAlignment}
+            options={alignmentOptions}
+            selectedValue={alignment}
+          />
+        ) : expandedControl === "textSize" ? (
+          <RichTextToolbarOptions
+            closeAccessibilityLabel={t("cancelAccessibilityLabel")}
+            display="labels"
+            onClose={() => setExpandedControl(null)}
+            onSelect={onSetTextSize}
+            options={textSizeOptions}
+            selectedValue={textSize}
+          />
+        ) : (
+          <>
+            <RichTextToolbarButton
+              accessibilityLabel={t("formatting.bold")}
+              icon="bold"
+              isActive={stylesState?.bold.isActive ?? false}
+              isDisabled={stylesState?.bold.isBlocking ?? false}
+              onPress={() => onToggleInlineStyle("bold")}
+            />
+            <RichTextToolbarButton
+              accessibilityLabel={t("formatting.italic")}
+              icon="italic"
+              isActive={stylesState?.italic.isActive ?? false}
+              isDisabled={stylesState?.italic.isBlocking ?? false}
+              onPress={() => onToggleInlineStyle("italic")}
+            />
+            <View style={styles.separatorContainer}>
+              <View style={styles.separator} />
+            </View>
+            <RichTextToolbarButton
+              accessibilityLabel={t("formatting.alignment.label")}
+              icon={
+                alignmentOptions.find((option) => option.value === alignment)
+                  ?.systemImage ?? "text.alignleft"
+              }
+              isActive={false}
+              isDisabled={false}
+              onPress={() => setExpandedControl("alignment")}
+            />
+            <RichTextToolbarButton
+              accessibilityLabel={t("formatting.textSize.label")}
+              isActive={false}
+              isDisabled={false}
+              onPress={() => setExpandedControl("textSize")}
+              text={
+                textSizeOptions.find((option) => option.value === textSize)
+                  ?.label ?? t("formatting.textSize.body")
+              }
+            />
+          </>
+        )}
+      </View>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     width: "100%",
     height: 48,
+    alignItems: "center",
     justifyContent: "center",
   },
-  content: {
+  controls: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    gap: 8,
+    gap: 2,
   },
-})
+  separatorContainer: {
+    height: 36,
+    justifyContent: "center",
+    paddingHorizontal: 5,
+  },
+  separator: {
+    width: 1,
+    height: 20,
+    backgroundColor: theme.colors.chromeMuted,
+  },
+}))

@@ -325,6 +325,7 @@ export default function EditCardScreen({
       <KeyboardToolbar enabled={isEditorToolbarEnabled}>
         <KeyboardToolbar.Content>
           <RichTextToolbar
+            key={focusedField ?? "none"}
             onSetAlignment={handleSetAlignment}
             onSetTextSize={handleSetTextSize}
             onToggleInlineStyle={handleToggleInlineStyle}
